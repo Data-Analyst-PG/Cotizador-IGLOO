@@ -104,6 +104,17 @@ with st.form("captura_ruta"):
 
     if revisar:
         st.session_state.revisar_ruta = True
+        st.session_state.datos_captura = {
+            "fecha": fecha, "tipo": tipo, "cliente": cliente, "origen": origen, "destino": destino, "Modo de Viaje": Modo_de_Viaje,
+            "km": km, "moneda_ingreso": moneda_ingreso, "ingreso_flete": ingreso_flete,
+            "moneda_cruce": moneda_cruce, "ingreso_cruce": ingreso_cruce,
+            "moneda_costo_cruce": moneda_costo_cruce, "costo_cruce": costo_cruce,
+            "horas_termo": horas_termo, "lavado_termo": lavado_termo, "movimiento_local": movimiento_local,
+            "puntualidad": puntualidad, "pension": pension, "estancia": estancia,
+            "fianza_termo": fianza_termo, "renta_termo": renta_termo, "casetas": casetas,
+            "pistas_extra": pistas_extra, "stop": stop, "falso": falso,
+            "gatas": gatas, "accesorios": accesorios, "guias": guias
+        }
         ingreso_total = (ingreso_flete * valores["Tipo de cambio USD"] if moneda_ingreso == "USD" else ingreso_flete)
         ingreso_total += (ingreso_cruce * valores["Tipo de cambio USD"] if moneda_cruce == "USD" else ingreso_cruce)
         costo_cruce_convertido = costo_cruce * (valores["Tipo de cambio USD"] if moneda_costo_cruce == "USD" else 1)
