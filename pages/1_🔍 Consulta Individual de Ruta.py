@@ -76,12 +76,17 @@ if os.path.exists(RUTA_RUTAS):
 
 
     if st.button("🔁 Simular"):
+        st.session_state["simular"] = True
+
+    # Mostrar resultados simulados si está activo
+    if st.session_state.get("simular", False):
         ingreso_total = safe_number(ruta["Ingreso Total"])
         costo_diesel_camion = (safe_number(ruta["KM"]) / rendimiento_input) * costo_diesel_input
+        costo_diesel_termo = safe_number(ruta["Horas_Termo"]) * safe_number(ruta["KM"]) * costo_diesel_input
 
         costo_total = (
             costo_diesel_camion +
-            safe_number(ruta["Costo_Diesel_Termo"]) +
+            costo_diesel_termo +
             safe_number(ruta["Sueldo_Operador"]) +
             safe_number(ruta["Bono"]) +
             safe_number(ruta["Casetas"]) +
@@ -95,11 +100,16 @@ if os.path.exists(RUTA_RUTAS):
         porcentaje_bruta = (utilidad_bruta / ingreso_total * 100) if ingreso_total > 0 else 0
         porcentaje_neta = (utilidad_neta / ingreso_total * 100) if ingreso_total > 0 else 0
 
-        # Mostrar resultados simulados
+        st.success("🔧 Estás viendo una simulación. Los valores han sido ajustados con los parámetros ingresados.")
         mostrar_resultados(ingreso_total, costo_total, utilidad_bruta, costos_indirectos, utilidad_neta, porcentaje_bruta, porcentaje_neta)
 
+        # Botón para volver a valores reales
+        if st.button("🔄 Volver a valores reales"):
+            st.session_state["simular"] = False
+        st.experimental_rerun()
+
+    # Mostrar resultados reales por defecto
     else:
-        # Mostrar resultados reales por defecto
         ingreso_total = safe_number(ruta["Ingreso Total"])
         costo_total = safe_number(ruta["Costo_Total_Ruta"])
         utilidad_bruta = ingreso_total - costo_total
@@ -110,6 +120,7 @@ if os.path.exists(RUTA_RUTAS):
 
         mostrar_resultados(ingreso_total, costo_total, utilidad_bruta, costos_indirectos, utilidad_neta, porcentaje_bruta, porcentaje_neta)
 
+    
     # =====================
     # 📋 Detalles y Costos
     # =====================
@@ -139,8 +150,16 @@ if os.path.exists(RUTA_RUTAS):
         st.write(f"Moneda Costo Cruce: {ruta['Moneda Costo Cruce']}")
         st.write(f"Costo Cruce Original: ${safe_number(ruta['Costo Cruce']):,.2f}")
         st.write(f"Costo Cruce Convertido: ${safe_number(ruta['Costo Cruce Convertido']):,.2f}")
-        st.write(f"Diesel Camión: ${safe_number(ruta['Costo_Diesel_Camion']):,.2f}")
-        st.write(f"Diesel Termo: ${safe_number(ruta['Costo_Diesel_Termo']):,.2f}")
+        if st.session_state.get("simular", False):
+            costo_diesel_camion = (safe_number(ruta["KM"]) / rendimiento_input) * costo_diesel_input
+            st.write(f"Diesel Camión (Simulado): ${costo_diesel_camion:,.2f}")
+        else:
+            st.write(f"Diesel Camión: ${safe_number(ruta['Costo_Diesel_Camion']):,.2f}")
+        if st.session_state.get("simular", False):
+            costo_diesel_termo = safe_number(ruta["Horas_Termo"]) * safe_number(ruta["KM"]) * costo_diesel_input
+            st.write(f"Diesel Termo (Simulado): ${costo_diesel_termo:,.2f}")
+        else:
+            st.write(f"Diesel Termo: ${safe_number(ruta['Costo_Diesel_Termo']):,.2f}")
         st.write(f"Sueldo Operador: ${safe_number(ruta['Sueldo_Operador']):,.2f}")
         st.write(f"Bono: ${safe_number(ruta['Bono']):,.2f}")
         st.write(f"Casetas: ${safe_number(ruta['Casetas']):,.2f}")
