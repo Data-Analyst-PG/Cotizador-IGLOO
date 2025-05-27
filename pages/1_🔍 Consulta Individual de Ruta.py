@@ -38,7 +38,25 @@ if os.path.exists(RUTA_RUTAS):
     )
 
     ruta = df.loc[index_sel]
+    
+    # Campos simulables
+    st.markdown("---")
+    st.subheader("⚙️ Ajustes para Simulación")
+    costo_diesel_input = st.number_input("Costo del Diesel ($/L)", value=float(valores.get("Costo Diesel", 24.0)))
+    rendimiento_input = st.number_input("Rendimiento Camión (km/L)", value=float(valores.get("Rendimiento Camion", 2.65)))
 
+    if st.button("🔁 Simular"):
+        ingreso_total = safe_number(ruta["Ingreso Total"])
+
+        costo_diesel_camion = (safe_number(ruta["KM"]) / rendimiento_input) * costo_diesel_input
+        costo_total = costo_diesel_camion + safe_number(ruta["Costo_Diesel_Termo"]) + safe_number(ruta["Sueldo_Operador"]) + safe_number(ruta["Bono"]) + safe_number(ruta["Casetas"]) + safe_number(ruta["Costo Cruce Convertido"]) + safe_number(ruta["Costo_Extras"])
+
+        utilidad_bruta = ingreso_total - costo_total
+        costos_indirectos = ingreso_total * 0.35
+        utilidad_neta = utilidad_bruta - costos_indirectos
+        porcentaje_bruta = (utilidad_bruta / ingreso_total * 100) if ingreso_total > 0 else 0
+        porcentaje_neta = (utilidad_neta / ingreso_total * 100) if ingreso_total > 0 else 0
+    
     # =====================
     # 📊 Ingresos y Utilidades
     # =====================
@@ -70,14 +88,16 @@ if os.path.exists(RUTA_RUTAS):
     # =====================
     st.markdown("---")
     st.subheader("📋 Detalles y Costos de la Ruta")
-
-    detalles = [
+    col1, col2, col3 = st.columns(3)
+    with col1:
         f"Fecha: {ruta['Fecha']}",
         f"Tipo: {ruta['Tipo']}",
         f"Modo: {ruta.get('Modo', 'Operado')}",
         f"Cliente: {ruta['Cliente']}",
         f"Origen → Destino: {ruta['Origen']} → {ruta['Destino']}",
         f"KM: {safe_number(ruta['KM']):,.2f}",
+        f"Rendimiento Camion: {ruta['rendimiento_camion']}",
+    with col2:
         f"Moneda Flete: {ruta['Moneda']}",
         f"Ingreso Flete Original: ${safe_number(ruta['Ingreso_Original']):,.2f}",
         f"Tipo de cambio: {safe_number(ruta['Tipo de cambio']):,.2f}",
@@ -94,6 +114,7 @@ if os.path.exists(RUTA_RUTAS):
         f"Sueldo Operador: ${safe_number(ruta['Sueldo_Operador']):,.2f}",
         f"Bono: ${safe_number(ruta['Bono']):,.2f}",
         f"Casetas: ${safe_number(ruta['Casetas']):,.2f}",
+    with col3:
         "**Extras:**",
         f"- Lavado Termo: ${safe_number(ruta['Lavado_Termo']):,.2f}",
         f"- Movimiento Local: ${safe_number(ruta['Movimiento_Local']):,.2f}",
