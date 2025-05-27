@@ -94,7 +94,9 @@ if os.path.exists(RUTA_RUTAS):
     # =====================
     st.markdown("---")
     st.subheader("📋 Detalles y Costos de la Ruta")
+    
     col1, col2, col3 = st.columns(3)
+    
     with col1:
         st.write(f"Fecha: {ruta['Fecha']}")
         st.write(f"Tipo: {ruta['Tipo']}")
@@ -103,6 +105,7 @@ if os.path.exists(RUTA_RUTAS):
         st.write(f"Origen → Destino: {ruta['Origen']} → {ruta['Destino']}")
         st.write(f"KM: {safe_number(ruta['KM']):,.2f}")
         st.write(f"Rendimiento Camión: {rendimiento_input:.2f}")
+        
     with col2:
         st.write(f"Moneda Flete: {ruta['Moneda']}")
         st.write(f"Ingreso Flete Original: ${safe_number(ruta['Ingreso_Original']):,.2f}")
@@ -120,6 +123,7 @@ if os.path.exists(RUTA_RUTAS):
         st.write(f"Sueldo Operador: ${safe_number(ruta['Sueldo_Operador']):,.2f}")
         st.write(f"Bono: ${safe_number(ruta['Bono']):,.2f}")
         st.write(f"Casetas: ${safe_number(ruta['Casetas']):,.2f}")
+        
     with col3:
         st.write("**Extras:**")
         st.write(f"- Lavado Termo: ${safe_number(ruta['Lavado_Termo']):,.2f}")
