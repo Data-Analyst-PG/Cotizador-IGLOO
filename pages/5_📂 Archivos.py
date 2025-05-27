@@ -1,3 +1,4 @@
+# 6_📂 Administración de Archivos
 import streamlit as st
 import pandas as pd
 import os
@@ -37,9 +38,9 @@ st.markdown(f"""
 
 st.title("Administración de Archivos 📂")
 
-# Archivos
 RUTA_RUTAS = "rutas_guardadas.csv"
 RUTA_DATOS = "datos_generales.csv"
+RUTA_PROG = "viajes_programados.csv"
 
 st.subheader("📥 Descargar respaldos")
 
@@ -60,6 +61,16 @@ if os.path.exists(RUTA_DATOS):
         label="Descargar datos_generales.csv",
         data=datos.to_csv(index=False),
         file_name="datos_generales.csv",
+        mime="text/csv"
+    )
+
+# Descargar viajes_programados.csv
+if os.path.exists(RUTA_PROG):
+    viajes = pd.read_csv(RUTA_PROG)
+    st.download_button(
+        label="Descargar viajes_programados.csv",
+        data=viajes.to_csv(index=False),
+        file_name="viajes_programados.csv",
         mime="text/csv"
     )
 
@@ -88,3 +99,14 @@ if datos_file:
         st.rerun()
     except Exception as e:
         st.error(f"❌ Error al cargar datos generales: {e}")
+
+# Subir viajes_programados.csv
+prog_file = st.file_uploader("Subir viajes_programados.csv", type="csv", key="programacion_upload")
+if prog_file:
+    try:
+        prog_df = pd.read_csv(prog_file)
+        prog_df.to_csv(RUTA_PROG, index=False)
+        st.success("✅ Programaciones de viaje restauradas correctamente.")
+        st.rerun()
+    except Exception as e:
+        st.error(f"❌ Error al cargar programaciones: {e}")
