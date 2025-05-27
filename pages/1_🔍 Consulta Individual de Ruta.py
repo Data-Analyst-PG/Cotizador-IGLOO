@@ -141,7 +141,5 @@ if os.path.exists(RUTA_RUTAS):
         st.write(f"- Guías: ${safe_number(ruta.get('Guias', 0)):,.2f}")
     ]
 
-    for line in detalles:
-        st.write(line)
 else:
     st.warning("⚠️ No hay rutas guardadas todavía.")
