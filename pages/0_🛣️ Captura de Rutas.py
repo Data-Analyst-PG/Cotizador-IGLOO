@@ -101,19 +101,56 @@ with st.form("captura_ruta"):
         guias = st.number_input("Guías", min_value=0.0)
 
     revisar = st.form_submit_button("🔍 Revisar Ruta")
+
     if revisar:
         st.session_state.revisar_ruta = True
-        st.session_state.datos_captura = {
-            "fecha": fecha, "tipo": tipo, "cliente": cliente, "origen": origen, "destino": destino, "Modo de Viaje": Modo_de_Viaje,
-            "km": km, "moneda_ingreso": moneda_ingreso, "ingreso_flete": ingreso_flete,
-            "moneda_cruce": moneda_cruce, "ingreso_cruce": ingreso_cruce,
-            "moneda_costo_cruce": moneda_costo_cruce, "costo_cruce": costo_cruce,
-            "horas_termo": horas_termo, "lavado_termo": lavado_termo, "movimiento_local": movimiento_local,
-            "puntualidad": puntualidad, "pension": pension, "estancia": estancia,
-            "fianza_termo": fianza_termo, "renta_termo": renta_termo, "casetas": casetas,
-            "pistas_extra": pistas_extra, "stop": stop, "falso": falso,
-            "gatas": gatas, "accesorios": accesorios, "guias": guias
-        }
+        ingreso_total = (ingreso_flete * valores["Tipo de cambio USD"] if moneda_ingreso == "USD" else ingreso_flete)
+        ingreso_total += (ingreso_cruce * valores["Tipo de cambio USD"] if moneda_cruce == "USD" else ingreso_cruce)
+        costo_cruce_convertido = costo_cruce * (valores["Tipo de cambio USD"] if moneda_costo_cruce == "USD" else 1)
+
+        costo_diesel_camion = (km / valores["Rendimiento Camion"]) * valores["Costo Diesel"]
+        costo_diesel_termo = horas_termo * valores["Rendimiento Termo"] * valores["Costo Diesel"]
+
+        factor = 2 if Modo_de_Viaje == "Team" else 1
+
+        if tipo == "IMPO":
+            pago_km = valores["Pago x km IMPO"]
+            sueldo = km * pago_km * factor
+            bono = valores["Bono ISR IMSS"] * factor
+        elif tipo == "EXPO":
+            pago_km = valores["Pago x km EXPO"]
+            sueldo = km * pago_km * factor
+            bono = valores["Bono ISR IMSS"] * factor
+        else:
+            pago_km = 0.0
+            sueldo = valores["Pago fijo VACIO"] * factor
+            bono = 0.0
+
+        puntualidad_val = puntualidad * factor
+        extras = sum(map(safe_number, [lavado_termo, movimiento_local, puntualidad_val, pension, estancia, fianza_termo, renta_termo, pistas_extra, stop, falso, gatas, accesorios, guias]))
+
+        costo_total = costo_diesel_camion + costo_diesel_termo + sueldo + bono + casetas + extras + costo_cruce_convertido
+
+        utilidad_bruta = ingreso_total - costo_total
+        costos_indirectos = ingreso_total * 0.35
+        utilidad_neta = utilidad_bruta - costos_indirectos
+        porcentaje_bruta = (utilidad_bruta / ingreso_total * 100) if ingreso_total > 0 else 0
+        porcentaje_neta = (utilidad_neta / ingreso_total * 100) if ingreso_total > 0 else 0
+
+        def colored_bold(label, value, condition):
+            color = "green" if condition else "red"
+            return f"<strong>{label}:</strong> <span style='color:{color}; font-weight:bold'>{value}</span>"
+
+        st.markdown("---")
+        st.subheader("📊 Ingresos y Utilidades")
+
+        st.write(f"**Ingreso Total:** ${ingreso_total:,.2f}")
+        st.write(f"**Costo Total:** ${costo_total:,.2f}")
+        st.markdown(colored_bold("Utilidad Bruta", f"${utilidad_bruta:,.2f}", utilidad_bruta >= 0), unsafe_allow_html=True)
+        st.markdown(colored_bold("% Utilidad Bruta", f"{porcentaje_bruta:.2f}%", porcentaje_bruta >= 50), unsafe_allow_html=True)
+        st.write(f"**Costos Indirectos (35%):** ${costos_indirectos:,.2f}")
+        st.markdown(colored_bold("Utilidad Neta", f"${utilidad_neta:,.2f}", utilidad_neta >= 0), unsafe_allow_html=True)
+        st.markdown(colored_bold("% Utilidad Neta", f"{porcentaje_neta:.2f}%", porcentaje_neta >= 15), unsafe_allow_html=True)
 
 if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
     d = st.session_state.datos_captura
