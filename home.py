@@ -5,8 +5,8 @@ import base64
 from io import BytesIO
 
 # Ruta al logo
-LOGO_CLARO = "logo_main-PG.png"
-LOGO_OSCURO = "logo_main-PG.png"
+LOGO_CLARO = "PG Brand.png"
+LOGO_OSCURO = "PG Brand.png"
 
 # Función para convertir imagen a base64
 @st.cache_data
