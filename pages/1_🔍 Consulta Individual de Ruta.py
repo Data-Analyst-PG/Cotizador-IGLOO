@@ -22,6 +22,22 @@ st.title("🔍 Consulta Individual de Ruta")
 def safe_number(x):
     return 0 if pd.isna(x) else x
 
+def mostrar_resultados(ingreso_total, costo_total, utilidad_bruta, costos_indirectos, utilidad_neta, porcentaje_bruta, porcentaje_neta):
+    st.markdown("---")
+    st.subheader("📊 Ingresos y Utilidades")
+
+    def colored_bold(label, value, condition):
+        color = "green" if condition else "red"
+        return f"<strong>{label}:</strong> <span style='color:{color}; font-weight:bold'>{value}</span>"
+
+    st.write(f"**Ingreso Total:** ${ingreso_total:,.2f}")
+    st.write(f"**Costo Total:** ${costo_total:,.2f}")
+    st.markdown(colored_bold("Utilidad Bruta", f"${utilidad_bruta:,.2f}", utilidad_bruta >= 0), unsafe_allow_html=True)
+    st.markdown(colored_bold("% Utilidad Bruta", f"{porcentaje_bruta:.2f}%", porcentaje_bruta >= 50), unsafe_allow_html=True)
+    st.write(f"**Costos Indirectos (35%):** ${costos_indirectos:,.2f}")
+    st.markdown(colored_bold("Utilidad Neta", f"${utilidad_neta:,.2f}", utilidad_neta >= 0), unsafe_allow_html=True)
+    st.markdown(colored_bold("% Utilidad Neta", f"{porcentaje_neta:.2f}%", porcentaje_neta >= 15), unsafe_allow_html=True)
+    
 if os.path.exists(RUTA_RUTAS):
     df = pd.read_csv(RUTA_RUTAS)
 
@@ -58,17 +74,41 @@ if os.path.exists(RUTA_RUTAS):
     costo_diesel_input = st.number_input("Costo del Diesel ($/L)", value=float(valores.get("Costo Diesel", 24.0)))
     rendimiento_input = st.number_input("Rendimiento Camión (km/L)", value=float(valores.get("Rendimiento Camion", 2.65)))
 
+
     if st.button("🔁 Simular"):
         ingreso_total = safe_number(ruta["Ingreso Total"])
-
         costo_diesel_camion = (safe_number(ruta["KM"]) / rendimiento_input) * costo_diesel_input
-        costo_total = costo_diesel_camion + safe_number(ruta["Costo_Diesel_Termo"]) + safe_number(ruta["Sueldo_Operador"]) + safe_number(ruta["Bono"]) + safe_number(ruta["Casetas"]) + safe_number(ruta["Costo Cruce Convertido"]) + safe_number(ruta["Costo_Extras"])
+
+        costo_total = (
+            costo_diesel_camion +
+            safe_number(ruta["Costo_Diesel_Termo"]) +
+            safe_number(ruta["Sueldo_Operador"]) +
+            safe_number(ruta["Bono"]) +
+            safe_number(ruta["Casetas"]) +
+            safe_number(ruta["Costo Cruce Convertido"]) +
+            safe_number(ruta["Costo_Extras"])
+        )
 
         utilidad_bruta = ingreso_total - costo_total
         costos_indirectos = ingreso_total * 0.35
         utilidad_neta = utilidad_bruta - costos_indirectos
         porcentaje_bruta = (utilidad_bruta / ingreso_total * 100) if ingreso_total > 0 else 0
         porcentaje_neta = (utilidad_neta / ingreso_total * 100) if ingreso_total > 0 else 0
+
+        # Mostrar resultados simulados
+        mostrar_resultados(ingreso_total, costo_total, utilidad_bruta, costos_indirectos, utilidad_neta, porcentaje_bruta, porcentaje_neta)
+
+    else:
+        # Mostrar resultados reales por defecto
+        ingreso_total = safe_number(ruta["Ingreso Total"])
+        costo_total = safe_number(ruta["Costo_Total_Ruta"])
+        utilidad_bruta = ingreso_total - costo_total
+        costos_indirectos = ingreso_total * 0.35
+        utilidad_neta = utilidad_bruta - costos_indirectos
+        porcentaje_bruta = (utilidad_bruta / ingreso_total * 100) if ingreso_total > 0 else 0
+        porcentaje_neta = (utilidad_neta / ingreso_total * 100) if ingreso_total > 0 else 0
+
+        mostrar_resultados(ingreso_total, costo_total, utilidad_bruta, costos_indirectos, utilidad_neta, porcentaje_bruta, porcentaje_neta)
     
     # =====================
     # 📊 Ingresos y Utilidades
