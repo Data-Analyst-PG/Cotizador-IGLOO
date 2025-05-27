@@ -69,15 +69,15 @@ with st.form("captura_ruta"):
         cliente = st.text_input("Nombre Cliente")
         origen = st.text_input("Origen")
         destino = st.text_input("Destino")
+        Modo_de_Viaje = st.selectbox("Modo de Viaje", ["Operador", "Team"])
         km = st.number_input("Kilómetros", min_value=0.0)
         moneda_ingreso = st.selectbox("Moneda Ingreso Flete", ["MXN", "USD"])
         ingreso_flete = st.number_input("Ingreso Flete", min_value=0.0)
         moneda_cruce = st.selectbox("Moneda Ingreso Cruce", ["MXN", "USD"])
         ingreso_cruce = st.number_input("Ingreso Cruce", min_value=0.0)
-        moneda_costo_cruce = st.selectbox("Moneda Costo Cruce", ["MXN", "USD"])
-        costo_cruce = st.number_input("Costo Cruce", min_value=0.0)
-
     with col2:
+        moneda_costo_cruce = st.selectbox("Moneda Costo Cruce", ["MXN", "USD"])
+        costo_cruce = st.number_input("Costo Cruce", min_value=0.0)        
         horas_termo = st.number_input("Horas Termo", min_value=0.0)
         lavado_termo = st.number_input("Lavado Termo", min_value=0.0)
         movimiento_local = st.number_input("Movimiento Local", min_value=0.0)
@@ -88,17 +88,31 @@ with st.form("captura_ruta"):
         renta_termo = st.number_input("Renta Termo", min_value=0.0)
         casetas = st.number_input("Casetas", min_value=0.0)
 
+    st.markdown("---")
+    st.subheader("🧾 Costos Extras Adicionales")
+    col3, col4 = st.columns(2)
+    with col3:
+        pistas_extra = st.number_input("Pistas Extra", min_value=0.0)
+        stop = st.number_input("Stop", min_value=0.0)
+        falso = st.number_input("Falso", min_value=0.0)
+    with col4:
+        gatas = st.number_input("Gatas", min_value=0.0)
+        accesorios = st.number_input("Accesorios", min_value=0.0)
+        guias = st.number_input("Guías", min_value=0.0)
+
     revisar = st.form_submit_button("🔍 Revisar Ruta")
     if revisar:
         st.session_state.revisar_ruta = True
         st.session_state.datos_captura = {
-            "fecha": fecha, "tipo": tipo, "cliente": cliente, "origen": origen, "destino": destino, "km": km,
-            "moneda_ingreso": moneda_ingreso, "ingreso_flete": ingreso_flete,
+            "fecha": fecha, "tipo": tipo, "cliente": cliente, "origen": origen, "destino": destino, "Modo de Viaje": Modo_de_Viaje,
+            "km": km, "moneda_ingreso": moneda_ingreso, "ingreso_flete": ingreso_flete,
             "moneda_cruce": moneda_cruce, "ingreso_cruce": ingreso_cruce,
             "moneda_costo_cruce": moneda_costo_cruce, "costo_cruce": costo_cruce,
             "horas_termo": horas_termo, "lavado_termo": lavado_termo, "movimiento_local": movimiento_local,
             "puntualidad": puntualidad, "pension": pension, "estancia": estancia,
-            "fianza_termo": fianza_termo, "renta_termo": renta_termo, "casetas": casetas
+            "fianza_termo": fianza_termo, "renta_termo": renta_termo, "casetas": casetas,
+            "pistas_extra": pistas_extra, "stop": stop, "falso": falso,
+            "gatas": gatas, "accesorios": accesorios, "guias": guias
         }
 
 if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
@@ -116,29 +130,34 @@ if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
     costo_diesel_camion = (d["km"] / valores["Rendimiento Camion"]) * valores["Costo Diesel"]
     costo_diesel_termo = d["horas_termo"] * valores["Rendimiento Termo"] * valores["Costo Diesel"]
 
+    factor = 2 if d["Modo de Viaje"] == "Team" else 1
+
     if d["tipo"] == "IMPO":
         pago_km = valores["Pago x km IMPO"]
-        sueldo = d["km"] * pago_km
-        bono = valores["Bono ISR IMSS"]
+        sueldo = d["km"] * pago_km * factor
+        bono = valores["Bono ISR IMSS"] * factor
     elif d["tipo"] == "EXPO":
         pago_km = valores["Pago x km EXPO"]
-        sueldo = d["km"] * pago_km
-        bono = valores["Bono ISR IMSS"]
+        sueldo = d["km"] * pago_km * factor
+        bono = valores["Bono ISR IMSS"] * factor
     else:
         pago_km = 0.0
-        sueldo = valores["Pago fijo VACIO"]
+        sueldo = valores["Pago fijo VACIO"] * factor
         bono = 0.0
 
+    puntualidad = d["puntualidad"] * factor
     extras = sum([
-        safe_number(d["lavado_termo"]), safe_number(d["movimiento_local"]), safe_number(d["puntualidad"]),
+        safe_number(d["lavado_termo"]), safe_number(d["movimiento_local"]), safe_number(puntualidad),
         safe_number(d["pension"]), safe_number(d["estancia"]),
-        safe_number(d["fianza_termo"]), safe_number(d["renta_termo"])
+        safe_number(d["fianza_termo"]), safe_number(d["renta_termo"]),
+        safe_number(d["pistas_extra"]), safe_number(d["stop"]), safe_number(d["falso"]),
+        safe_number(d["gatas"]), safe_number(d["accesorios"]), safe_number(d["guias"])
     ])
 
     costo_total = costo_diesel_camion + costo_diesel_termo + sueldo + bono + d["casetas"] + extras + costo_cruce_convertido
 
     nueva_ruta = {
-        "Fecha": d["fecha"], "Tipo": d["tipo"], "Cliente": d["cliente"], "Origen": d["origen"], "Destino": d["destino"], "KM": d["km"],
+        "Fecha": d["fecha"], "Tipo": d["tipo"], "Cliente": d["cliente"], "Origen": d["origen"], "Destino": d["destino"], "Modo de Viaje": d["Modo de Viaje"], "KM": d["km"],
         "Moneda": d["moneda_ingreso"], "Ingreso_Original": d["ingreso_flete"], "Tipo de cambio": tipo_cambio_flete,
         "Ingreso Flete": ingreso_flete_convertido, "Moneda_Cruce": d["moneda_cruce"], "Cruce_Original": d["ingreso_cruce"],
         "Tipo cambio Cruce": tipo_cambio_cruce, "Ingreso Cruce": ingreso_cruce_convertido,
@@ -147,8 +166,10 @@ if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
         "Ingreso Total": ingreso_total,
         "Pago por KM": pago_km, "Sueldo_Operador": sueldo, "Bono": bono,
         "Casetas": d["casetas"], "Horas_Termo": d["horas_termo"], "Lavado_Termo": d["lavado_termo"],
-        "Movimiento_Local": d["movimiento_local"], "Puntualidad": d["puntualidad"], "Pension": d["pension"],
+        "Movimiento_Local": d["movimiento_local"], "Puntualidad": puntualidad, "Pension": d["pension"],
         "Estancia": d["estancia"], "Fianza_Termo": d["fianza_termo"], "Renta_Termo": d["renta_termo"],
+        "Pistas_Extra": d["pistas_extra"], "Stop": d["stop"], "Falso": d["falso"],
+        "Gatas": d["gatas"], "Accesorios": d["accesorios"], "Guias": d["guias"],
         "Costo_Diesel_Camion": costo_diesel_camion, "Costo_Diesel_Termo": costo_diesel_termo,
         "Costo_Extras": extras, "Costo_Total_Ruta": costo_total
     }
