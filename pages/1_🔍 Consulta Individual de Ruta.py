@@ -9,13 +9,11 @@ st.title("🔍 Consulta Individual de Ruta")
 def safe_number(x):
     return 0 if pd.isna(x) else x
 
-valores = {}
-if os.path.exists(RUTA_DATOS):
-    valores = pd.read_csv(RUTA_DATOS).set_index("Parametro").to_dict()["Valor"]
-
-def colored_bold(label, value, condition):
-    color = "green" if condition else "red"
-    return f"<strong>{label}:</strong> <span style='color:{color}; font-weight:bold'>{value}</span>"
+RUTA_DATOS = "datos_generales.csv"
+valores_por_defecto = {
+    "Rendimiento Camion": 2.5,
+    "Costo Diesel": 24.0,
+}
 
 if os.path.exists(RUTA_RUTAS):
     df = pd.read_csv(RUTA_RUTAS)
