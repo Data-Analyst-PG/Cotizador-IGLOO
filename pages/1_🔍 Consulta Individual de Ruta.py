@@ -96,45 +96,45 @@ if os.path.exists(RUTA_RUTAS):
     st.subheader("📋 Detalles y Costos de la Ruta")
     col1, col2, col3 = st.columns(3)
     with col1:
-        f"Fecha: {ruta['Fecha']}",
-        f"Tipo: {ruta['Tipo']}",
-        f"Modo: {ruta.get('Modo', 'Operado')}",
-        f"Cliente: {ruta['Cliente']}",
-        f"Origen → Destino: {ruta['Origen']} → {ruta['Destino']}",
-        f"KM: {safe_number(ruta['KM']):,.2f}",
-        f"Rendimiento Camion: {ruta['rendimiento_camion']}",
+        st.write(f"Fecha: {ruta['Fecha']}")
+        st.write(f"Tipo: {ruta['Tipo']}")
+        st.write(f"Modo: {ruta.get('Modo de Viaje', 'Operado')}")
+        st.write(f"Cliente: {ruta['Cliente']}")
+        st.write(f"Origen → Destino: {ruta['Origen']} → {ruta['Destino']}")
+        st.write(f"KM: {safe_number(ruta['KM']):,.2f}")
+        st.write(f"Rendimiento Camión: {rendimiento_input:.2f}")
     with col2:
-        f"Moneda Flete: {ruta['Moneda']}",
-        f"Ingreso Flete Original: ${safe_number(ruta['Ingreso_Original']):,.2f}",
-        f"Tipo de cambio: {safe_number(ruta['Tipo de cambio']):,.2f}",
-        f"Ingreso Flete Convertido: ${safe_number(ruta['Ingreso Flete']):,.2f}",
-        f"Moneda Cruce: {ruta['Moneda_Cruce']}",
-        f"Ingreso Cruce Original: ${safe_number(ruta['Cruce_Original']):,.2f}",
-        f"Tipo cambio Cruce: {safe_number(ruta['Tipo cambio Cruce']):,.2f}",
-        f"Ingreso Cruce Convertido: ${safe_number(ruta['Ingreso Cruce']):,.2f}",
-        f"Moneda Costo Cruce: {ruta['Moneda Costo Cruce']}",
-        f"Costo Cruce Original: ${safe_number(ruta['Costo Cruce']):,.2f}",
-        f"Costo Cruce Convertido: ${safe_number(ruta['Costo Cruce Convertido']):,.2f}",
-        f"Diesel Camión: ${safe_number(ruta['Costo_Diesel_Camion']):,.2f}",
-        f"Diesel Termo: ${safe_number(ruta['Costo_Diesel_Termo']):,.2f}",
-        f"Sueldo Operador: ${safe_number(ruta['Sueldo_Operador']):,.2f}",
-        f"Bono: ${safe_number(ruta['Bono']):,.2f}",
-        f"Casetas: ${safe_number(ruta['Casetas']):,.2f}",
+        st.write(f"Moneda Flete: {ruta['Moneda']}")
+        st.write(f"Ingreso Flete Original: ${safe_number(ruta['Ingreso_Original']):,.2f}")
+        st.write(f"Tipo de cambio: {safe_number(ruta['Tipo de cambio']):,.2f}")
+        st.write(f"Ingreso Flete Convertido: ${safe_number(ruta['Ingreso Flete']):,.2f}")
+        st.write(f"Moneda Cruce: {ruta['Moneda_Cruce']}")
+        st.write(f"Ingreso Cruce Original: ${safe_number(ruta['Cruce_Original']):,.2f}")
+        st.write(f"Tipo cambio Cruce: {safe_number(ruta['Tipo cambio Cruce']):,.2f}")
+        st.write(f"Ingreso Cruce Convertido: ${safe_number(ruta['Ingreso Cruce']):,.2f}")
+        st.write(f"Moneda Costo Cruce: {ruta['Moneda Costo Cruce']}")
+        st.write(f"Costo Cruce Original: ${safe_number(ruta['Costo Cruce']):,.2f}")
+        st.write(f"Costo Cruce Convertido: ${safe_number(ruta['Costo Cruce Convertido']):,.2f}")
+        st.write(f"Diesel Camión: ${safe_number(ruta['Costo_Diesel_Camion']):,.2f}")
+        st.write(f"Diesel Termo: ${safe_number(ruta['Costo_Diesel_Termo']):,.2f}")
+        st.write(f"Sueldo Operador: ${safe_number(ruta['Sueldo_Operador']):,.2f}")
+        st.write(f"Bono: ${safe_number(ruta['Bono']):,.2f}")
+        st.write(f"Casetas: ${safe_number(ruta['Casetas']):,.2f}")
     with col3:
-        "**Extras:**",
-        f"- Lavado Termo: ${safe_number(ruta['Lavado_Termo']):,.2f}",
-        f"- Movimiento Local: ${safe_number(ruta['Movimiento_Local']):,.2f}",
-        f"- Puntualidad: ${safe_number(ruta['Puntualidad']):,.2f}",
-        f"- Pensión: ${safe_number(ruta['Pension']):,.2f}",
-        f"- Estancia: ${safe_number(ruta['Estancia']):,.2f}",
-        f"- Fianza Termo: ${safe_number(ruta['Fianza_Termo']):,.2f}",
-        f"- Renta Termo: ${safe_number(ruta['Renta_Termo']):,.2f}",
-        f"- Pistas Extra: ${safe_number(ruta.get('Pistas_Extra', 0)):,.2f}",
-        f"- Stop: ${safe_number(ruta.get('Stop', 0)):,.2f}",
-        f"- Falso: ${safe_number(ruta.get('Falso', 0)):,.2f}",
-        f"- Gatas: ${safe_number(ruta.get('Gatas', 0)):,.2f}",
-        f"- Accesorios: ${safe_number(ruta.get('Accesorios', 0)):,.2f}",
-        f"- Guías: ${safe_number(ruta.get('Guias', 0)):,.2f}"
+        st.write("**Extras:**")
+        st.write(f"- Lavado Termo: ${safe_number(ruta['Lavado_Termo']):,.2f}")
+        st.write(f"- Movimiento Local: ${safe_number(ruta['Movimiento_Local']):,.2f}")
+        st.write(f"- Puntualidad: ${safe_number(ruta['Puntualidad']):,.2f}")
+        st.write(f"- Pensión: ${safe_number(ruta['Pension']):,.2f}")
+        st.write(f"- Estancia: ${safe_number(ruta['Estancia']):,.2f}")
+        st.write(f"- Fianza Termo: ${safe_number(ruta['Fianza_Termo']):,.2f}")
+        st.write(f"- Renta Termo: ${safe_number(ruta['Renta_Termo']):,.2f}")
+        st.write(f"- Pistas Extra: ${safe_number(ruta.get('Pistas_Extra', 0)):,.2f}")
+        st.write(f"- Stop: ${safe_number(ruta.get('Stop', 0)):,.2f}")
+        st.write(f"- Falso: ${safe_number(ruta.get('Falso', 0)):,.2f}")
+        st.write(f"- Gatas: ${safe_number(ruta.get('Gatas', 0)):,.2f}")
+        st.write(f"- Accesorios: ${safe_number(ruta.get('Accesorios', 0)):,.2f}")
+        st.write(f"- Guías: ${safe_number(ruta.get('Guias', 0)):,.2f}")
     ]
 
     for line in detalles:
