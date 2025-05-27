@@ -12,8 +12,8 @@ def image_to_base64(img):
     return base64.b64encode(buffer.getvalue()).decode()
 
 # Cargar logos
-logo_claro = Image.open("Igloo Original.png")
-logo_oscuro = Image.open("Igloo White.png")
+logo_claro = Image.open("logo_main-PG.png")
+logo_oscuro = Image.open("logo_main-PG.png")
 logo_claro_b64 = image_to_base64(logo_claro)
 logo_oscuro_b64 = image_to_base64(logo_oscuro)
 
