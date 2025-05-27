@@ -2,18 +2,25 @@ import streamlit as st
 import pandas as pd
 import os
 
+# Ruta y valores por defecto
+RUTA_DATOS = "datos_generales.csv"
 RUTA_RUTAS = "rutas_guardadas.csv"
+valores_por_defecto = {
+    "Rendimiento Camion": 2.5,
+    "Costo Diesel": 24.0,
+}
+
+# Cargar valores desde CSV o usar los por defecto
+if os.path.exists(RUTA_DATOS):
+    df_datos = pd.read_csv(RUTA_DATOS).set_index("Parametro")["Valor"].to_dict()
+    valores = {**valores_por_defecto, **df_datos}
+else:
+    valores = valores_por_defecto.copy()
 
 st.title("🔍 Consulta Individual de Ruta")
 
 def safe_number(x):
     return 0 if pd.isna(x) else x
-
-RUTA_DATOS = "datos_generales.csv"
-valores_por_defecto = {
-    "Rendimiento Camion": 2.5,
-    "Costo Diesel": 24.0,
-}
 
 if os.path.exists(RUTA_RUTAS):
     df = pd.read_csv(RUTA_RUTAS)
