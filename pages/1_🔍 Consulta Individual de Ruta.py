@@ -82,7 +82,7 @@ if os.path.exists(RUTA_RUTAS):
     if st.session_state.get("simular", False):
         ingreso_total = safe_number(ruta["Ingreso Total"])
         costo_diesel_camion = (safe_number(ruta["KM"]) / rendimiento_input) * costo_diesel_input
-        costo_diesel_termo = safe_number(ruta["Horas_Termo"]) * valores["Rendimiento Termo"] * costo_diesel_input}
+        costo_diesel_termo = safe_number(ruta["Horas_Termo"]) * float(valores.get("Rendimiento Termo", 3.0)) * costo_diesel_input
 
         costo_total = (
             costo_diesel_camion +
@@ -106,7 +106,7 @@ if os.path.exists(RUTA_RUTAS):
         # Botón para volver a valores reales
         if st.button("🔄 Volver a valores reales"):
             st.session_state["simular"] = False
-        st.experimental_rerun()
+            st.experimental_rerun()
 
     # Mostrar resultados reales por defecto
     else:
