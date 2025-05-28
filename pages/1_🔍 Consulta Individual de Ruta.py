@@ -82,7 +82,7 @@ if os.path.exists(RUTA_RUTAS):
     if st.session_state.get("simular", False):
         ingreso_total = safe_number(ruta["Ingreso Total"])
         costo_diesel_camion = (safe_number(ruta["KM"]) / rendimiento_input) * costo_diesel_input
-        costo_diesel_termo = safe_number(ruta["Horas_Termo"]) * safe_number(ruta["KM"]) * costo_diesel_input
+        costo_diesel_termo = safe_number(ruta["Horas_Termo"]) * valores["Rendimiento Termo"] * costo_diesel_input}
 
         costo_total = (
             costo_diesel_camion +
