@@ -237,8 +237,12 @@ if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
         st.error("⚠️ Conflicto al generar ID. Intenta de nuevo.")
     else:
         nueva_ruta["ID_Ruta"] = nuevo_id
-        supabase.table("Rutas").insert(nueva_ruta).execute()
-        st.success("✅ Ruta guardada exitosamente.")
-        st.session_state.revisar_ruta = False
-        del st.session_state["datos_captura"]
-        st.experimental_rerun()
+        try:
+            supabase.table("Rutas").insert(nueva_ruta).execute()
+            st.success("✅ Ruta guardada exitosamente.")
+            st.session_state.revisar_ruta = False
+            del st.session_state["datos_captura"]
+            st.experimental_rerun()
+        except Exception as e:
+            st.error(f"❌ Error al guardar ruta: {e}")
+            st.json(nueva_ruta) 
