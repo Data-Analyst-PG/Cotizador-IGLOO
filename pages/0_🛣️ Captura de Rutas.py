@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
-import os
-from datetime import datetime
+import streamlit as st
+from supabase import create_client
 
-# Rutas de archivos
-RUTA_RUTAS = "rutas_guardadas.csv"
-RUTA_DATOS = "datos_generales.csv"
+url = st.secrets["SUPABASE_URL"]
+key = st.secrets["SUPABASE_KEY"]
+
+supabase = create_client(url, key)
 
 # Inicializa estado si no existe
 if "revisar_ruta" not in st.session_state:
