@@ -212,7 +212,7 @@ if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
 
     nueva_ruta = {
         "ID_Ruta": generar_nuevo_id(),
-        "Fecha": d["fecha"], "Tipo": d["tipo"], "Cliente": d["cliente"], "Origen": d["origen"], "Destino": d["destino"], "Modo de Viaje": d["Modo de Viaje"], "KM": d["km"],
+        "Fecha": str(d["fecha"]), "Tipo": d["tipo"], "Cliente": d["cliente"], "Origen": d["origen"], "Destino": d["destino"], "Modo de Viaje": d["Modo de Viaje"], "KM": d["km"],
         "Moneda": d["moneda_ingreso"], "Ingreso_Original": d["ingreso_flete"], "Tipo de cambio": tipo_cambio_flete,
         "Ingreso Flete": ingreso_flete_convertido, "Moneda_Cruce": d["moneda_cruce"], "Cruce_Original": d["ingreso_cruce"],
         "Tipo cambio Cruce": tipo_cambio_cruce, "Ingreso Cruce": ingreso_cruce_convertido,
