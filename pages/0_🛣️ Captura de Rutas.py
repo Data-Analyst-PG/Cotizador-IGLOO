@@ -44,7 +44,7 @@ def safe_number(x):
 def generar_nuevo_id():
     respuesta = supabase.table("Rutas").select("ID Ruta").order("ID Ruta", desc=True).limit(1).execute()
     if respuesta.data:
-        ultimo = respuesta.data[0]["ID_ruta"]
+        ultimo = respuesta.data[0]["ID Ruta"]
         numero = int(ultimo[2:]) + 1
     else:
         numero = 1
