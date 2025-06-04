@@ -231,7 +231,7 @@ if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
 
     # Generar nuevo ID y verificar duplicado
     nuevo_id = generar_nuevo_id()
-    existe = supabase.table("Rutas").select("ID Ruta").eq("ID_Ruta", nuevo_id).execute()
+    existe = supabase.table("Rutas").select("ID_Ruta").eq("ID_Ruta", nuevo_id).execute()
 
     if existe.data:
         st.error("⚠️ Conflicto al generar ID. Intenta de nuevo.")
