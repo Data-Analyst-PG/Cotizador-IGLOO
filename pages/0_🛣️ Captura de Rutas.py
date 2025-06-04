@@ -242,7 +242,7 @@ if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
             st.success("✅ Ruta guardada exitosamente.")
             st.session_state.revisar_ruta = False
             del st.session_state["datos_captura"]
-            st.experimental_rerun()
+            st.rerun()
         except Exception as e:
             st.error(f"❌ Error al guardar ruta: {e}")
             st.json(nueva_ruta) 
