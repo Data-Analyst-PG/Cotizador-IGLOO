@@ -36,19 +36,19 @@ if respuesta.data:
     st.markdown("---")
 
     st.subheader("🗑️ Eliminar rutas")
-    ids_disponibles = df["ID_ruta"].tolist()
+    ids_disponibles = df["ID Ruta"].tolist()
     ids_a_eliminar = st.multiselect("Selecciona los ID de ruta a eliminar", ids_disponibles)
 
     if st.button("Eliminar rutas seleccionadas") and ids_a_eliminar:
         for idr in ids_a_eliminar:
-            supabase.table("Rutas").delete().eq("ID_ruta", idr).execute()
+            supabase.table("Rutas").delete().eq("ID Ruta", idr).execute()
         st.success("✅ Rutas eliminadas correctamente.")
         st.experimental_rerun()
 
     st.markdown("---")
     st.subheader("✏️ Editar Ruta Existente")
 
-    id_editar = st.selectbox("Selecciona el ID de ruta a editar", ids_disponibles)
+    id_editar = st.selectbox("Selecciona el ID de Ruta a editar", ids_disponibles)
     ruta = df[df["ID_ruta"] == id_editar].iloc[0]
     
     with st.form("editar_ruta"):
@@ -177,7 +177,7 @@ if respuesta.data:
                     "Rendimiento Termo": rendimiento_termo
                 }
 
-                supabase.table("Rutas").update(ruta_actualizada).eq("ID_ruta", id_editar).execute()
+                supabase.table("Rutas").update(ruta_actualizada).eq("ID Ruta", id_editar).execute()
                 st.success("✅ Ruta actualizada exitosamente.")
                 st.stop()
 else:
