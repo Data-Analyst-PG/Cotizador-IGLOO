@@ -42,7 +42,7 @@ def safe_number(x):
 # Generador de ID tipo IG000001
 
 def generar_nuevo_id():
-    respuesta = supabase.table("Rutas").select("ID Ruta").order("ID Ruta", desc=True).limit(1).execute()
+    respuesta = supabase.table("Rutas").select('"ID Ruta"').order('"ID Ruta"', desc=True).limit(1).execute()
     if respuesta.data:
         ultimo = respuesta.data[0]["ID Ruta"]
         numero = int(ultimo[2:]) + 1
