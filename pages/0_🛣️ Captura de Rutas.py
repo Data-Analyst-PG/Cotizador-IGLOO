@@ -42,9 +42,9 @@ def safe_number(x):
 # Generador de ID tipo IG000001
 
 def generar_nuevo_id():
-    respuesta = supabase.table("Rutas").select('"ID Ruta"').order('"ID Ruta"', desc=True).limit(1).execute()
+    respuesta = supabase.table("Rutas").select("ID_Ruta").order("ID_Ruta", desc=True).limit(1).execute()
     if respuesta.data:
-        ultimo = respuesta.data[0]["ID Ruta"]
+        ultimo = respuesta.data[0]["ID_Ruta"]
         numero = int(ultimo[2:]) + 1
     else:
         numero = 1
@@ -211,7 +211,7 @@ if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
     costo_total = costo_diesel_camion + costo_diesel_termo + sueldo + bono + d["casetas"] + extras + costo_cruce_convertido
 
     nueva_ruta = {
-        "ID Ruta": generar_nuevo_id(),
+        "ID_Ruta": generar_nuevo_id(),
         "Fecha": d["fecha"], "Tipo": d["tipo"], "Cliente": d["cliente"], "Origen": d["origen"], "Destino": d["destino"], "Modo de Viaje": d["Modo de Viaje"], "KM": d["km"],
         "Moneda": d["moneda_ingreso"], "Ingreso_Original": d["ingreso_flete"], "Tipo de cambio": tipo_cambio_flete,
         "Ingreso Flete": ingreso_flete_convertido, "Moneda_Cruce": d["moneda_cruce"], "Cruce_Original": d["ingreso_cruce"],
@@ -231,12 +231,12 @@ if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
 
     # Generar nuevo ID y verificar duplicado
     nuevo_id = generar_nuevo_id()
-    existe = supabase.table("Rutas").select("ID Ruta").eq("ID Ruta", nuevo_id).execute()
+    existe = supabase.table("Rutas").select("ID Ruta").eq("ID_Ruta", nuevo_id).execute()
 
     if existe.data:
         st.error("⚠️ Conflicto al generar ID. Intenta de nuevo.")
     else:
-        nueva_ruta["ID Ruta"] = nuevo_id
+        nueva_ruta["ID_Ruta"] = nuevo_id
         supabase.table("Rutas").insert(nueva_ruta).execute()
         st.success("✅ Ruta guardada exitosamente.")
         st.session_state.revisar_ruta = False
