@@ -1,11 +1,11 @@
 import streamlit as st
 import pandas as pd
-import streamlit as st
+import os
+from datetime import datetime
 from supabase import create_client
 
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
-
 supabase = create_client(url, key)
 
 # Inicializa estado si no existe
@@ -13,6 +13,7 @@ if "revisar_ruta" not in st.session_state:
     st.session_state.revisar_ruta = False
 
 # Valores por defecto
+RUTA_DATOS = "datos_generales.csv"
 valores_por_defecto = {
     "Rendimiento Camion": 2.5,
     "Costo Diesel": 24.0,
@@ -21,7 +22,7 @@ valores_por_defecto = {
     "Pago x km IMPO": 2.10,
     "Pago x km EXPO": 2.50,
     "Pago fijo VACIO": 200.00,
-    "Tipo de cambio USD": 17.5,
+    "Tipo de cambio USD": 19.5,
     "Tipo de cambio MXN": 1.0
 }
 
@@ -38,11 +39,21 @@ def guardar_datos_generales(valores):
 def safe_number(x):
     return 0 if (x is None or (isinstance(x, float) and pd.isna(x))) else x
 
+# Generador de ID tipo IG000001
+
+def generar_nuevo_id():
+    respuesta = supabase.table("Rutas").select("ID_ruta").order("ID_ruta", desc=True).limit(1).execute()
+    if respuesta.data:
+        ultimo = respuesta.data[0]["ID_ruta"]
+        numero = int(ultimo[2:]) + 1
+    else:
+        numero = 1
+    return f"IG{numero:06d}"
+
 valores = cargar_datos_generales()
 
 st.title("🚛 Captura de Rutas + Datos Generales")
 
-# Configurar Datos Generales
 with st.expander("⚙️ Configurar Datos Generales"):
     for key in valores_por_defecto:
         valores[key] = st.number_input(key, value=float(valores.get(key, valores_por_defecto[key])), step=0.1)
@@ -51,12 +62,6 @@ with st.expander("⚙️ Configurar Datos Generales"):
         st.success("✅ Datos Generales guardados correctamente.")
 
 st.markdown("---")
-
-# Cargar rutas existentes
-if os.path.exists(RUTA_RUTAS):
-    df_rutas = pd.read_csv(RUTA_RUTAS)
-else:
-    df_rutas = pd.DataFrame()
 
 st.subheader("🛣️ Nueva Ruta")
 
@@ -206,6 +211,7 @@ if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
     costo_total = costo_diesel_camion + costo_diesel_termo + sueldo + bono + d["casetas"] + extras + costo_cruce_convertido
 
     nueva_ruta = {
+        "ID_ruta": generar_nuevo_id(),
         "Fecha": d["fecha"], "Tipo": d["tipo"], "Cliente": d["cliente"], "Origen": d["origen"], "Destino": d["destino"], "Modo de Viaje": d["Modo de Viaje"], "KM": d["km"],
         "Moneda": d["moneda_ingreso"], "Ingreso_Original": d["ingreso_flete"], "Tipo de cambio": tipo_cambio_flete,
         "Ingreso Flete": ingreso_flete_convertido, "Moneda_Cruce": d["moneda_cruce"], "Cruce_Original": d["ingreso_cruce"],
@@ -220,12 +226,19 @@ if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
         "Pistas_Extra": d["pistas_extra"], "Stop": d["stop"], "Falso": d["falso"],
         "Gatas": d["gatas"], "Accesorios": d["accesorios"], "Guias": d["guias"],
         "Costo_Diesel_Camion": costo_diesel_camion, "Costo_Diesel_Termo": costo_diesel_termo,
-        "Costo_Extras": extras, "Costo_Total_Ruta": costo_total
+        "Costo_Extras": extras, "Costo_Total_Ruta": costo_total, "Costo Diesel": valores["Costo Diesel"], "Rendimiento Camion": valores["Rendimiento Camion"], "Rendimiento Termo": valores["Rendimiento Termo"]
     }
 
-    df_rutas = pd.concat([df_rutas, pd.DataFrame([nueva_ruta])], ignore_index=True)
-    df_rutas.to_csv(RUTA_RUTAS, index=False)
-    st.success("✅ Ruta guardada exitosamente.")
-    st.session_state.revisar_ruta = False
-    del st.session_state["datos_captura"]
-    st.experimental_rerun()
+    # Generar nuevo ID y verificar duplicado
+    nuevo_id = generar_nuevo_id()
+    existe = supabase.table("Rutas").select("ID_ruta").eq("ID_ruta", nuevo_id).execute()
+
+    if existe.data:
+        st.error("⚠️ Conflicto al generar ID. Intenta de nuevo.")
+    else:
+        nueva_ruta["ID_ruta"] = nuevo_id
+        supabase.table("Rutas").insert(nueva_ruta).execute()
+        st.success("✅ Ruta guardada exitosamente.")
+        st.session_state.revisar_ruta = False
+        del st.session_state["datos_captura"]
+        st.experimental_rerun()
