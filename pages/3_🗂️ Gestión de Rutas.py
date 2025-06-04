@@ -36,12 +36,12 @@ if respuesta.data:
     st.markdown("---")
 
     st.subheader("🗑️ Eliminar rutas")
-    ids_disponibles = df["ID Ruta"].tolist()
+    ids_disponibles = df["ID_Ruta"].tolist()
     ids_a_eliminar = st.multiselect("Selecciona los ID de ruta a eliminar", ids_disponibles)
 
     if st.button("Eliminar rutas seleccionadas") and ids_a_eliminar:
         for idr in ids_a_eliminar:
-            supabase.table("Rutas").delete().eq("ID Ruta", idr).execute()
+            supabase.table("Rutas").delete().eq("ID_Ruta", idr).execute()
         st.success("✅ Rutas eliminadas correctamente.")
         st.experimental_rerun()
 
@@ -49,7 +49,7 @@ if respuesta.data:
     st.subheader("✏️ Editar Ruta Existente")
 
     id_editar = st.selectbox("Selecciona el ID de Ruta a editar", ids_disponibles)
-    ruta = df[df["ID_ruta"] == id_editar].iloc[0]
+    ruta = df[df["ID_Ruta"] == id_editar].iloc[0]
     
     with st.form("editar_ruta"):
         col1, col2 = st.columns(2)
@@ -92,93 +92,96 @@ if respuesta.data:
 
         guardar = st.form_submit_button("💾 Guardar cambios")
 
-            if guardar:
-                tc_usd = valores.get("Tipo de cambio USD", 17.5)
-                tc_mxn = valores.get("Tipo de cambio MXN", 1.0)
-                tipo_cambio_flete = tc_usd if moneda_ingreso == "USD" else tc_mxn
-                tipo_cambio_cruce = tc_usd if moneda_cruce == "USD" else tc_mxn
-                tipo_cambio_costo_cruce = tc_usd if moneda_costo_cruce == "USD" else tc_mxn
+        if guardar:
+             tc_usd = valores.get("Tipo de cambio USD", 17.5)
+             tc_mxn = valores.get("Tipo de cambio MXN", 1.0)
+             tipo_cambio_flete = tc_usd if moneda_ingreso == "USD" else tc_mxn
+             tipo_cambio_cruce = tc_usd if moneda_cruce == "USD" else tc_mxn
+             tipo_cambio_costo_cruce = tc_usd if moneda_costo_cruce == "USD" else tc_mxn
 
-                ingreso_flete_convertido = ingreso_original * tipo_cambio_flete
-                ingreso_cruce_convertido = ingreso_cruce * tipo_cambio_cruce
-                ingreso_total = ingreso_flete_convertido + ingreso_cruce_convertido
-                costo_cruce_convertido = costo_cruce * tipo_cambio_costo_cruce
+             ingreso_flete_convertido = ingreso_original * tipo_cambio_flete
+             ingreso_cruce_convertido = ingreso_cruce * tipo_cambio_cruce
+             ingreso_total = ingreso_flete_convertido + ingreso_cruce_convertido
+             costo_cruce_convertido = costo_cruce * tipo_cambio_costo_cruce
 
-                rendimiento_camion = valores.get("Rendimiento Camion", 1)
-                costo_diesel = valores.get("Costo Diesel", 1)
-                rendimiento_termo = valores.get("Rendimiento Termo", 1)
-                costo_diesel_camion = (km / rendimiento_camion) * costo_diesel
-                costo_diesel_termo = horas_termo * rendimiento_termo * costo_diesel
+             rendimiento_camion = valores.get("Rendimiento Camion", 1)
+             costo_diesel = valores.get("Costo Diesel", 1)
+             rendimiento_termo = valores.get("Rendimiento Termo", 1)
+             costo_diesel_camion = (km / rendimiento_camion) * costo_diesel
+             costo_diesel_termo = horas_termo * rendimiento_termo * costo_diesel
 
-                factor = 2 if Modo_de_Viaje == "Team" else 1
+             factor = 2 if Modo_de_Viaje == "Team" else 1
 
-                if tipo == "IMPO":
-                    pago_km = valores.get("Pago x km IMPO", 2.1)
-                    sueldo = km * pago_km * factor
-                    bono = valores.get("Bono ISR IMSS", 0) * factor
-                elif tipo == "EXPO":
-                    pago_km = valores.get("Pago x km EXPO", 2.5)
-                    sueldo = km * pago_km * factor
-                    bono = valores.get("Bono ISR IMSS", 0) * factor
-                else:
-                    pago_km = 0.0
-                    sueldo = valores.get("Pago fijo VACIO", 200.0) * factor
-                    bono = 0.0
+             if tipo == "IMPO":
+                pago_km = valores.get("Pago x km IMPO", 2.1)
+                sueldo = km * pago_km * factor
+                bono = valores.get("Bono ISR IMSS", 0) * factor
+             elif tipo == "EXPO":
+                pago_km = valores.get("Pago x km EXPO", 2.5)
+                sueldo = km * pago_km * factor
+                bono = valores.get("Bono ISR IMSS", 0) * factor
+             else:
+                pago_km = 0.0
+                sueldo = valores.get("Pago fijo VACIO", 200.0) * factor
+                bono = 0.0
 
-                puntualidad = puntualidad * factor
-                extras = sum(map(safe_number, [lavado_termo, movimiento_local, puntualidad, pension, estancia, fianza_termo, renta_termo, pistas_extra, stop, falso, gatas, accesorios, guias]))
+             puntualidad = puntualidad * factor
+             extras = sum(map(safe_number, [lavado_termo, movimiento_local, puntualidad, pension, estancia, fianza_termo, renta_termo, pistas_extra, stop, falso, gatas, accesorios, guias]))
 
-                costo_total = costo_diesel_camion + costo_diesel_termo + sueldo + bono + casetas + extras + costo_cruce_convertido
+             costo_total = costo_diesel_camion + costo_diesel_termo + sueldo + bono + casetas + extras + costo_cruce_convertido
 
-                ruta_actualizada = {
-                    "Modo de Viaje": Modo_de_Viaje,
-                    "Fecha": fecha,
-                    "Tipo": tipo,
-                    "Cliente": cliente,
-                    "Origen": origen,
-                    "Destino": destino,
-                    "KM": km,
-                    "Moneda": moneda_ingreso,
-                    "Ingreso_Original": ingreso_original,
-                    "Tipo de cambio": tipo_cambio_flete,
-                    "Ingreso Flete": ingreso_flete_convertido,
-                    "Moneda_Cruce": moneda_cruce,
-                    "Cruce_Original": ingreso_cruce,
-                    "Tipo cambio Cruce": tipo_cambio_cruce,
-                    "Ingreso Cruce": ingreso_cruce_convertido,
-                    "Ingreso Total": ingreso_total,
-                    "Moneda Costo Cruce": moneda_costo_cruce,
-                    "Costo Cruce": costo_cruce,
-                    "Costo Cruce Convertido": costo_cruce_convertido,
-                    "Pago por KM": pago_km,
-                    "Sueldo_Operador": sueldo,
-                    "Bono": bono,
-                    "Casetas": casetas,
-                    "Horas_Termo": horas_termo,
-                    "Lavado_Termo": lavado_termo,
-                    "Movimiento_Local": movimiento_local,
-                    "Puntualidad": puntualidad,
-                    "Pension": pension,
-                    "Estancia": estancia,
-                    "Fianza_Termo": fianza_termo,
-                    "Renta_Termo": renta_termo,
-                    "Pistas_Extra": pistas_extra,
-                    "Stop": stop,
-                    "Falso": falso,
-                    "Gatas": gatas,
-                    "Accesorios": accesorios,
-                    "Guias": guias,
-                    "Costo_Diesel_Camion": costo_diesel_camion,
-                    "Costo_Diesel_Termo": costo_diesel_termo,
-                    "Costo_Extras": extras,
-                    "Costo_Total_Ruta": costo_total,
-                    "Costo Diesel": costo_diesel,
-                    "Rendimiento Camion": rendimiento_camion,
-                    "Rendimiento Termo": rendimiento_termo
-                }
+             ruta_actualizada = {
+                 "Modo de Viaje": Modo_de_Viaje,
+                 "Fecha": fecha,
+                 "Tipo": tipo,
+                 "Cliente": cliente,
+                 "Origen": origen,
+                 "Destino": destino,
+                 "KM": km,
+                 "Moneda": moneda_ingreso,
+                 "Ingreso_Original": ingreso_original,
+                 "Tipo de cambio": tipo_cambio_flete,
+                 "Ingreso Flete": ingreso_flete_convertido,
+                 "Moneda_Cruce": moneda_cruce,
+                 "Cruce_Original": ingreso_cruce,
+                 "Tipo cambio Cruce": tipo_cambio_cruce,
+                 "Ingreso Cruce": ingreso_cruce_convertido,
+                 "Ingreso Total": ingreso_total,
+                 "Moneda Costo Cruce": moneda_costo_cruce,
+                 "Costo Cruce": costo_cruce,
+                 "Costo Cruce Convertido": costo_cruce_convertido,
+                 "Pago por KM": pago_km,
+                 "Sueldo_Operador": sueldo,
+                 "Bono": bono,
+                 "Casetas": casetas,
+                 "Horas_Termo": horas_termo,
+                 "Lavado_Termo": lavado_termo,
+                 "Movimiento_Local": movimiento_local,
+                 "Puntualidad": puntualidad,
+                 "Pension": pension,
+                 "Estancia": estancia,
+                 "Fianza_Termo": fianza_termo,
+                 "Renta_Termo": renta_termo,
+                 "Pistas_Extra": pistas_extra,
+                 "Stop": stop,
+                 "Falso": falso,
+                 "Gatas": gatas,
+                 "Accesorios": accesorios,
+                 "Guias": guias,
+                 "Costo_Diesel_Camion": costo_diesel_camion,
+                 "Costo_Diesel_Termo": costo_diesel_termo,
+                 "Costo_Extras": extras,
+                 "Costo_Total_Ruta": costo_total,
+                 "Costo Diesel": costo_diesel,
+                 "Rendimiento Camion": rendimiento_camion,
+                 "Rendimiento Termo": rendimiento_termo
+             }
 
-                supabase.table("Rutas").update(ruta_actualizada).eq("ID Ruta", id_editar).execute()
-                st.success("✅ Ruta actualizada exitosamente.")
-                st.stop()
+             try:
+                 supabase.table("Rutas").update(ruta_actualizada).eq("ID_Ruta", id_editar).execute()
+                 st.success("✅ Ruta actualizada exitosamente.")
+                 st.stop()
+             except Exception as e:
+                 st.error(f"❌ Error al actualizar ruta: {e}")
 else:
     st.warning("⚠️ No hay rutas guardadas todavía.")
