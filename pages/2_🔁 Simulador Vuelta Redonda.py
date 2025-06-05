@@ -38,7 +38,6 @@ if tipo_ruta_1 in ["IMPO", "EXPO"]:
     if candidatas_1["Cliente"].dropna().empty:
         st.error("⚠️ No hay clientes disponibles para esta ruta.")
         st.stop()
-    cliente_1 = st.selectbox("Cliente", candidatas_1["Cliente"].dropna().tolist())
     ruta_1 = candidatas_1[candidatas_1["Cliente"] == cliente_1].iloc[0]
 
 # Si es VACÍO, no se necesita cliente
@@ -111,13 +110,22 @@ seleccion = st.selectbox(
 )
 
 # Inicializar rutas seleccionadas
-rutas_seleccionadas = [ruta_1] + seleccion["tramos"]
+rutas_seleccionadas = []
 
-rutas_seleccionadas = [r if isinstance(r, dict) else r.to_dict() for r in rutas_seleccionadas]
-
-if len(candidatas_1) == 0:
-    st.warning("⚠️ No hay rutas disponibles con esos criterios.")
-    st.stop()
+# Mostrar selectbox con todas las opciones
+if sugerencias:
+    seleccion = st.selectbox(
+        "Selecciona una opción de regreso sugerida",
+        sugerencias,
+        format_func=lambda x: x["descripcion"]
+    )
+    if seleccion and "tramos" in seleccion:
+        rutas_seleccionadas = [ruta_1] + seleccion["tramos"]
+    else:
+        rutas_seleccionadas = [ruta_1]
+else:
+    st.warning("⚠️ No hay rutas de regreso disponibles.")
+    rutas_seleccionadas = [ruta_1]
 
 # 🔁 Simulación y visualización
 st.markdown("---")
