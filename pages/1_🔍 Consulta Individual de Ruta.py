@@ -25,7 +25,7 @@ else:
     valores = valores_por_defecto.copy()
 
 # ✅ Cargar rutas desde Supabase
-respuesta = supabase.table("rutas_guardadas").select("*").execute()
+respuesta = supabase.table("Rutas").select("*").execute()
 df = pd.DataFrame(respuesta.data)
 
 # ✅ Asegurar formato correcto
