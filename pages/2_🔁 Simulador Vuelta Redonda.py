@@ -64,7 +64,7 @@ else:
 
 # Paso 2: Sugerencia automática de combinaciones
 st.markdown("---")
-st.subheader("🔁 Ruta sugerida de regreso (combinaciones con o sin vacío)")
+st.subheader("🔁 Rutas sugeridas (combinaciones con o sin vacío)")
 
 tipo_principal = ruta_1["Tipo"]
 tipo_regreso = "EXPO" if tipo_principal == "IMPO" else "IMPO"
@@ -89,7 +89,7 @@ for _, vacio in vacios.iterrows():
     origen_post = vacio["Destino"]
     candidatos = df[(df["Tipo"] == tipo_regreso) & (df["Origen"] == origen_post)].copy()
     for _, final in candidatos.iterrows():
-        ingreso_total = safe_number(vacio["Ingreso Total"]) + safe_number(final["Ingreso Total"])
+        ingreso_total = safe_number(final["Ingreso Total"])
         costo_total = safe_number(vacio["Costo_Total_Ruta"]) + safe_number(final["Costo_Total_Ruta"])
         utilidad = ingreso_total - costo_total
         porcentaje = (utilidad / ingreso_total) * 100 if ingreso_total else 0
