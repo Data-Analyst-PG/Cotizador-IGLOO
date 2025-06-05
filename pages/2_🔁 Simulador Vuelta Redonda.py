@@ -50,6 +50,7 @@ if tipo_ruta_1 in ["IMPO", "EXPO"]:
         lambda row: f"{row['Fecha']} — {row['Cliente']}", axis=1
     )
     opcion_seleccionada = st.selectbox("Cliente / Fecha", candidatas_1["opcion"].tolist())
+    ruta_1 = candidatas_1[candidatas_1["opcion"] == opcion_seleccionada].iloc[0]
 
 elif tipo_ruta_1 == "VACIO":
     if candidatas_1.empty:
