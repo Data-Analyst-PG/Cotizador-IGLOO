@@ -127,7 +127,7 @@ if sugerencias:
     format_func=lambda x: x["descripcion"],
     key="selectbox_regreso"
 )
-    if seleccion and "tramos" in seleccion:
+    if seleccion is not None and "tramos" in seleccion:
         rutas_seleccionadas = [ruta_1] + seleccion["tramos"]
     else:
         rutas_seleccionadas = [ruta_1]
