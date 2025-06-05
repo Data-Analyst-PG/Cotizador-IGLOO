@@ -122,12 +122,18 @@ rutas_seleccionadas = []
 
 # Mostrar selectbox con todas las opciones
 if sugerencias:
-    seleccion = st.selectbox(
-    "Selecciona una opción de regreso sugerida",
-    sugerencias,
-    format_func=lambda x: x["descripcion"],
-    key="selectbox_regreso"
-)
+    # Crear un diccionario de mapeo {descripcion: objeto_sugerencia}
+    opciones_sugeridas = {s["descripcion"]: s for s in sugerencias}
+
+    # Mostrar las descripciones
+    descripcion_seleccionada = st.selectbox(
+        "Selecciona una opción de regreso sugerida",
+        list(opciones_sugeridas.keys()),
+        key="selectbox_regreso"
+    )
+
+    # Recuperar el objeto seleccionado
+    seleccion = opciones_sugeridas[descripcion_seleccionada]
     if seleccion is not None and "tramos" in seleccion:
         rutas_seleccionadas = [ruta_1] + seleccion["tramos"]
     else:
