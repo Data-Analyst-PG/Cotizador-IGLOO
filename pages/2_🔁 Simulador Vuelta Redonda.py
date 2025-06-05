@@ -19,6 +19,7 @@ if not respuesta.data:
     st.stop()
 
 df = pd.DataFrame(respuesta.data)
+df["Fecha"] = pd.to_datetime(df["Fecha"]).dt.strftime("%Y-%m-%d")
 df["Utilidad"] = df["Ingreso Total"] - df["Costo_Total_Ruta"]
 df["% Utilidad"] = (df["Utilidad"] / df["Ingreso Total"] * 100).round(2)
 
