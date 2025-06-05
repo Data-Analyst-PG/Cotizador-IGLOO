@@ -32,11 +32,18 @@ opciones_1 = rutas_tipo_1[["Origen", "Destino"]].drop_duplicates().sort_values(b
 ruta_seleccionada_1 = st.selectbox("Selecciona ruta", opciones_1.itertuples(index=False), format_func=lambda x: f"{x.Origen} → {x.Destino}")
 candidatas_1 = rutas_tipo_1[(rutas_tipo_1["Origen"] == ruta_seleccionada_1.Origen) & (rutas_tipo_1["Destino"] == ruta_seleccionada_1.Destino)]
 candidatas_1 = candidatas_1.sort_values(by="% Utilidad", ascending=False).reset_index(drop=True)
+cliente_1 = None
+if not candidatas_1["Cliente"].dropna().empty:
+    cliente_1 = st.selectbox("Cliente", candidatas_1["Cliente"].dropna().tolist())
+    ruta_1 = candidatas_1[candidatas_1["Cliente"] == cliente_1].iloc[0]
+else:
+    # Para rutas VACÍO sin cliente
+    ruta_1 = candidatas_1.iloc[0]
 cliente_1 = st.selectbox("Cliente", candidatas_1["Cliente"].tolist())
 ruta_1 = candidatas_1[candidatas_1["Cliente"] == cliente_1].iloc[0]
 
 # Inicializar lista con la ruta principal
-rutas_seleccionadas = [ruta_1]
+rutas_seleccionadas = [ruta_1] + seleccion["tramos"]
 
 # Paso 2: Sugerencia automática de combinaciones
 st.markdown("---")
@@ -102,6 +109,12 @@ seleccion = st.selectbox(
 
 # Inicializar rutas seleccionadas
 rutas_seleccionadas = [ruta_1] + seleccion["tramos"]
+
+rutas_seleccionadas = [r if isinstance(r, dict) else r.to_dict() for r in rutas_seleccionadas]
+
+if len(candidatas_1) == 0:
+    st.warning("⚠️ No hay rutas disponibles con esos criterios.")
+    st.stop()
 
 # 🔁 Simulación y visualización
 st.markdown("---")
@@ -189,6 +202,3 @@ if st.button("🚛 Simular Vuelta Redonda"):
                     st.write(line)
             else:
                 st.write("No aplica")
-
-else:
-    st.warning("⚠️ No hay rutas guardadas todavía.")
