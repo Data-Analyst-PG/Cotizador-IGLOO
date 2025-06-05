@@ -50,7 +50,6 @@ if tipo_ruta_1 in ["IMPO", "EXPO"]:
         lambda row: f"{row['Fecha']} — {row['Cliente']}", axis=1
     )
     opcion_seleccionada = st.selectbox("Cliente / Fecha", candidatas_1["opcion"].tolist())
-    ruta_1 = candidatas_1[candidatas_1["Cliente"] == cliente_1].iloc[0]
 
 elif tipo_ruta_1 == "VACIO":
     if candidatas_1.empty:
@@ -116,13 +115,6 @@ if tipo_principal == "VACIO":
 
 # Ordenar sugerencias por utilidad
 sugerencias = sorted(sugerencias, key=lambda x: x["utilidad"], reverse=True)
-
-# Mostrar selectbox con todas las opciones
-seleccion = st.selectbox(
-    "Selecciona una opción de regreso sugerida",
-    sugerencias,
-    format_func=lambda x: x["descripcion"]
-)
 
 # Inicializar rutas seleccionadas
 rutas_seleccionadas = []
@@ -193,6 +185,7 @@ if st.button("🚛 Simular Vuelta Redonda"):
 
     def resumen_ruta(r):
         return [
+            f"Fecha: {r.get('Fecha', 'N/A')}",
             f"KM: {safe_number(r.get('KM')):,.2f}",
             f"Costo Diesel: ${safe_number(r.get('Costo Diesel')):,.2f}",
             f"Rendimiento Camión: {safe_number(r.get('Rendimiento Camion')):,.2f} km/l",
