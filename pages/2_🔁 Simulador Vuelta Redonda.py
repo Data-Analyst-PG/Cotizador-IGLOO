@@ -75,8 +75,10 @@ sugerencias = []
 # ➤ Rutas directas desde el destino actual
 directas = df[(df["Tipo"] == tipo_regreso) & (df["Origen"] == destino_origen)].copy()
 for _, row in directas.iterrows():
-    utilidad = safe_number(row["Ingreso Total"]) - safe_number(row["Costo_Total_Ruta"])
-    porcentaje = (utilidad / safe_number(row["Ingreso Total"])) * 100 if row["Ingreso Total"] else 0
+    ingreso_total = safe_number(ruta_1["Ingreso Total"]) + safe_number(row["Ingreso Total"])
+    costo_total = safe_number(ruta_1["Costo_Total_Ruta"]) + safe_number(row["Costo_Total_Ruta"])
+    utilidad = ingreso_total - costo_total
+    porcentaje = (utilidad / ingreso_total) * 100 if ingreso_total else 0
     sugerencias.append({
         "descripcion": f"{row['Fecha']} — {row['Cliente']} → {row['Origen']} → {row['Destino']} ({porcentaje:.2f}%)",
         "tramos": [row],
@@ -89,24 +91,26 @@ for _, vacio in vacios.iterrows():
     origen_post = vacio["Destino"]
     candidatos = df[(df["Tipo"] == tipo_regreso) & (df["Origen"] == origen_post)].copy()
     for _, final in candidatos.iterrows():
-        ingreso_total = safe_number(final["Ingreso Total"])
-        costo_total = safe_number(vacio["Costo_Total_Ruta"]) + safe_number(final["Costo_Total_Ruta"])
+        ingreso_total = safe_number(ruta_1["Ingreso Total"]) + safe_number(final["Ingreso Total"])
+        costo_total = safe_number(ruta_1["Costo_Total_Ruta"]) + safe_number(vacio["Costo_Total_Ruta"]) + safe_number(final["Costo_Total_Ruta"])
         utilidad = ingreso_total - costo_total
         porcentaje = (utilidad / ingreso_total) * 100 if ingreso_total else 0
-        descripcion =  f"{final['Fecha']} — {final['Cliente']} (Vacío → {vacio['Origen']} → {vacio['Destino']}) → {final['Destino']} ({porcentaje:.2f}%)"
+        descripcion = f"{final['Fecha']} — {final['Cliente']} (Vacío → {vacio['Origen']} → {vacio['Destino']}) → {final['Destino']} ({porcentaje:.2f}%)"
         sugerencias.append({
             "descripcion": descripcion,
             "tramos": [vacio, final],
             "utilidad": utilidad
         })
 
-# Si la ruta principal es VACÍO, sólo buscar desde el destino del VACÍO
+# Si la ruta principal es VACÍO, solo buscar desde su destino
 if tipo_principal == "VACIO":
     origen_vacio = ruta_1["Destino"]
-    candidatos = df[((df["Tipo"] == "IMPO") | (df["Tipo"] == "EXPO")) & (df["Origen"] == origen_vacio)].copy()
+    candidatos = df[(df["Tipo"].isin(["IMPO", "EXPO"])) & (df["Origen"] == origen_vacio)].copy()
     for _, final in candidatos.iterrows():
-        utilidad = safe_number(final["Ingreso Total"]) - safe_number(final["Costo_Total_Ruta"])
-        porcentaje = (utilidad / safe_number(final["Ingreso Total"])) * 100 if final["Ingreso Total"] else 0
+        ingreso_total = safe_number(ruta_1["Ingreso Total"]) + safe_number(final["Ingreso Total"])
+        costo_total = safe_number(ruta_1["Costo_Total_Ruta"]) + safe_number(final["Costo_Total_Ruta"])
+        utilidad = ingreso_total - costo_total
+        porcentaje = (utilidad / ingreso_total) * 100 if ingreso_total else 0
         descripcion = f"{final['Fecha']} — {final['Cliente']} {final['Origen']} → {final['Destino']} ({porcentaje:.2f}%)"
         sugerencias.append({
             "descripcion": descripcion,
