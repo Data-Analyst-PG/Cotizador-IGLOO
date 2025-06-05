@@ -22,7 +22,7 @@ if os.path.exists(RUTA_DATOS):
     df_datos = pd.read_csv(RUTA_DATOS).set_index("Parametro")["Valor"].to_dict()
     valores = {**valores_por_defecto, **df_datos}
 else:
-    valores = valores_por defecto.copy()
+    valores = valores_por_defecto.copy()
 
 # ✅ Cargar rutas desde Supabase
 respuesta = supabase.table("Rutas").select("*").execute()
