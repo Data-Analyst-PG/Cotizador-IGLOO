@@ -124,7 +124,7 @@ if st.session_state.get("simular", False):
     # Botón para volver a valores reales
     if st.button("🔄 Volver a valores reales"):
         st.session_state["simular"] = False
-        st.experimental_rerun()
+        st.rerun()
 
 # Mostrar resultados reales por defecto
 else:
