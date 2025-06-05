@@ -39,53 +39,56 @@ ruta_1 = candidatas_1[candidatas_1["Cliente"] == cliente_1].iloc[0]
 st.markdown("---")
 st.subheader("🔁 Ruta sugerida de regreso")
 
-combinaciones = {
-    "IMPO → VACIO → EXPO": ["VACIO", "EXPO"],
-    "IMPO → EXPO": ["EXPO"],
-    "EXPO → VACIO → IMPO": ["VACIO", "IMPO"],
-    "EXPO → IMPO": ["IMPO"],
-    "VACIO → IMPO": ["IMPO"],
-    "VACIO → EXPO": ["EXPO"]
-}
+tipo_regreso = "EXPO" if ruta_1["Tipo"] == "IMPO" else "IMPO"
+destino_principal = ruta_1["Destino"]
 
-opcion_combo = st.selectbox("Selecciona combinación de regreso", list(combinaciones.keys()))
-tipos_combo = combinaciones[opcion_combo]
+opciones_sugeridas = []
 
-rutas_seleccionadas = [ruta_1]
-ultimo_destino = ruta_1["Destino"]
+# Opción directa
+directas = df[(df["Tipo"] == tipo_regreso) & (df["Origen"] == destino_principal)].copy()
+directas["Ruta_Descriptiva"] = directas.apply(
+    lambda row: f"{row['Cliente']} ➝ {destino_principal} ➝ {row['Destino']} ({((safe_number(row['Ingreso Total']) - safe_number(row['Costo_Total_Ruta'])) / safe_number(row['Ingreso Total']) * 100):.2f}%)",
+    axis=1
+)
+directas["Utilidad"] = directas["Ingreso Total"] - directas["Costo_Total_Ruta"]
+opciones_sugeridas += directas.to_dict("records")
 
-for tipo in tipos_combo:
-    df_opciones = df[(df["Tipo"] == tipo) & (df["Origen"] == ultimo_destino)].copy()
+# Opción con vacío
+vacios = df[(df["Tipo"] == "VACIO") & (df["Origen"] == destino_principal)].copy()
+for _, vacio in vacios.iterrows():
+    origen_final = vacio["Destino"]
+    posteriores = df[(df["Tipo"] == tipo_regreso) & (df["Origen"] == origen_final)].copy()
+    for _, destino in posteriores.iterrows():
+        ingreso_total = safe_number(vacio["Ingreso Total"]) + safe_number(destino["Ingreso Total"])
+        costo_total = safe_number(vacio["Costo_Total_Ruta"]) + safe_number(destino["Costo_Total_Ruta"])
+        utilidad = ingreso_total - costo_total
+        porcentaje = (utilidad / ingreso_total * 100) if ingreso_total > 0 else 0
+        descripcion = f"{destino['Cliente']} (Vacío ➝ {vacio['Origen']} ➝ {vacio['Destino']}) ➝ {destino['Destino']} ({porcentaje:.2f}%)"
+        combinacion = {
+            "Cliente": destino["Cliente"],
+            "Ruta_Descriptiva": descripcion,
+            "Utilidad": utilidad,
+            "Ingreso Total": ingreso_total,
+            "Costo_Total_Ruta": costo_total,
+            "Tramos": [vacio, destino]
+        }
+        opciones_sugeridas.append(combinacion)
 
-    if df_opciones.empty:
-        st.warning(f"⚠️ No hay rutas tipo {tipo} desde {ultimo_destino}")
-        break
+# Ordenar por utilidad descendente
+opciones_sugeridas = sorted(opciones_sugeridas, key=lambda x: x["Utilidad"], reverse=True)
 
-    # Crear selectbox de ruta Origen → Destino
-    rutas_unicas = df_opciones[["Origen", "Destino"]].drop_duplicates()
-    ruta_sel = st.selectbox(
-        f"Ruta {tipo}",
-        rutas_unicas.itertuples(index=False),
-        key=f"rutas_{tipo}",
-        format_func=lambda x: f"{x.Origen} → {x.Destino}"
-    )
+# Mostrar selectbox
+seleccion = st.selectbox(
+    "Selecciona la mejor opción sugerida",
+    opciones_sugeridas,
+    format_func=lambda x: x["Ruta_Descriptiva"]
+)
 
-    # Filtrar clientes para esa ruta y ordenar por % Utilidad
-    rutas_filtradas = df_opciones[(df_opciones["Origen"] == ruta_sel.Origen) & (df_opciones["Destino"] == ruta_sel.Destino)].copy()
-    rutas_filtradas["Utilidad"] = rutas_filtradas["Ingreso Total"] - rutas_filtradas["Costo_Total_Ruta"]
-    rutas_filtradas["% Utilidad"] = (rutas_filtradas["Utilidad"] / rutas_filtradas["Ingreso Total"] * 100).round(2)
-    rutas_filtradas = rutas_filtradas.sort_values(by="% Utilidad", ascending=False).reset_index(drop=True)
-
-    cliente_sel = st.selectbox(
-        f"Cliente para ruta {tipo}",
-        rutas_filtradas.index,
-        key=f"cliente_{tipo}",
-        format_func=lambda i: f"{rutas_filtradas.loc[i, 'Cliente']} — {rutas_filtradas.loc[i, 'Origen']} → {rutas_filtradas.loc[i, 'Destino']} ({rutas_filtradas.loc[i, '% Utilidad']:.2f}%)"
-    )
-
-    ruta = rutas_filtradas.loc[cliente_sel]
-    rutas_seleccionadas.append(ruta)
-    ultimo_destino = ruta["Destino"]
+# Agregar la selección al conjunto de rutas
+if "Tramos" in seleccion:
+    rutas_seleccionadas += seleccion["Tramos"]
+else:
+    rutas_seleccionadas.append(seleccion)
 
 # 🔁 Simulación y visualización
 st.markdown("---")
