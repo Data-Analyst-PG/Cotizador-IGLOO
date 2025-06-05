@@ -35,6 +35,9 @@ candidatas_1 = candidatas_1.sort_values(by="% Utilidad", ascending=False).reset_
 cliente_1 = st.selectbox("Cliente", candidatas_1["Cliente"].tolist())
 ruta_1 = candidatas_1[candidatas_1["Cliente"] == cliente_1].iloc[0]
 
+# Inicializar lista con la ruta principal
+rutas_seleccionadas = [ruta_1]
+
 # Paso 2: Sugerencia automática de combinaciones
 st.markdown("---")
 st.subheader("🔁 Ruta sugerida de regreso")
@@ -141,7 +144,7 @@ if st.button("🚛 Simular Vuelta Redonda"):
         return [
             f"KM: {safe_number(r.get('KM')):,.2f}",
             f"Costo Diesel: ${safe_number(r.get('Costo Diesel')):,.2f}",
-            F"Rendimiento Camió: {safe_number(r.get('Rendimiento Camion')):,.2f} km/l",
+            f"Rendimiento Camión: {safe_number(r.get('Rendimiento Camion')):,.2f} km/l",
             f"Diesel Camión: ${safe_number(r.get('Costo_Diesel_Camion')):,.2f}",
             f"Rendimiento Termo: {safe_number(r.get('Rendimiento Termo')):,.2f} l/hr",
             f"Diesel Termo: ${safe_number(r.get('Costo_Diesel_Termo')):,.2f}",
