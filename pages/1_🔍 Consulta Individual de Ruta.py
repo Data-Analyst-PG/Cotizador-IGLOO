@@ -14,6 +14,16 @@ valores_por_defecto = {
     "Costo Diesel": 24.0,
 }
 
+# ✅ Ruta para valores locales
+RUTA_DATOS = "datos_generales.csv"
+
+# ✅ Cargar valores desde CSV o usar los por defecto
+if os.path.exists(RUTA_DATOS):
+    df_datos = pd.read_csv(RUTA_DATOS).set_index("Parametro")["Valor"].to_dict()
+    valores = {**valores_por_defecto, **df_datos}
+else:
+    valores = valores_por defecto.copy()
+
 # ✅ Cargar rutas desde Supabase
 respuesta = supabase.table("Rutas").select("*").execute()
 df = pd.DataFrame(respuesta.data)
@@ -79,7 +89,7 @@ ruta = df.loc[index_sel]
 # Campos simulables
 st.markdown("---")
 st.subheader("⚙️ Ajustes para Simulación")
-costo_diesel_input = st.number_input("Costo del Diesel ($/L)", value=float(valores.get("Costo_Diesel_Camion", 24.0)))
+costo_diesel_input = st.number_input("Costo del Diesel ($/L)", value=float(valores.get("Costo Diesel", 24.0)))
 rendimiento_input = st.number_input("Rendimiento Camión (km/L)", value=float(valores.get("Rendimiento Camion", 2.65)))
 
 
