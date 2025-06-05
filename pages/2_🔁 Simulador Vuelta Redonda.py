@@ -38,6 +38,7 @@ ruta_1 = candidatas_1[candidatas_1["Cliente"] == cliente_1].iloc[0]
 # Paso 2: Sugerencia automática de combinaciones
 st.markdown("---")
 st.subheader("🔁 Ruta sugerida de regreso")
+
 combinaciones = {
     "IMPO → VACIO → EXPO": ["VACIO", "EXPO"],
     "IMPO → EXPO": ["EXPO"],
@@ -54,16 +55,35 @@ rutas_seleccionadas = [ruta_1]
 ultimo_destino = ruta_1["Destino"]
 
 for tipo in tipos_combo:
-    df_opciones = df[(df["Tipo"] == tipo) & (df["Origen"] == ultimo_destino)]
+    df_opciones = df[(df["Tipo"] == tipo) & (df["Origen"] == ultimo_destino)].copy()
+
     if df_opciones.empty:
         st.warning(f"⚠️ No hay rutas tipo {tipo} desde {ultimo_destino}")
         break
-    opciones = df_opciones[["Origen", "Destino"]].drop_duplicates().sort_values(by=["Destino"])
-    ruta_sel = st.selectbox(f"Ruta {tipo}", opciones.itertuples(index=False), key=tipo, format_func=lambda x: f"{x.Origen} → {x.Destino}")
-    candidatas = df_opciones[(df_opciones["Origen"] == ruta_sel.Origen) & (df_opciones["Destino"] == ruta_sel.Destino)]
-    candidatas = candidatas.sort_values(by="% Utilidad", ascending=False).reset_index(drop=True)
-    cliente = st.selectbox(f"Cliente para ruta {tipo}", candidatas["Cliente"].tolist(), key=tipo+"cliente")
-    ruta = candidatas[candidatas["Cliente"] == cliente].iloc[0]
+
+    # Crear selectbox de ruta Origen → Destino
+    rutas_unicas = df_opciones[["Origen", "Destino"]].drop_duplicates()
+    ruta_sel = st.selectbox(
+        f"Ruta {tipo}",
+        rutas_unicas.itertuples(index=False),
+        key=f"rutas_{tipo}",
+        format_func=lambda x: f"{x.Origen} → {x.Destino}"
+    )
+
+    # Filtrar clientes para esa ruta y ordenar por % Utilidad
+    rutas_filtradas = df_opciones[(df_opciones["Origen"] == ruta_sel.Origen) & (df_opciones["Destino"] == ruta_sel.Destino)].copy()
+    rutas_filtradas["Utilidad"] = rutas_filtradas["Ingreso Total"] - rutas_filtradas["Costo_Total_Ruta"]
+    rutas_filtradas["% Utilidad"] = (rutas_filtradas["Utilidad"] / rutas_filtradas["Ingreso Total"] * 100).round(2)
+    rutas_filtradas = rutas_filtradas.sort_values(by="% Utilidad", ascending=False).reset_index(drop=True)
+
+    cliente_sel = st.selectbox(
+        f"Cliente para ruta {tipo}",
+        rutas_filtradas.index,
+        key=f"cliente_{tipo}",
+        format_func=lambda i: f"{rutas_filtradas.loc[i, 'Cliente']} — {rutas_filtradas.loc[i, 'Origen']} → {rutas_filtradas.loc[i, 'Destino']} ({rutas_filtradas.loc[i, '% Utilidad']:.2f}%)"
+    )
+
+    ruta = rutas_filtradas.loc[cliente_sel]
     rutas_seleccionadas.append(ruta)
     ultimo_destino = ruta["Destino"]
 
