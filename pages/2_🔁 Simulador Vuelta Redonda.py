@@ -1,97 +1,75 @@
 import streamlit as st
 import pandas as pd
+from supabase import create_client
 import os
 
-RUTA_RUTAS = "rutas_guardadas.csv"
+url = st.secrets["SUPABASE_URL"]
+key = st.secrets["SUPABASE_KEY"]
+supabase = create_client(url, key)
 
 st.title("🔁 Simulador de Vuelta Redonda")
 
 def safe_number(x):
     return 0 if (x is None or (isinstance(x, float) and pd.isna(x))) else x
 
-if os.path.exists(RUTA_RUTAS):
-    df = pd.read_csv(RUTA_RUTAS)
+# Cargar rutas desde Supabase
+respuesta = supabase.table("Rutas").select("*").execute()
+if not respuesta.data:
+    st.warning("⚠️ No hay rutas guardadas en Supabase.")
+    st.stop()
 
-    impo_rutas = df[df["Tipo"] == "IMPO"].copy()
-    expo_rutas = df[df["Tipo"] == "EXPO"].copy()
-    vacio_rutas = df[df["Tipo"] == "VACIO"].copy()
+df = pd.DataFrame(respuesta.data)
+df["Utilidad"] = df["Ingreso Total"] - df["Costo_Total_Ruta"]
+df["% Utilidad"] = (df["Utilidad"] / df["Ingreso Total"] * 100).round(2)
 
-st.subheader("📌 Paso 1: Selecciona tipo de ruta principal")
-tipo_principal = st.selectbox("Tipo principal", ["IMPO", "EXPO", "VACIO"])
+# Paso 1: Selección ruta principal
+st.subheader("📌 Ruta Principal")
+tipos_disponibles = df["Tipo"].unique().tolist()
+tipo_ruta_1 = st.selectbox("Selecciona tipo de ruta principal", tipos_disponibles)
 
-ruta_1 = ruta_2 = ruta_3 = None
-rutas_seleccionadas = []
+rutas_tipo_1 = df[df["Tipo"] == tipo_ruta_1]
+opciones_1 = rutas_tipo_1[["Origen", "Destino"]].drop_duplicates().sort_values(by=["Origen", "Destino"])
+ruta_seleccionada_1 = st.selectbox("Selecciona ruta", opciones_1.itertuples(index=False), format_func=lambda x: f"{x.Origen} → {x.Destino}")
+candidatas_1 = rutas_tipo_1[(rutas_tipo_1["Origen"] == ruta_seleccionada_1.Origen) & (rutas_tipo_1["Destino"] == ruta_seleccionada_1.Destino)]
+candidatas_1 = candidatas_1.sort_values(by="% Utilidad", ascending=False).reset_index(drop=True)
+cliente_1 = st.selectbox("Cliente", candidatas_1["Cliente"].tolist())
+ruta_1 = candidatas_1[candidatas_1["Cliente"] == cliente_1].iloc[0]
 
-def elegir_ruta(df_tipo, label):
-    rutas_unicas = df_tipo[["Origen", "Destino"]].drop_duplicates()
-    opciones_ruta = list(rutas_unicas.itertuples(index=False, name=None))
-    ruta_sel = st.selectbox(label, opciones_ruta, format_func=lambda x: f"{x[0]} → {x[1]}")
-    origen, destino = ruta_sel
-    candidatas = df_tipo[(df_tipo["Origen"] == origen) & (df_tipo["Destino"] == destino)].copy()
-    candidatas["Utilidad"] = candidatas["Ingreso Total"] - candidatas["Costo_Total_Ruta"]
-    candidatas["% Utilidad"] = (candidatas["Utilidad"] / candidatas["Ingreso Total"] * 100).round(2)
-    candidatas = candidatas.sort_values(by="% Utilidad", ascending=False).reset_index()
-    idx = st.selectbox("Cliente (ordenado por % utilidad)", candidatas.index,
-                      format_func=lambda i: f"{candidatas.loc[i, 'Cliente']} ({candidatas.loc[i, '% Utilidad']:.2f}%)")
-    return candidatas.loc[idx]
+# Paso 2: Sugerencia automática de combinaciones
+st.markdown("---")
+st.subheader("🔁 Ruta sugerida de regreso")
+combinaciones = {
+    "IMPO → VACIO → EXPO": ["VACIO", "EXPO"],
+    "IMPO → EXPO": ["EXPO"],
+    "EXPO → VACIO → IMPO": ["VACIO", "IMPO"],
+    "EXPO → IMPO": ["IMPO"],
+    "VACIO → IMPO": ["IMPO"],
+    "VACIO → EXPO": ["EXPO"]
+}
 
-if tipo_principal == "IMPO":
-    ruta_1 = elegir_ruta(impo_rutas, "Selecciona ruta IMPO")
-    rutas_seleccionadas.append(ruta_1)
+opcion_combo = st.selectbox("Selecciona combinación de regreso", list(combinaciones.keys()))
+tipos_combo = combinaciones[opcion_combo]
 
-    st.markdown("---")
-    st.subheader("📌 Paso 2: Ruta VACÍA (opcional)")
-    vacios = vacio_rutas[vacio_rutas["Origen"] == ruta_1["Destino"]]
-    if not vacios.empty:
-        ruta_2 = elegir_ruta(vacios, "Selecciona ruta VACÍA")
-        rutas_seleccionadas.append(ruta_2)
+rutas_seleccionadas = [ruta_1]
+ultimo_destino = ruta_1["Destino"]
 
-    st.markdown("---")
-    st.subheader("📌 Paso 3: Ruta EXPO (opcional)")
-    origen_expo = ruta_2["Destino"] if ruta_2 is not None else ruta_1["Destino"]
-    candidatos = expo_rutas[expo_rutas["Origen"] == origen_expo]
-    if not candidatos.empty:
-        ruta_3 = elegir_ruta(candidatos, "Selecciona ruta EXPO")
-        rutas_seleccionadas.append(ruta_3)
-
-elif tipo_principal == "EXPO":
-    ruta_1 = elegir_ruta(expo_rutas, "Selecciona ruta EXPO")
-    rutas_seleccionadas.append(ruta_1)
-
-    st.markdown("---")
-    st.subheader("📌 Paso 2: Ruta VACÍA (opcional)")
-    vacios = vacio_rutas[vacio_rutas["Origen"] == ruta_1["Destino"]]
-    if not vacios.empty:
-        ruta_2 = elegir_ruta(vacios, "Selecciona ruta VACÍA")
-        rutas_seleccionadas.append(ruta_2)
-
-    st.markdown("---")
-    st.subheader("📌 Paso 3: Ruta IMPO (opcional)")
-    origen_impo = ruta_2["Destino"] if ruta_2 is not None else ruta_1["Destino"]
-    candidatos = impo_rutas[impo_rutas["Origen"] == origen_impo]
-    if not candidatos.empty:
-        ruta_3 = elegir_ruta(candidatos, "Selecciona ruta IMPO")
-        rutas_seleccionadas.append(ruta_3)
-
-elif tipo_principal == "VACIO":
-    ruta_1 = elegir_ruta(vacio_rutas, "Selecciona ruta VACÍA")
-    rutas_seleccionadas.append(ruta_1)
-
-    st.markdown("---")
-    st.subheader("📌 Paso 2: Ruta siguiente sugerida (IMPO o EXPO)")
-    origen_siguiente = ruta_1["Destino"]
-    candidatos = pd.concat([
-        impo_rutas[impo_rutas["Origen"] == origen_siguiente],
-        expo_rutas[expo_rutas["Origen"] == origen_siguiente]
-    ])
-
-    if not candidatos.empty:
-        ruta_2 = elegir_ruta(candidatos, "Selecciona ruta IMPO o EXPO")
-        rutas_seleccionadas.append(ruta_2)
+for tipo in tipos_combo:
+    df_opciones = df[(df["Tipo"] == tipo) & (df["Origen"] == ultimo_destino)]
+    if df_opciones.empty:
+        st.warning(f"⚠️ No hay rutas tipo {tipo} desde {ultimo_destino}")
+        break
+    opciones = df_opciones[["Origen", "Destino"]].drop_duplicates().sort_values(by=["Destino"])
+    ruta_sel = st.selectbox(f"Ruta {tipo}", opciones.itertuples(index=False), key=tipo, format_func=lambda x: f"{x.Origen} → {x.Destino}")
+    candidatas = df_opciones[(df_opciones["Origen"] == ruta_sel.Origen) & (df_opciones["Destino"] == ruta_sel.Destino)]
+    candidatas = candidatas.sort_values(by="% Utilidad", ascending=False).reset_index(drop=True)
+    cliente = st.selectbox(f"Cliente para ruta {tipo}", candidatas["Cliente"].tolist(), key=tipo+"cliente")
+    ruta = candidatas[candidatas["Cliente"] == cliente].iloc[0]
+    rutas_seleccionadas.append(ruta)
+    ultimo_destino = ruta["Destino"]
 
 # 🔁 Simulación y visualización
 st.markdown("---")
-if rutas_seleccionadas and st.button("🚛 Simular Vuelta Redonda"):
+if st.button("🚛 Simular Vuelta Redonda"):
     ingreso_total = sum(safe_number(r.get("Ingreso Total", 0)) for r in rutas_seleccionadas)
     costo_total_general = sum(safe_number(r.get("Costo_Total_Ruta", 0)) for r in rutas_seleccionadas)
     utilidad_bruta = ingreso_total - costo_total_general
@@ -107,7 +85,7 @@ if rutas_seleccionadas and st.button("🚛 Simular Vuelta Redonda"):
         st.markdown(f"- {r['Origen']} → {r['Destino']}")
         st.markdown(f"- Ingreso Original: ${safe_number(r.get('Ingreso_Original')):,.2f}")
         st.markdown(f"- Moneda: {r.get('Moneda', 'N/A')}")
-        st.markdown(f"- Tipo de cambio: {safe_number(r.get('Tipo_Cambio_Ingreso')):,.2f}")
+        st.markdown(f"- Tipo de cambio: {safe_number(r.get('Tipo de cambio')):,.2f}")
         st.markdown(f"- Ingreso Total: ${safe_number(r.get('Ingreso Total')):,.2f}")
         st.markdown(f"- Costo Total Ruta: ${safe_number(r.get('Costo_Total_Ruta')):,.2f}")
 
@@ -130,7 +108,6 @@ if rutas_seleccionadas and st.button("🚛 Simular Vuelta Redonda"):
     color_porcentaje_neta = "green" if pct_neta >= 15 else "red"
     st.markdown(f"<strong>% Utilidad Neta:</strong> <span style='color:{color_porcentaje_neta}; font-weight:bold'>{pct_neta:.2f}%</span>", unsafe_allow_html=True)
 
-    # 📋 Resumen final por columnas
     st.markdown("---")
     st.subheader("📋 Resumen de Rutas")
 
@@ -140,7 +117,10 @@ if rutas_seleccionadas and st.button("🚛 Simular Vuelta Redonda"):
     def resumen_ruta(r):
         return [
             f"KM: {safe_number(r.get('KM')):,.2f}",
+            f"Costo Diesel: ${safe_number(r.get('Costo Diesel')):,.2f}",
+            F"Rendimiento Camió: {safe_number(r.get('Rendimiento Camion')):,.2f} km/l",
             f"Diesel Camión: ${safe_number(r.get('Costo_Diesel_Camion')):,.2f}",
+            f"Rendimiento Termo: {safe_number(r.get('Rendimiento Termo')):,.2f} l/hr",
             f"Diesel Termo: ${safe_number(r.get('Costo_Diesel_Termo')):,.2f}",
             f"Sueldo: ${safe_number(r.get('Sueldo_Operador')):,.2f}",
             f"Casetas: ${safe_number(r.get('Casetas')):,.2f}",
