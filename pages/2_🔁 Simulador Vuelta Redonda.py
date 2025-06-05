@@ -93,7 +93,7 @@ for _, vacio in vacios.iterrows():
         costo_total = safe_number(vacio["Costo_Total_Ruta"]) + safe_number(final["Costo_Total_Ruta"])
         utilidad = ingreso_total - costo_total
         porcentaje = (utilidad / ingreso_total) * 100 if ingreso_total else 0
-        descripcion = f"{final['Cliente']} (Vacío → {vacio['Origen']} → {vacio['Destino']}) → {final['Destino']} ({porcentaje:.2f}%)"
+        descripcion =  f"{final['Fecha']} — {final['Cliente']} (Vacío → {vacio['Origen']} → {vacio['Destino']}) → {final['Destino']} ({porcentaje:.2f}%)"
         sugerencias.append({
             "descripcion": descripcion,
             "tramos": [vacio, final],
@@ -107,7 +107,7 @@ if tipo_principal == "VACIO":
     for _, final in candidatos.iterrows():
         utilidad = safe_number(final["Ingreso Total"]) - safe_number(final["Costo_Total_Ruta"])
         porcentaje = (utilidad / safe_number(final["Ingreso Total"])) * 100 if final["Ingreso Total"] else 0
-        descripcion = f"{final['Cliente']} {final['Origen']} → {final['Destino']} ({porcentaje:.2f}%)"
+        descripcion = f"{final['Fecha']} — {final['Cliente']} {final['Origen']} → {final['Destino']} ({porcentaje:.2f}%)"
         sugerencias.append({
             "descripcion": descripcion,
             "tramos": [final],
@@ -115,7 +115,7 @@ if tipo_principal == "VACIO":
         })
 
 # Ordenar sugerencias por utilidad
-sugerencias = sorted(sugerencias, key=lambda x: x["utilidad"], reverse=True)
+sugerencias = sorted(sugerencias, key=lambda x: safe_number(x.get("utilidad", 0)), reverse=True)
 
 # Inicializar rutas seleccionadas
 rutas_seleccionadas = []
