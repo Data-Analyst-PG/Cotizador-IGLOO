@@ -32,18 +32,21 @@ opciones_1 = rutas_tipo_1[["Origen", "Destino"]].drop_duplicates().sort_values(b
 ruta_seleccionada_1 = st.selectbox("Selecciona ruta", opciones_1.itertuples(index=False), format_func=lambda x: f"{x.Origen} → {x.Destino}")
 candidatas_1 = rutas_tipo_1[(rutas_tipo_1["Origen"] == ruta_seleccionada_1.Origen) & (rutas_tipo_1["Destino"] == ruta_seleccionada_1.Destino)]
 candidatas_1 = candidatas_1.sort_values(by="% Utilidad", ascending=False).reset_index(drop=True)
-cliente_1 = None
-if not candidatas_1["Cliente"].dropna().empty:
+
+# Si tiene cliente (IMPO/EXPO), mostrar selectbox
+if tipo_ruta_1 in ["IMPO", "EXPO"]:
+    if candidatas_1["Cliente"].dropna().empty:
+        st.error("⚠️ No hay clientes disponibles para esta ruta.")
+        st.stop()
     cliente_1 = st.selectbox("Cliente", candidatas_1["Cliente"].dropna().tolist())
     ruta_1 = candidatas_1[candidatas_1["Cliente"] == cliente_1].iloc[0]
-else:
-    # Para rutas VACÍO sin cliente
-    ruta_1 = candidatas_1.iloc[0]
-cliente_1 = st.selectbox("Cliente", candidatas_1["Cliente"].tolist())
-ruta_1 = candidatas_1[candidatas_1["Cliente"] == cliente_1].iloc[0]
 
-# Inicializar lista con la ruta principal
-rutas_seleccionadas = [ruta_1] + seleccion["tramos"]
+# Si es VACÍO, no se necesita cliente
+elif tipo_ruta_1 == "VACIO":
+    if candidatas_1.empty:
+        st.error("⚠️ No hay rutas VACÍO disponibles para ese origen/destino.")
+        st.stop()
+    ruta_1 = candidatas_1.iloc[0]
 
 # Paso 2: Sugerencia automática de combinaciones
 st.markdown("---")
