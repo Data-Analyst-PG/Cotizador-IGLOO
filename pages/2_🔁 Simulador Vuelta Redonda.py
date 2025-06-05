@@ -29,23 +29,37 @@ tipo_ruta_1 = st.selectbox("Selecciona tipo de ruta principal", tipos_disponible
 
 rutas_tipo_1 = df[df["Tipo"] == tipo_ruta_1]
 opciones_1 = rutas_tipo_1[["Origen", "Destino"]].drop_duplicates().sort_values(by=["Origen", "Destino"])
-ruta_seleccionada_1 = st.selectbox("Selecciona ruta", opciones_1.itertuples(index=False), format_func=lambda x: f"{x.Origen} → {x.Destino}")
-candidatas_1 = rutas_tipo_1[(rutas_tipo_1["Origen"] == ruta_seleccionada_1.Origen) & (rutas_tipo_1["Destino"] == ruta_seleccionada_1.Destino)]
-candidatas_1 = candidatas_1.sort_values(by="% Utilidad", ascending=False).reset_index(drop=True)
 
-# Si tiene cliente (IMPO/EXPO), mostrar selectbox
+if opciones_1.empty:
+    st.error("⚠️ No hay rutas disponibles para este tipo.")
+    st.stop()
+
+ruta_seleccionada_1 = st.selectbox("Selecciona ruta", opciones_1.itertuples(index=False), format_func=lambda x: f"{x.Origen} → {x.Destino}")
+candidatas_1 = rutas_tipo_1[
+    (rutas_tipo_1["Origen"] == ruta_seleccionada_1.Origen) &
+    (rutas_tipo_1["Destino"] == ruta_seleccionada_1.Destino)
+].sort_values(by="% Utilidad", ascending=False).reset_index(drop=True)
+
+# Filtrado según tipo
 if tipo_ruta_1 in ["IMPO", "EXPO"]:
     if candidatas_1["Cliente"].dropna().empty:
         st.error("⚠️ No hay clientes disponibles para esta ruta.")
         st.stop()
-    ruta_1 = candidatas_1[candidatas_1["Cliente"] == cliente_1].iloc[0]
+    candidatas_1["opcion"] = candidatas_1.apply(
+        lambda row: f"{row['Fecha']} — {row['Cliente']}", axis=1
+    )
+    opcion_seleccionada = st.selectbox("Cliente / Fecha", candidatas_1["opcion"].tolist())
+    ruta_1 = candidatas_1[candidatas_1["opcion"] == opcion_seleccionada].iloc[0]
 
-# Si es VACÍO, no se necesita cliente
 elif tipo_ruta_1 == "VACIO":
     if candidatas_1.empty:
         st.error("⚠️ No hay rutas VACÍO disponibles para ese origen/destino.")
         st.stop()
     ruta_1 = candidatas_1.iloc[0]
+
+else:
+    st.error("⚠️ Tipo de ruta no reconocido.")
+    st.stop()
 
 # Paso 2: Sugerencia automática de combinaciones
 st.markdown("---")
@@ -63,7 +77,7 @@ for _, row in directas.iterrows():
     utilidad = safe_number(row["Ingreso Total"]) - safe_number(row["Costo_Total_Ruta"])
     porcentaje = (utilidad / safe_number(row["Ingreso Total"])) * 100 if row["Ingreso Total"] else 0
     sugerencias.append({
-        "descripcion": f"{row['Cliente']} → {row['Origen']} → {row['Destino']} ({porcentaje:.2f}%)",
+        "descripcion": f"{row['Fecha']} — {row['Cliente']} → {row['Origen']} → {row['Destino']} ({porcentaje:.2f}%)",
         "tramos": [row],
         "utilidad": utilidad
     })
