@@ -40,58 +40,68 @@ rutas_seleccionadas = [ruta_1]
 
 # Paso 2: Sugerencia automática de combinaciones
 st.markdown("---")
-st.subheader("🔁 Ruta sugerida de regreso")
+st.subheader("🔁 Ruta sugerida de regreso (combinaciones con o sin vacío)")
 
-tipo_regreso = "EXPO" if ruta_1["Tipo"] == "IMPO" else "IMPO"
-destino_principal = ruta_1["Destino"]
+tipo_principal = ruta_1["Tipo"]
+tipo_regreso = "EXPO" if tipo_principal == "IMPO" else "IMPO"
+destino_origen = ruta_1["Destino"]  # puede ser usado para directas o para buscar vacíos
 
-opciones_sugeridas = []
+sugerencias = []
 
-# Opción directa
-directas = df[(df["Tipo"] == tipo_regreso) & (df["Origen"] == destino_principal)].copy()
-directas["Ruta_Descriptiva"] = directas.apply(
-    lambda row: f"{row['Cliente']} ➝ {destino_principal} ➝ {row['Destino']} ({((safe_number(row['Ingreso Total']) - safe_number(row['Costo_Total_Ruta'])) / safe_number(row['Ingreso Total']) * 100):.2f}%)",
-    axis=1
-)
-directas["Utilidad"] = directas["Ingreso Total"] - directas["Costo_Total_Ruta"]
-opciones_sugeridas += directas.to_dict("records")
+# ➤ Rutas directas desde el destino actual
+directas = df[(df["Tipo"] == tipo_regreso) & (df["Origen"] == destino_origen)].copy()
+for _, row in directas.iterrows():
+    utilidad = safe_number(row["Ingreso Total"]) - safe_number(row["Costo_Total_Ruta"])
+    porcentaje = (utilidad / safe_number(row["Ingreso Total"])) * 100 if row["Ingreso Total"] else 0
+    sugerencias.append({
+        "descripcion": f"{row['Cliente']} → {row['Origen']} → {row['Destino']} ({porcentaje:.2f}%)",
+        "tramos": [row],
+        "utilidad": utilidad
+    })
 
-# Opción con vacío
-vacios = df[(df["Tipo"] == "VACIO") & (df["Origen"] == destino_principal)].copy()
+# ➤ Rutas con VACÍO + cliente
+vacios = df[(df["Tipo"] == "VACIO") & (df["Origen"] == destino_origen)].copy()
 for _, vacio in vacios.iterrows():
-    origen_final = vacio["Destino"]
-    posteriores = df[(df["Tipo"] == tipo_regreso) & (df["Origen"] == origen_final)].copy()
-    for _, destino in posteriores.iterrows():
-        ingreso_total = safe_number(vacio["Ingreso Total"]) + safe_number(destino["Ingreso Total"])
-        costo_total = safe_number(vacio["Costo_Total_Ruta"]) + safe_number(destino["Costo_Total_Ruta"])
+    origen_post = vacio["Destino"]
+    candidatos = df[(df["Tipo"] == tipo_regreso) & (df["Origen"] == origen_post)].copy()
+    for _, final in candidatos.iterrows():
+        ingreso_total = safe_number(vacio["Ingreso Total"]) + safe_number(final["Ingreso Total"])
+        costo_total = safe_number(vacio["Costo_Total_Ruta"]) + safe_number(final["Costo_Total_Ruta"])
         utilidad = ingreso_total - costo_total
-        porcentaje = (utilidad / ingreso_total * 100) if ingreso_total > 0 else 0
-        descripcion = f"{destino['Cliente']} (Vacío ➝ {vacio['Origen']} ➝ {vacio['Destino']}) ➝ {destino['Destino']} ({porcentaje:.2f}%)"
-        combinacion = {
-            "Cliente": destino["Cliente"],
-            "Ruta_Descriptiva": descripcion,
-            "Utilidad": utilidad,
-            "Ingreso Total": ingreso_total,
-            "Costo_Total_Ruta": costo_total,
-            "Tramos": [vacio, destino]
-        }
-        opciones_sugeridas.append(combinacion)
+        porcentaje = (utilidad / ingreso_total) * 100 if ingreso_total else 0
+        descripcion = f"{final['Cliente']} (Vacío → {vacio['Origen']} → {vacio['Destino']}) → {final['Destino']} ({porcentaje:.2f}%)"
+        sugerencias.append({
+            "descripcion": descripcion,
+            "tramos": [vacio, final],
+            "utilidad": utilidad
+        })
 
-# Ordenar por utilidad descendente
-opciones_sugeridas = sorted(opciones_sugeridas, key=lambda x: x["Utilidad"], reverse=True)
+# Si la ruta principal es VACÍO, sólo buscar desde el destino del VACÍO
+if tipo_principal == "VACIO":
+    origen_vacio = ruta_1["Destino"]
+    candidatos = df[((df["Tipo"] == "IMPO") | (df["Tipo"] == "EXPO")) & (df["Origen"] == origen_vacio)].copy()
+    for _, final in candidatos.iterrows():
+        utilidad = safe_number(final["Ingreso Total"]) - safe_number(final["Costo_Total_Ruta"])
+        porcentaje = (utilidad / safe_number(final["Ingreso Total"])) * 100 if final["Ingreso Total"] else 0
+        descripcion = f"{final['Cliente']} {final['Origen']} → {final['Destino']} ({porcentaje:.2f}%)"
+        sugerencias.append({
+            "descripcion": descripcion,
+            "tramos": [final],
+            "utilidad": utilidad
+        })
 
-# Mostrar selectbox
+# Ordenar sugerencias por utilidad
+sugerencias = sorted(sugerencias, key=lambda x: x["utilidad"], reverse=True)
+
+# Mostrar selectbox con todas las opciones
 seleccion = st.selectbox(
-    "Selecciona la mejor opción sugerida",
-    opciones_sugeridas,
-    format_func=lambda x: x["Ruta_Descriptiva"]
+    "Selecciona una opción de regreso sugerida",
+    sugerencias,
+    format_func=lambda x: x["descripcion"]
 )
 
-# Agregar la selección al conjunto de rutas
-if "Tramos" in seleccion:
-    rutas_seleccionadas += seleccion["Tramos"]
-else:
-    rutas_seleccionadas.append(seleccion)
+# Inicializar rutas seleccionadas
+rutas_seleccionadas = [ruta_1] + seleccion["tramos"]
 
 # 🔁 Simulación y visualización
 st.markdown("---")
