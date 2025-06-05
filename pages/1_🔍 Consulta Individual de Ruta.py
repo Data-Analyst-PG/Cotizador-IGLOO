@@ -79,7 +79,7 @@ ruta = df.loc[index_sel]
 # Campos simulables
 st.markdown("---")
 st.subheader("⚙️ Ajustes para Simulación")
-costo_diesel_input = st.number_input("Costo del Diesel ($/L)", value=float(valores.get("Costo Diesel", 24.0)))
+costo_diesel_input = st.number_input("Costo del Diesel ($/L)", value=float(valores.get("Costo_Diesel_Camion", 24.0)))
 rendimiento_input = st.number_input("Rendimiento Camión (km/L)", value=float(valores.get("Rendimiento Camion", 2.65)))
 
 
