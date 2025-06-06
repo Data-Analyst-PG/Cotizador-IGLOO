@@ -59,7 +59,6 @@ with st.sidebar:
 LOGO_CLARO = "Igloo Original.png"
 LOGO_OSCURO = "Igloo White.png"
 
-# Función para convertir imagen a base64
 @st.cache_data
 def image_to_base64(img_path):
     with open(img_path, "rb") as image_file:
@@ -102,4 +101,3 @@ st.markdown("""
 - **📂 Archivos:** Descargar / cargar respaldos de datos  
 - **✅ Tráficos Concluidos:** Reporte de rentabilidad  
 """)
-
