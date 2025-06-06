@@ -37,6 +37,8 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
+st.info("Inicia sesión y selecciona una opción desde el menú lateral para comenzar 🚀")
+
 # Instrucciones de navegación
 st.subheader("📂 Módulos disponibles")
 st.markdown("""
@@ -48,8 +50,6 @@ st.markdown("""
 - **📂 Archivos:** Descargar / cargar respaldos de datos
 - **✅ Tráficos Concluidos:** Reporte de rentabilidad
 """)
-
-st.info("Selecciona una opción desde el menú lateral para comenzar 🚀")
 
 import streamlit as st
 import hashlib
