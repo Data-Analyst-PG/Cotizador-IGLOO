@@ -3,5 +3,4 @@ pandas
 numpy
 Pillow
 supabase
-hashlib
 python-dotenv
