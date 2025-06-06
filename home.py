@@ -1,4 +1,46 @@
 import streamlit as st
+import hashlib
+from supabase import create_client
+
+# 🔐 Función para hashear contraseñas
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+# 🔗 Conexión a Supabase
+url = st.secrets["SUPABASE_URL"]
+key = st.secrets["SUPABASE_KEY"]
+supabase = create_client(url, key)
+
+# ✅ Título
+st.title("🔐 Iniciar Sesión")
+
+# 👉 Formulario de login
+correo = st.text_input("Correo (ID Usuario)")
+password = st.text_input("Contraseña", type="password")
+
+# 🔍 Verificación de credenciales
+def verificar_credenciales(correo, password):
+    try:
+        res = supabase.table("Usuarios").select("*").eq("ID Usuario", correo).execute()
+        if res.data:
+            user = res.data[0]
+            if user.get("Password Hash") == hash_password(password):
+                return user
+    except Exception as e:
+        st.error(f"❌ Error de conexión: {e}")
+    return None
+
+# 🟢 Botón de acceso
+if st.button("Ingresar"):
+    usuario = verificar_credenciales(correo, password)
+    if usuario:
+        st.session_state.usuario = usuario
+        st.success(f"✅ Bienvenido, {usuario['Nombre']}")
+        st.experimental_rerun()
+    else:
+        st.error("❌ Credenciales incorrectas")
+
+import streamlit as st
 from PIL import Image
 import base64
 from io import BytesIO
