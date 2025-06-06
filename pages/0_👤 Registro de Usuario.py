@@ -7,23 +7,23 @@ url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
-# Verificar acceso
-if st.session_state.get("usuario", {}).get("Rol") != "admin":
+# ✅ Verificación de acceso
+if st.session_state.get("usuario", {}).get("Rol") != "Admin":
     st.error("⚠️ No tienes permisos para ver esta sección.")
     st.stop()
 
 st.title("👤 Registro de Nuevo Usuario")
 
-# Función para hashear la contraseña
+# 🔐 Función para hashear contraseña
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# Formulario de registro
+# 📋 Formulario de registro
 with st.form("form_registro"):
     id_usuario = st.text_input("ID Usuario (correo o nombre corto)")
     nombre = st.text_input("Nombre completo")
     password = st.text_input("Contraseña", type="password")
-    rol = st.selectbox("Rol", ["admin", "usuario", "supervisor"])
+    rol = st.selectbox("Rol", ["Admin", "Gerente", "Ejecutivo", "Visitante"])
 
     submitted = st.form_submit_button("Registrar Usuario")
 
@@ -31,11 +31,10 @@ with st.form("form_registro"):
         if not id_usuario or not password or not nombre:
             st.error("⚠️ Todos los campos son obligatorios.")
         else:
-            # Insertar en Supabase
             datos = {
                 "ID Usuario": id_usuario,
                 "Nombre": nombre,
-                "Contraseña": password,  # Solo para uso visible
+                "Contraseña": password,  # Visible solo para gerentes (si lo deseas)
                 "Rol": rol,
                 "Hash de contraseña": hash_password(password)
             }
@@ -44,4 +43,3 @@ with st.form("form_registro"):
                 st.success(f"✅ Usuario {nombre} registrado correctamente.")
             except Exception as e:
                 st.error(f"❌ Error al registrar usuario: {e}")
-
