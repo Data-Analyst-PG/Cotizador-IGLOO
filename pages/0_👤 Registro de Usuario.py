@@ -41,7 +41,7 @@ with st.form("form_registro"):
                 "Nombre": nombre,
                 "Password": password,  # Solo para referencia visible
                 "Rol": rol,
-                "Password Hash": hash_password(password)  # Para login
+                "Password_Hash": hash_password(password)  # Para login
             }
             try:
                 supabase.table("Usuarios").insert(datos).execute()
