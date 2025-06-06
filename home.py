@@ -39,7 +39,7 @@ if "usuario" not in st.session_state:
         if usuario:
             st.session_state.usuario = usuario
             st.success(f"✅ Bienvenido, {usuario['Nombre']}")
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("❌ Credenciales incorrectas")
     st.stop()
