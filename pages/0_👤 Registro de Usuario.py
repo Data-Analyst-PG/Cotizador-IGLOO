@@ -37,7 +37,7 @@ with st.form("form_registro"):
             st.error("⚠️ Todos los campos son obligatorios.")
         else:
             datos = {
-                "ID Usuario": id_usuario,
+                "ID_Usuario": id_usuario,
                 "Nombre": nombre,
                 "Password": password,  # Solo para referencia visible
                 "Rol": rol,
