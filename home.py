@@ -15,7 +15,7 @@ supabase = create_client(url, key)
 st.title("🔐 Iniciar Sesión")
 
 # 👉 Formulario de login
-correo = st.text_input("Correo (ID Usuario)")
+correo = st.text_input("ID Usuario")
 password = st.text_input("Contraseña", type="password")
 
 # 🔍 Verificación de credenciales
