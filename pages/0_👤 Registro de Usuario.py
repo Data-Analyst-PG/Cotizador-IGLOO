@@ -1,16 +1,6 @@
 import streamlit as st
 from supabase import create_client
 import hashlib
-
-# ✅ Verificación de sesión y rol
-if "usuario" not in st.session_state:
-    st.error("⚠️ No has iniciado sesión.")
-    st.stop()
-
-rol = st.session_state.usuario.get("Rol", "").lower()
-if rol != "admin":
-    st.error("🚫 No tienes permiso para acceder a este módulo.")
-    st.stop()
     
 # Conexión a Supabase
 url = st.secrets["SUPABASE_URL"]
