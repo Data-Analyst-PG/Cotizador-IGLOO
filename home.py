@@ -28,7 +28,7 @@ if "usuario" not in st.session_state:
             res = supabase.table("Usuarios").select("*").eq("ID Usuario", correo).execute()
             if res.data:
                 user = res.data[0]
-                if user.get("Password Hash") == hash_password(password):
+                if user.get("Password_Hash") == hash_password(password):
                     return user
         except Exception as e:
             st.error(f"❌ Error de conexión: {e}")
