@@ -4,6 +4,16 @@ import os
 from datetime import datetime
 from supabase import create_client
 
+# ✅ Verificación de sesión y rol
+if "usuario" not in st.session_state:
+    st.error("⚠️ No has iniciado sesión.")
+    st.stop()
+
+rol = st.session_state.usuario.get("Rol", "").lower()
+if rol not in ["admin", "gerente", "ejecutivo"]:
+    st.error("🚫 No tienes permiso para acceder a este módulo.")
+    st.stop()
+    
 # Configuración de conexión a Supabase
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
