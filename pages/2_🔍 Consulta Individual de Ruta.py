@@ -3,6 +3,16 @@ import pandas as pd
 from supabase import create_client
 import os
 
+# ✅ Verificación de sesión y rol
+if "usuario" not in st.session_state:
+    st.error("⚠️ No has iniciado sesión.")
+    st.stop()
+
+rol = st.session_state.usuario.get("Rol", "").lower()
+if rol not in ["admin", "gerente", "ejecutivo", "visitante"]:
+    st.error("🚫 No tienes permiso para acceder a este módulo.")
+    st.stop()
+
 # ✅ Conexión a Supabase
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
