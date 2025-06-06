@@ -1,7 +1,59 @@
 import streamlit as st
-from PIL import Image
+import hashlib
 import base64
-from io import BytesIO
+from supabase import create_client
+from PIL import Image
+
+# =========================
+# 🔐 LOGIN Y AUTENTICACIÓN
+# =========================
+
+# Función para hashear contraseñas
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+# Conexión a Supabase
+url = st.secrets["SUPABASE_URL"]
+key = st.secrets["SUPABASE_KEY"]
+supabase = create_client(url, key)
+
+# Formulario de login (si no hay sesión activa)
+if "usuario" not in st.session_state:
+    st.title("🔐 Iniciar Sesión")
+    correo = st.text_input("ID Usuario")
+    password = st.text_input("Contraseña", type="password")
+
+    def verificar_credenciales(correo, password):
+        try:
+            res = supabase.table("Usuarios").select("*").eq("ID Usuario", correo).execute()
+            if res.data:
+                user = res.data[0]
+                if user.get("Password Hash") == hash_password(password):
+                    return user
+        except Exception as e:
+            st.error(f"❌ Error de conexión: {e}")
+        return None
+
+    if st.button("Ingresar"):
+        usuario = verificar_credenciales(correo, password)
+        if usuario:
+            st.session_state.usuario = usuario
+            st.success(f"✅ Bienvenido, {usuario['Nombre']}")
+            st.experimental_rerun()
+        else:
+            st.error("❌ Credenciales incorrectas")
+    st.stop()
+
+# Botón de cerrar sesión en el sidebar
+with st.sidebar:
+    st.markdown(f"👤 **{st.session_state.usuario['Nombre']}** ({st.session_state.usuario['Rol']})")
+    if st.button("Cerrar sesión"):
+        del st.session_state["usuario"]
+        st.experimental_rerun()
+
+# =========================
+# ✅ ENCABEZADO Y MENÚ
+# =========================
 
 # Ruta al logo
 LOGO_CLARO = "Igloo Original.png"
@@ -37,58 +89,17 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-st.info("Inicia sesión y selecciona una opción desde el menú lateral para comenzar 🚀")
+st.info("Selecciona una opción desde el menú lateral para comenzar 🚀")
 
 # Instrucciones de navegación
 st.subheader("📂 Módulos disponibles")
 st.markdown("""
-- **🛣️ Captura de Rutas:** Ingreso de datos de nuevas rutas
-- **🔍 Consulta Individual de Ruta:** Análisis detallado por registro
-- **🔁 Simulador Vuelta Redonda:** Combinaciones IMPO + VACIO + EXPO
-- **🚚 Programación de Viajes:** Registro y simulación de tráficos ida y vuelta
-- **🗂️ Gestión de Rutas:** Editar y eliminar rutas existentes
-- **📂 Archivos:** Descargar / cargar respaldos de datos
-- **✅ Tráficos Concluidos:** Reporte de rentabilidad
+- **🛣️ Captura de Rutas:** Ingreso de datos de nuevas rutas  
+- **🔍 Consulta Individual de Ruta:** Análisis detallado por registro  
+- **🔁 Simulador Vuelta Redonda:** Combinaciones IMPO + VACIO + EXPO  
+- **🚚 Programación de Viajes:** Registro y simulación de tráficos ida y vuelta  
+- **🗂️ Gestión de Rutas:** Editar y eliminar rutas existentes  
+- **📂 Archivos:** Descargar / cargar respaldos de datos  
+- **✅ Tráficos Concluidos:** Reporte de rentabilidad  
 """)
 
-import streamlit as st
-import hashlib
-from supabase import create_client
-
-# 🔐 Función para hashear contraseñas
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
-
-# 🔗 Conexión a Supabase
-url = st.secrets["SUPABASE_URL"]
-key = st.secrets["SUPABASE_KEY"]
-supabase = create_client(url, key)
-
-# ✅ Título
-st.title("🔐 Iniciar Sesión")
-
-# 👉 Formulario de login
-correo = st.text_input("ID Usuario")
-password = st.text_input("Contraseña", type="password")
-
-# 🔍 Verificación de credenciales
-def verificar_credenciales(correo, password):
-    try:
-        res = supabase.table("Usuarios").select("*").eq("ID Usuario", correo).execute()
-        if res.data:
-            user = res.data[0]
-            if user.get("Password Hash") == hash_password(password):
-                return user
-    except Exception as e:
-        st.error(f"❌ Error de conexión: {e}")
-    return None
-
-# 🟢 Botón de acceso
-if st.button("Ingresar"):
-    usuario = verificar_credenciales(correo, password)
-    if usuario:
-        st.session_state.usuario = usuario
-        st.success(f"✅ Bienvenido, {usuario['Nombre']}")
-        st.experimental_rerun()
-    else:
-        st.error("❌ Credenciales incorrectas")
