@@ -20,12 +20,12 @@ supabase = create_client(url, key)
 # Formulario de login (si no hay sesión activa)
 if "usuario" not in st.session_state:
     st.title("🔐 Iniciar Sesión")
-    correo = st.text_input("ID Usuario")
+    correo = st.text_input("ID_Usuario")
     password = st.text_input("Contraseña", type="password")
 
     def verificar_credenciales(correo, password):
         try:
-            res = supabase.table("Usuarios").select("*").eq("ID Usuario", correo).execute()
+            res = supabase.table("Usuarios").select("*").eq("ID_Usuario", correo).execute()
             if res.data:
                 user = res.data[0]
                 if user.get("Password_Hash") == hash_password(password):
