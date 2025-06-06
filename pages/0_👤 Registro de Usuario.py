@@ -7,11 +7,6 @@ url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
-# ✅ Verificación de acceso
-if st.session_state.get("usuario", {}).get("Rol") != "Admin":
-    st.error("⚠️ No tienes permisos para ver esta sección.")
-    st.stop()
-
 st.title("👤 Registro de Nuevo Usuario")
 
 # 🔐 Función para hashear contraseña
