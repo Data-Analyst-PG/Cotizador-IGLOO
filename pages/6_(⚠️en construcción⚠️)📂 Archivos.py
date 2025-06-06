@@ -6,6 +6,16 @@ from PIL import Image
 import base64
 from io import BytesIO
 
+# ✅ Verificación de sesión y rol
+if "usuario" not in st.session_state:
+    st.error("⚠️ No has iniciado sesión.")
+    st.stop()
+
+rol = st.session_state.usuario.get("Rol", "").lower()
+if rol not in ["admin", "gerente", "ejecutivo"]:
+    st.error("🚫 No tienes permiso para acceder a este módulo.")
+    st.stop()
+
 # Función para convertir imagen en base64
 def image_to_base64(img):
     buffer = BytesIO()
