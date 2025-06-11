@@ -14,7 +14,6 @@ if rol not in ["admin", "gerente", "ejecutivo"]:
     st.error("🚫 No tienes permiso para acceder a este módulo.")
     st.stop()
 
-RUTA_RUTAS = "rutas_guardadas.csv"
 RUTA_PROG = "viajes_programados.csv"
 
 st.title("🛣️ Programación de Viajes Detallada")
@@ -22,10 +21,13 @@ st.title("🛣️ Programación de Viajes Detallada")
 def safe(x): return 0 if pd.isna(x) or x is None else x
 
 def cargar_rutas():
-    if not os.path.exists(RUTA_RUTAS):
-        st.error("No se encontró rutas_guardadas.csv")
+    respuesta = supabase.table("Rutas").select("*").execute()
+    if not respuesta.data:
+        st.error("❌ No se encontraron rutas en Supabase.")
         st.stop()
-    df = pd.read_csv(RUTA_RUTAS)
+    df = pd.DataFrame(respuesta.data)
+    df["Ingreso Total"] = pd.to_numeric(df["Ingreso Total"], errors="coerce").fillna(0)
+    df["Costo_Total_Ruta"] = pd.to_numeric(df["Costo_Total_Ruta"], errors="coerce").fillna(0)
     df["Utilidad"] = df["Ingreso Total"] - df["Costo_Total_Ruta"]
     df["% Utilidad"] = (df["Utilidad"] / df["Ingreso Total"] * 100).round(2)
     df["Ruta"] = df["Origen"] + " → " + df["Destino"]
@@ -131,7 +133,7 @@ if os.path.exists(RUTA_PROG):
 st.markdown("---")
 st.title("🔁 Completar y Simular Tráfico Detallado")
 
-if not os.path.exists(RUTA_PROG) or not os.path.exists(RUTA_RUTAS):
+if not os.path.exists(RUTA_PROG):
     st.error("❌ Faltan archivos necesarios para continuar.")
     st.stop()
 
