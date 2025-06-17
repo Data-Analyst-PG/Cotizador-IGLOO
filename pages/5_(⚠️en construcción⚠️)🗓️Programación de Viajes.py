@@ -38,13 +38,20 @@ def cargar_rutas():
     df["Ruta"] = df["Origen"] + " → " + df["Destino"]
     return df
 
-def guardar_programacion(df_nueva):
-    if os.path.exists(RUTA_PROG):
-        df_prog = pd.read_csv(RUTA_PROG)
-        df_total = pd.concat([df_prog, df_nueva], ignore_index=True)
-    else:
-        df_total = df_nueva
-    df_total.to_csv(RUTA_PROG, index=False)
+def guardar_programacion(nuevo_registro):
+    columnas_base_data = supabase.table("Traficos").select("*").limit(1).execute().data
+    columnas_base = columnas_base_data[0].keys() if columnas_base_data else nuevo_registro.columns
+
+    nuevo_registro = nuevo_registro.reindex(columns=columnas_base, fill_value=None)
+
+    registros = nuevo_registro.to_dict(orient="records")
+    for fila in registros:
+        id_programacion = fila.get("ID_Programacion")
+        existe = supabase.table("Traficos").select("ID_Programacion").eq("ID_Programacion", id_programacion).execute()
+        if not existe.data:
+            supabase.table("Traficos").insert(fila).execute()
+        else:
+            st.warning(f"⚠️ El tráfico con ID {id_programacion} ya fue registrado previamente.")
 
 # =====================================
 # 1. REGISTRO
@@ -76,7 +83,6 @@ if mostrar_registro:
         "Operador": "Operador"
     })
 
-    df_despacho["Ruta_Tipo"] = df_despacho["Ruta_Tipo"].apply(lambda x: "Ruta Larga" if str(x).upper() == "PROPIA" else "Tramo")
     df_despacho["Tipo"] = df_despacho["Tipo"].str.upper()
     df_despacho["Fecha"] = pd.to_datetime(df_despacho["Fecha"]).dt.date
     df_despacho["KM"] = pd.to_numeric(df_despacho["KM"], errors='coerce')
@@ -166,7 +172,6 @@ if mostrar_registro:
                     "Unidad": unidad,
                     "Operador": operador,
                     "Modo_Viaje": "Operador",
-                    "Ruta_Tipo": datos["Ruta_Tipo"],
                     "Tramo": "IDA",
                     "Número_Trafico": viaje_sel,
                     "Costo_Total_Ruta": diesel + sueldo,
