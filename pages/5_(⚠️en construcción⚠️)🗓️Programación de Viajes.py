@@ -3,6 +3,7 @@ import pandas as pd
 import os
 from datetime import datetime
 from supabase import create_client
+import numpy as np
 
 # ✅ Verificación de sesión y rol
 if "usuario" not in st.session_state:
@@ -39,6 +40,19 @@ def cargar_rutas():
     return df
 
 def guardar_programacion(nuevo_registro):
+    def limpiar_fila_json(fila: dict) -> dict:
+        limpio = {}
+        for k, v in fila.items():
+            # Si es float NaN o None → convierte a None (Supabase lo acepta)
+            if v is None or (isinstance(v, float) and np.isnan(v)):
+                limpio[k] = None
+            # Si es fecha u objeto timestamp, convierte a string
+            elif isinstance(v, (pd.Timestamp, datetime)):
+                limpio[k] = v.strftime("%Y-%m-%d")
+            else:
+                limpio[k] = v
+        return limpio
+    
     columnas_base_data = supabase.table("Traficos").select("*").limit(1).execute().data
     columnas_base = columnas_base_data[0].keys() if columnas_base_data else nuevo_registro.columns
 
@@ -49,7 +63,7 @@ def guardar_programacion(nuevo_registro):
         id_programacion = fila.get("ID_Programacion")
         existe = supabase.table("Traficos").select("ID_Programacion").eq("ID_Programacion", id_programacion).execute()
         if not existe.data:
-            supabase.table("Traficos").insert(fila).execute()
+            supabase.table("Traficos").insert(limpiar_fila_json(fila)).execute()
         else:
             st.warning(f"⚠️ El tráfico con ID {id_programacion} ya fue registrado previamente.")
 
