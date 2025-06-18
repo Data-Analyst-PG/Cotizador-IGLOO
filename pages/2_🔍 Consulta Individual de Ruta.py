@@ -70,7 +70,7 @@ if df.empty:
     st.stop()
 
 st.subheader("📌 Selecciona Tipo de Ruta")
-tipo_sel = st.selectbox("Tipo", ["IMPO", "EXPO", "VACIO"])
+tipo_sel = st.selectbox("Tipo", ["IMPORTACION", "EXPORTACION", "VACIO"])
 
 df_tipo = df[df["Tipo"] == tipo_sel]
 rutas_unicas = df_tipo[["Origen", "Destino"]].drop_duplicates()
