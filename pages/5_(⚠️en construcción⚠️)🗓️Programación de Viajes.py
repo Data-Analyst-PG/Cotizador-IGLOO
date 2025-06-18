@@ -218,13 +218,6 @@ if mostrar_registro:
 st.markdown("---")
 st.header("🛠️ Gestión de Tráficos Programados")
 
-# Función segura forzada a float
-def safe(x):
-    try:
-        return float(0.0 if pd.isna(x) or x is None else x)
-    except:
-        return 0.0
-
 # Función para cargar tráficos abiertos (sin Fecha_Cierre)
 def cargar_programaciones_abiertas():
     data = supabase.table("Traficos").select("*").is_("Fecha_Cierre", None).execute()
