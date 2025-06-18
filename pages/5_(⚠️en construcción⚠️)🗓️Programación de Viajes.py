@@ -185,6 +185,16 @@ if mostrar_registro:
                         "Costo_Total_Ruta": diesel + sueldo,
                         "Costo_Extras": 0.0
                     }])
+                    
+                    df_nuevo = df_nuevo.fillna("")  # reemplaza NaN/NaT con string vacío
+                    for col in df_nuevo.columns:
+                        # Convierte fechas a string
+                        if pd.api.types.is_datetime64_any_dtype(df_nuevo[col]):
+                            df_nuevo[col] = df_nuevo[col].dt.strftime('%Y-%m-%d')
+                        # Convierte cualquier otro objeto raro a string
+                        elif df_nuevo[col].dtype == object:
+                            df_nuevo[col] = df_nuevo[col].astype(str)
+
                     guardar_programacion(df_nuevo)
                     st.success("✅ Tráfico registrado exitosamente.")
 
