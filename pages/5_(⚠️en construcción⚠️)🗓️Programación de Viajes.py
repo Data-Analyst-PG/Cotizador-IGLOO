@@ -93,6 +93,9 @@ if mostrar_registro:
     rutas_df = cargar_rutas()
     st.header("📝 Registro de tráfico desde despacho")
 
+    registros_existentes = supabase.table("Traficos").select("ID_Programacion").execute().data
+    traficos_registrados = {r["ID_Programacion"] for r in registros_existentes}
+
     viajes_disponibles = df_despacho["Numero_Trafico"].dropna().unique()
     viaje_sel = st.selectbox("Selecciona un número de tráfico del despacho", viajes_disponibles)
 
@@ -154,31 +157,36 @@ if mostrar_registro:
                 st.error("❌ Operador y Unidad son obligatorios.")
             else:
                 fecha_str = fecha.strftime("%Y-%m-%d")
-                df_nuevo = pd.DataFrame([{
-                    "ID_Programacion": f"{viaje_sel}_{fecha_str}",
-                    "Fecha": fecha_str,
-                    "Cliente": cliente,
-                    "Origen": origen,
-                    "Destino": destino,
-                    "Tipo": tipo,
-                    "Moneda": moneda,
-                    "Ingreso_Original": ingreso_original,
-                    "Ingreso Total": ingreso_total,
-                    "KM": km,
-                    "Costo Diesel": costo_diesel,
-                    "Rendimiento Camion": rendimiento,
-                    "Costo_Diesel_Camion": diesel,
-                    "Sueldo_Operador": sueldo,
-                    "Unidad": unidad,
-                    "Operador": operador,
-                    "Modo_Viaje": "Operador",
-                    "Tramo": "IDA",
-                    "Número_Trafico": viaje_sel,
-                    "Costo_Total_Ruta": diesel + sueldo,
-                    "Costo_Extras": 0.0
-                }])
-                guardar_programacion(df_nuevo)
-                st.success("✅ Tráfico registrado exitosamente desde despacho.")
+                id_programacion = f"{viaje_sel}_{fecha_str}"
+
+                if id_programacion in traficos_registrados:
+                    st.warning("⚠️ Este tráfico ya fue registrado previamente.")
+                else:
+                    df_nuevo = pd.DataFrame([{
+                        "ID_Programacion": id_programacion,
+                        "Fecha": fecha_str,
+                        "Cliente": cliente,
+                        "Origen": origen,
+                        "Destino": destino,
+                        "Tipo": tipo,
+                        "Moneda": moneda,
+                        "Ingreso_Original": ingreso_original,
+                        "Ingreso Total": ingreso_total,
+                        "KM": km,
+                        "Costo Diesel": costo_diesel,
+                        "Rendimiento Camion": rendimiento,
+                        "Costo_Diesel_Camion": diesel,
+                        "Sueldo_Operador": sueldo,
+                        "Unidad": unidad,
+                        "Operador": operador,
+                        "Modo_Viaje": "Operador",
+                        "Tramo": "IDA",
+                        "Número_Trafico": viaje_sel,
+                        "Costo_Total_Ruta": diesel + sueldo,
+                        "Costo_Extras": 0.0
+                    }])
+                    guardar_programacion(df_nuevo)
+                    st.success("✅ Tráfico registrado exitosamente.")
 
 # =====================================
 # 2. VER, EDITAR Y ELIMINAR PROGRAMACIONES
