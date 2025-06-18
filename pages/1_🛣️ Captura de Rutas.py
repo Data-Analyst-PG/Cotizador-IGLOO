@@ -29,11 +29,11 @@ valores_por_defecto = {
     "Costo Diesel": 24.0,
     "Rendimiento Termo": 3.0,
     "Bono ISR IMSS": 462.66,
-    "Pago x km IMPO": 2.10,
-    "Pago x km EXPO": 2.50,
+    "Pago x km IMPORTACION": 2.10,
+    "Pago x km EXPORTACION": 2.50,
     "Pago fijo VACIO": 200.00,
     "Tipo de cambio USD": 19.5,
-    "Tipo de cambio MXN": 1.0
+    "Tipo de cambio MXP": 1.0
 }
 
 def cargar_datos_generales():
@@ -81,40 +81,40 @@ with st.form("captura_ruta"):
 
     with col1:
         fecha = st.date_input("Fecha", value=datetime.today())
-        tipo = st.selectbox("Tipo de Ruta", ["IMPO", "EXPO", "VACIO"])
+        tipo = st.selectbox("Tipo de Ruta", ["IMPORTACION", "EXPORTACION", "VACIO"])
         cliente = st.text_input("Nombre Cliente")
         origen = st.text_input("Origen")
         destino = st.text_input("Destino")
         Modo_de_Viaje = st.selectbox("Modo de Viaje", ["Operador", "Team"])
         km = st.number_input("Kilómetros", min_value=0.0)
-        moneda_ingreso = st.selectbox("Moneda Ingreso Flete", ["MXN", "USD"])
+        moneda_ingreso = st.selectbox("Moneda Ingreso Flete", ["MXP", "USD"])
         ingreso_flete = st.number_input("Ingreso Flete", min_value=0.0)
-        moneda_cruce = st.selectbox("Moneda Ingreso Cruce", ["MXN", "USD"])
+        moneda_cruce = st.selectbox("Moneda Ingreso Cruce", ["MXP", "USD"])
         ingreso_cruce = st.number_input("Ingreso Cruce", min_value=0.0)
     with col2:
-        moneda_costo_cruce = st.selectbox("Moneda Costo Cruce", ["MXN", "USD"])
+        moneda_costo_cruce = st.selectbox("Moneda Costo Cruce", ["MXP", "USD"])
         costo_cruce = st.number_input("Costo Cruce", min_value=0.0)        
         horas_termo = st.number_input("Horas Termo", min_value=0.0)
-        lavado_termo = st.number_input("Lavado Termo", min_value=0.0)
-        movimiento_local = st.number_input("Movimiento Local", min_value=0.0)
-        puntualidad = st.number_input("Puntualidad", min_value=0.0)
-        pension = st.number_input("Pensión", min_value=0.0)
-        estancia = st.number_input("Estancia", min_value=0.0)
-        fianza_termo = st.number_input("Fianza Termo", min_value=0.0)
-        renta_termo = st.number_input("Renta Termo", min_value=0.0)
-        casetas = st.number_input("Casetas", min_value=0.0)
+        lavado_termo = st.number_input("Lavado Termo (MXP)", min_value=0.0)
+        movimiento_local = st.number_input("Movimiento Local (MXP)", min_value=0.0)
+        puntualidad = st.number_input("Puntualidad (MXP)", min_value=0.0)
+        pension = st.number_input("Pensión (MXP)", min_value=0.0)
+        estancia = st.number_input("Estancia (MXP)", min_value=0.0)
+        fianza_termo = st.number_input("Fianza Termo (MXP)", min_value=0.0)
+        renta_termo = st.number_input("Renta Termo (MXP)", min_value=0.0)
+        casetas = st.number_input("Casetas (MXP)", min_value=0.0)
 
     st.markdown("---")
     st.subheader("🧾 Costos Extras Adicionales")
     col3, col4 = st.columns(2)
     with col3:
-        pistas_extra = st.number_input("Pistas Extra", min_value=0.0)
-        stop = st.number_input("Stop", min_value=0.0)
-        falso = st.number_input("Falso", min_value=0.0)
+        pistas_extra = st.number_input("Pistas Extra (MXP)", min_value=0.0)
+        stop = st.number_input("Stop (MXP)", min_value=0.0)
+        falso = st.number_input("Falso (MXP)", min_value=0.0)
     with col4:
-        gatas = st.number_input("Gatas", min_value=0.0)
-        accesorios = st.number_input("Accesorios", min_value=0.0)
-        guias = st.number_input("Guías", min_value=0.0)
+        gatas = st.number_input("Gatas (MXP)", min_value=0.0)
+        accesorios = st.number_input("Accesorios (MXP)", min_value=0.0)
+        guias = st.number_input("Guías (MXP)", min_value=0.0)
 
     revisar = st.form_submit_button("🔍 Revisar Ruta")
 
@@ -140,12 +140,12 @@ with st.form("captura_ruta"):
 
         factor = 2 if Modo_de_Viaje == "Team" else 1
 
-        if tipo == "IMPO":
-            pago_km = valores["Pago x km IMPO"]
+        if tipo == "IMPORTACION":
+            pago_km = valores["Pago x km IMPORTACION"]
             sueldo = km * pago_km * factor
             bono = valores["Bono ISR IMSS"] * factor
         elif tipo == "EXPO":
-            pago_km = valores["Pago x km EXPO"]
+            pago_km = valores["Pago x km EXPORTACION"]
             sueldo = km * pago_km * factor
             bono = valores["Bono ISR IMSS"] * factor
         else:
@@ -182,9 +182,9 @@ with st.form("captura_ruta"):
 if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
     d = st.session_state.datos_captura
 
-    tipo_cambio_flete = valores["Tipo de cambio USD"] if d["moneda_ingreso"] == "USD" else valores["Tipo de cambio MXN"]
-    tipo_cambio_cruce = valores["Tipo de cambio USD"] if d["moneda_cruce"] == "USD" else valores["Tipo de cambio MXN"]
-    tipo_cambio_costo_cruce = valores["Tipo de cambio USD"] if d["moneda_costo_cruce"] == "USD" else valores["Tipo de cambio MXN"]
+    tipo_cambio_flete = valores["Tipo de cambio USD"] if d["moneda_ingreso"] == "USD" else valores["Tipo de cambio MXP"]
+    tipo_cambio_cruce = valores["Tipo de cambio USD"] if d["moneda_cruce"] == "USD" else valores["Tipo de cambio MXP"]
+    tipo_cambio_costo_cruce = valores["Tipo de cambio USD"] if d["moneda_costo_cruce"] == "USD" else valores["Tipo de cambio MXP"]
 
     ingreso_flete_convertido = d["ingreso_flete"] * tipo_cambio_flete
     ingreso_cruce_convertido = d["ingreso_cruce"] * tipo_cambio_cruce
@@ -196,12 +196,12 @@ if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
 
     factor = 2 if d["Modo de Viaje"] == "Team" else 1
 
-    if d["tipo"] == "IMPO":
-        pago_km = valores["Pago x km IMPO"]
+    if d["tipo"] == "IMPORTACION":
+        pago_km = valores["Pago x km IMPORTACION"]
         sueldo = d["km"] * pago_km * factor
         bono = valores["Bono ISR IMSS"] * factor
     elif d["tipo"] == "EXPO":
-        pago_km = valores["Pago x km EXPO"]
+        pago_km = valores["Pago x km EXPORTACION"]
         sueldo = d["km"] * pago_km * factor
         bono = valores["Bono ISR IMSS"] * factor
     else:
