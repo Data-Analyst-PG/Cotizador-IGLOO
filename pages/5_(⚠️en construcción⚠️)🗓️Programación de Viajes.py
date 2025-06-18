@@ -410,19 +410,21 @@ else:
 # =====================================
 st.title("✅ Tráficos Concluidos con Filtro de Fechas")
 
-if not os.path.exists(RUTA_PROG):
-    st.error("❌ No se encontró el archivo de viajes programados.")
-    st.stop()
+def cargar_programaciones_concluidas():
+    data = supabase.table("Traficos").select("*").not_.is_("Fecha_Cierre", None).execute()
+    df = pd.DataFrame(data.data)
+    if df.empty:
+        return pd.DataFrame()
+    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+    return df
 
-df = pd.read_csv(RUTA_PROG)
-df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+df = cargar_programaciones_concluidas()
 
-programaciones = df.groupby("ID_Programacion").size().reset_index(name="Tramos")
-concluidos = programaciones[programaciones["Tramos"] >= 2]["ID_Programacion"]
-
-if concluidos.empty:
-    st.info("Aún no hay tráficos concluidos.")
+if df.empty:
+    st.info("ℹ️ Aún no hay tráficos concluidos.")
 else:
+    programaciones = df.groupby("ID_Programacion").size().reset_index(name="Tramos")
+    concluidos = programaciones[programaciones["Tramos"] >= 2]["ID_Programacion"]
     df_concluidos = df[df["ID_Programacion"].isin(concluidos)].copy()
 
     st.subheader("📅 Filtro por Fecha")
