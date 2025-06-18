@@ -65,18 +65,18 @@ if respuesta.data:
         col1, col2 = st.columns(2)
         with col1:
             fecha = st.date_input("Fecha", ruta["Fecha"])
-            tipo = st.selectbox("Tipo", ["IMPO", "EXPO", "VACIO"], index=["IMPO", "EXPO", "VACIO"].index(ruta["Tipo"]))
+            tipo = st.selectbox("Tipo", ["IMPORTACION", "EXPORTACION", "VACIO"], index=["IMPORTACION", "EXPORTACION", "VACIO"].index(ruta["Tipo"]))
             cliente = st.text_input("Cliente", value=ruta["Cliente"])
             origen = st.text_input("Origen", value=ruta["Origen"])
             destino = st.text_input("Destino", value=ruta["Destino"])
             Modo_de_Viaje = st.selectbox("Modo de Viaje", ["Operador", "Team"], index=["Operador", "Team"].index(ruta["Modo de Viaje"]))
             km = st.number_input("Kilómetros", min_value=0.0, value=float(ruta["KM"]))
-            moneda_ingreso = st.selectbox("Moneda Flete", ["MXN", "USD"], index=["MXN", "USD"].index(ruta["Moneda"]))
+            moneda_ingreso = st.selectbox("Moneda Flete", ["MXP", "USD"], index=["MXP", "USD"].index(ruta["Moneda"]))
             ingreso_original = st.number_input("Ingreso Flete Original", min_value=0.0, value=float(ruta["Ingreso_Original"]))
-            moneda_cruce = st.selectbox("Moneda Cruce", ["MXN", "USD"], index=["MXN", "USD"].index(ruta["Moneda_Cruce"]))
+            moneda_cruce = st.selectbox("Moneda Cruce", ["MXP", "USD"], index=["MXP", "USD"].index(ruta["Moneda_Cruce"]))
             ingreso_cruce = st.number_input("Ingreso Cruce Original", min_value=0.0, value=float(ruta["Cruce_Original"]))
         with col2:
-            moneda_costo_cruce = st.selectbox("Moneda Costo Cruce", ["MXN", "USD"], index=["MXN", "USD"].index(ruta["Moneda Costo Cruce"]))
+            moneda_costo_cruce = st.selectbox("Moneda Costo Cruce", ["MXP", "USD"], index=["MXP", "USD"].index(ruta["Moneda Costo Cruce"]))
             costo_cruce = st.number_input("Costo Cruce", min_value=0.0, value=float(ruta["Costo Cruce"]))
             horas_termo = st.number_input("Horas Termo", min_value=0.0, value=float(ruta["Horas_Termo"]))
             lavado_termo = st.number_input("Lavado Termo", min_value=0.0, value=float(ruta["Lavado_Termo"]))
@@ -104,10 +104,10 @@ if respuesta.data:
 
         if guardar:
              tc_usd = valores.get("Tipo de cambio USD", 17.5)
-             tc_mxn = valores.get("Tipo de cambio MXN", 1.0)
-             tipo_cambio_flete = tc_usd if moneda_ingreso == "USD" else tc_mxn
-             tipo_cambio_cruce = tc_usd if moneda_cruce == "USD" else tc_mxn
-             tipo_cambio_costo_cruce = tc_usd if moneda_costo_cruce == "USD" else tc_mxn
+             tc_mxp = valores.get("Tipo de cambio MXP", 1.0)
+             tipo_cambio_flete = tc_usd if moneda_ingreso == "USD" else tc_mxp
+             tipo_cambio_cruce = tc_usd if moneda_cruce == "USD" else tc_mxp
+             tipo_cambio_costo_cruce = tc_usd if moneda_costo_cruce == "USD" else tc_mxp
 
              ingreso_flete_convertido = ingreso_original * tipo_cambio_flete
              ingreso_cruce_convertido = ingreso_cruce * tipo_cambio_cruce
@@ -122,12 +122,12 @@ if respuesta.data:
 
              factor = 2 if Modo_de_Viaje == "Team" else 1
 
-             if tipo == "IMPO":
-                pago_km = valores.get("Pago x km IMPO", 2.1)
+             if tipo == "IMPORTACION":
+                pago_km = valores.get("Pago x km IMPORTACION", 2.1)
                 sueldo = km * pago_km * factor
                 bono = valores.get("Bono ISR IMSS", 0) * factor
-             elif tipo == "EXPO":
-                pago_km = valores.get("Pago x km EXPO", 2.5)
+             elif tipo == "EXPORTACION":
+                pago_km = valores.get("Pago x km EXPORTACION", 2.5)
                 sueldo = km * pago_km * factor
                 bono = valores.get("Bono ISR IMSS", 0) * factor
              else:
@@ -142,7 +142,7 @@ if respuesta.data:
 
              ruta_actualizada = {
                  "Modo de Viaje": Modo_de_Viaje,
-                 "Fecha": fecha,
+                 "Fecha": fecha.isoformat(),
                  "Tipo": tipo,
                  "Cliente": cliente,
                  "Origen": origen,
