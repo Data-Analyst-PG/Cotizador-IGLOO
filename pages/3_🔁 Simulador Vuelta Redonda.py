@@ -80,7 +80,7 @@ st.markdown("---")
 st.subheader("🔁 Rutas sugeridas (combinaciones con o sin vacío)")
 
 tipo_principal = ruta_1["Tipo"]
-tipo_regreso = "EXPORTACION" if tipo_principal == "IMPO" else "IMPO"
+tipo_regreso = "EXPORTACION" if tipo_principal == "IMPORTACION" else "IMPORTACION"
 destino_origen = str(ruta_1["Destino"]).strip().upper()
 
 sugerencias = []
@@ -204,7 +204,7 @@ if st.button("🚛 Simular Vuelta Redonda"):
     st.markdown("---")
     st.subheader("📋 Resumen de Rutas")
 
-    tipos = ["IMPO", "VACIO", "EXPO"]
+    tipos = ["IMPORTACION", "VACIO", "EXPORTACION"]
     cols = st.columns(3)
 
     def resumen_ruta(r):
