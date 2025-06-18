@@ -225,10 +225,19 @@ def safe(x):
     except:
         return 0.0
 
-if os.path.exists(RUTA_PROG):
-    df_prog = pd.read_csv(RUTA_PROG)
+# Función para cargar tráficos abiertos (sin Fecha_Cierre)
+def cargar_programaciones_abiertas():
+    data = supabase.table("Traficos").select("*").is_("Fecha_Cierre", None).execute()
+    df = pd.DataFrame(data.data)
+    if not df.empty:
+        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+    return df
 
-    # Asegurar columnas numéricas como float para evitar errores de tipo
+df_prog = cargar_programaciones_abiertas()
+
+if df_prog.empty:
+    st.info("ℹ️ No hay tráficos abiertos para editar.")
+else:
     columnas_numericas = [
         "Movimiento_Local", "Puntualidad", "Pension", "Estancia",
         "Pistas Extra", "Stop", "Falso", "Gatas", "Accesorios", "Guías",
@@ -239,19 +248,17 @@ if os.path.exists(RUTA_PROG):
             df_prog[col] = 0.0  # aseguramos que exista
         df_prog[col] = pd.to_numeric(df_prog[col], errors="coerce").fillna(0.0)
 
-    if "ID_Programacion" in df_prog.columns and not df_prog.empty:
-        ids = df_prog["ID_Programacion"].dropna().unique()
-        id_edit = st.selectbox("Selecciona un tráfico para editar o eliminar", ids)
-        df_filtrado = df_prog[df_prog["ID_Programacion"] == id_edit].reset_index(drop=True)
+    ids = df_prog["ID_Programacion"].dropna().unique()
+    id_edit = st.selectbox("Selecciona un tráfico para editar o eliminar", ids)
 
-        st.write("**Vista previa del tráfico seleccionado:**")
-        st.dataframe(df_filtrado)
+    df_filtrado = df_prog[df_prog["ID_Programacion"] == id_edit].reset_index(drop=True)
+    st.write("**Vista previa del tráfico seleccionado:**")
+    st.dataframe(df_filtrado)
 
-        if st.button("🗑️ Eliminar tráfico completo"):
-            df_prog = df_prog[df_prog["ID_Programacion"] != id_edit]
-            df_prog.to_csv(RUTA_PROG, index=False)
-            st.success("✅ Tráfico eliminado exitosamente.")
-            st.experimental_rerun()
+    if st.button("🗑️ Eliminar tráfico completo"):
+        supabase.table("Traficos").delete().eq("ID_Programacion", id_edit).execute()
+        st.success("✅ Tráfico eliminado exitosamente.")
+        st.rerun()
 
         df_ida = df_filtrado[df_filtrado["Tramo"] == "IDA"]
 
