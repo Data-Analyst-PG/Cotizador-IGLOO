@@ -137,28 +137,22 @@ sugerencias = sorted(sugerencias, key=lambda x: safe_number(x.get("utilidad", 0)
 # Inicializar rutas seleccionadas
 rutas_seleccionadas = []
 
-# Mostrar selectbox con todas las opciones
+# Mostrar selectbox con todas las opciones (ordenadas por utilidad)
 if sugerencias:
-    # Crear un diccionario de mapeo {descripcion: objeto_sugerencia}
-    opciones_sugeridas = {s["descripcion"]: s for s in sugerencias}
-
-    # Mostrar las descripciones
+    descripciones = [s["descripcion"] for s in sugerencias]  # ya vienen ordenadas
     descripcion_seleccionada = st.selectbox(
         "Selecciona una opción de regreso sugerida",
-        list(opciones_sugeridas.keys()),
+        descripciones,
         key="selectbox_regreso"
     )
 
     # Recuperar el objeto seleccionado
-    seleccion = opciones_sugeridas[descripcion_seleccionada]
-    if seleccion is not None and "tramos" in seleccion:
-        rutas_seleccionadas = [ruta_1] + seleccion["tramos"]
-    else:
-        rutas_seleccionadas = [ruta_1]
+    seleccion = next(s for s in sugerencias if s["descripcion"] == descripcion_seleccionada)
+    rutas_seleccionadas = [ruta_1] + seleccion["tramos"]
 else:
     st.warning("⚠️ No hay rutas de regreso disponibles.")
     rutas_seleccionadas = [ruta_1]
-
+    
 # 🔁 Simulación y visualización
 st.markdown("---")
 if st.button("🚛 Simular Vuelta Redonda"):
