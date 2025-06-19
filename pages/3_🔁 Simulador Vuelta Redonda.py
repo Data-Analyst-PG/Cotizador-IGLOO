@@ -143,7 +143,8 @@ if sugerencias:
     descripcion_seleccionada = st.selectbox(
         "Selecciona una opción de regreso sugerida",
         descripciones,
-        key="selectbox_regreso"
+        index=0,  # <- fuerza a seleccionar la mejor por defecto
+        key=f"selectbox_regreso_{ruta_1['ID_Ruta']}"  # <- cambia el key dinámicamente
     )
 
     # Recuperar el objeto seleccionado
