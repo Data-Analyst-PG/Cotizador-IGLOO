@@ -132,7 +132,7 @@ if tipo_principal == "VACIO":
         })
 
 # Ordenar sugerencias por utilidad
-sugerencias = sorted(sugerencias, key=lambda x: safe_number(x.get("utilidad", 0)), reverse=True)
+sugerencias = sorted(sugerencias, key=lambda x: (x["utilidad"] / (safe_number(ruta_1["Ingreso Total"]) + sum(safe_number(t.get("Ingreso Total", 0)) for t in x["tramos"]))), reverse=True)
 
 # Inicializar rutas seleccionadas
 rutas_seleccionadas = []
