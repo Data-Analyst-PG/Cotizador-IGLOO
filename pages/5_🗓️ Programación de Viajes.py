@@ -56,7 +56,14 @@ def guardar_programacion(nuevo_registro):
     columnas_base_data = supabase.table("Traficos").select("*").limit(1).execute().data
     columnas_base = columnas_base_data[0].keys() if columnas_base_data else nuevo_registro.columns
 
+    # Asegura que sea DataFrame
+    if isinstance(nuevo_registro, dict):
+        nuevo_registro = pd.DataFrame([nuevo_registro])
+    elif isinstance(nuevo_registro, pd.Series):
+        nuevo_registro = pd.DataFrame([nuevo_registro.to_dict()])
+
     nuevo_registro = nuevo_registro.reindex(columns=columnas_base, fill_value=None)
+
 
     registros = nuevo_registro.to_dict(orient="records")
     for fila in registros:
