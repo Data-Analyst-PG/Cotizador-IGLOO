@@ -407,7 +407,17 @@ else:
 
         df_vuelta = pd.DataFrame(nuevos_tramos)
         for fila in df_vuelta.to_dict(orient="records"):
-            supabase.table("Traficos").insert(limpiar_fila_json(fila)).execute()
+        fila_limpia = {}
+        for k, v in fila.items():
+            if isinstance(v, (pd.Timestamp, datetime)):
+                fila_limpia[k] = v.strftime("%Y-%m-%d")
+            elif pd.isna(v):
+                fila_limpia[k] = None
+            elif isinstance(v, (np.integer, np.floating)):
+                fila_limpia[k] = float(v)
+            else:
+                fila_limpia[k] = v
+        supabase.table("Traficos").insert(fila_limpia).execute()
 
         st.success("✅ Tráfico cerrado exitosamente.")
         st.rerun()
