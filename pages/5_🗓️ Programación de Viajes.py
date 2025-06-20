@@ -178,7 +178,7 @@ if mostrar_registro:
                 st.error("❌ Operador y Unidad son obligatorios.")
             else:
                 fecha_str = fecha.strftime("%Y-%m-%d")
-                id_programacion = f"{viaje_sel}_{fecha_str}"
+                id_programacion = f"{viaje_sel}_IDA"
 
                 if id_programacion in traficos_registrados:
                     st.warning("⚠️ Este tráfico ya fue registrado previamente.")
@@ -400,7 +400,8 @@ else:
             datos["Número_Trafico"] = ida["Número_Trafico"]
             datos["Unidad"] = ida["Unidad"]
             datos["Operador"] = ida["Operador"]
-            datos["ID_Programacion"] = ida["ID_Programacion"]
+            sufijo = "_VACIO" if tramo["Tipo"] == "VACIO" else "_VUELTA"
+            datos["ID_Programacion"] = f"{ida['Número_Trafico']}{sufijo}"
             datos["Tramo"] = "VUELTA"
             datos["Fecha_Cierre"] = datetime.today().strftime("%Y-%m-%d")
             nuevos_tramos.append(datos)
