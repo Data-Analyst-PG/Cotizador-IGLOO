@@ -400,6 +400,12 @@ else:
             datos["Número_Trafico"] = ida["Número_Trafico"]
             datos["Unidad"] = ida["Unidad"]
             datos["Operador"] = ida["Operador"]
+            datos["Costo Diesel"] = ida.get("Costo Diesel", 24.0)
+            datos["Rendimiento Camion"] = ida.get("Rendimiento Camion", 2.5)
+            km = safe(tramo.get("KM", 0))
+            rendimiento = safe(datos["Rendimiento Camion"])
+            costo_diesel = safe(datos["Costo Diesel"])
+            datos["Costo_Diesel_Camion"] = (km / rendimiento) * costo_diesel if rendimiento > 0 else 0
             sufijo = "_VACIO" if tramo["Tipo"] == "VACIO" else "_VUELTA"
             datos["ID_Programacion"] = f"{ida['Número_Trafico']}{sufijo}"
             datos["Tramo"] = "VUELTA"
