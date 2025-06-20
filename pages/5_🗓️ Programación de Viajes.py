@@ -405,7 +405,11 @@ else:
             datos["Fecha_Cierre"] = datetime.today().strftime("%Y-%m-%d")
             nuevos_tramos.append(datos)
 
+        import csv
+
         df_vuelta = pd.DataFrame(nuevos_tramos)
+        errores = []
+
         for fila in df_vuelta.to_dict(orient="records"):
             fila_limpia = {}
             for k, v in fila.items():
@@ -417,10 +421,31 @@ else:
                     fila_limpia[k] = float(v)
                 else:
                     fila_limpia[k] = v
-            supabase.table("Traficos").insert(fila_limpia).execute()
 
-        st.success("✅ Tráfico cerrado exitosamente.")
-        st.rerun()
+            columnas_validas = [
+                "ID_Programacion", "Fecha", "Número_Trafico", "Tramo", "Modo_Viaje", "Operador",
+                "Unidad", "Cliente", "Origen", "Destino", "Tipo", "Moneda", "Ingreso_Original",
+                "Ingreso Total", "KM", "Costo Diesel", "Rendimiento Camion", "Costo_Diesel_Camion",
+                "Sueldo_Operador", "Costo_Total_Ruta", "Costo_Extras", "Movimiento_Local",
+                "Puntualidad", "Pension", "Estancia", "Pistas Extra", "Stop", "Falso", "Gatas",
+                "Accesorios", "Guías", "Fecha_Cierre"
+            ]
+            fila_limpia = {k: v for k, v in fila_limpia.items() if k in columnas_validas}
+
+            try:
+                supabase.table("Traficos").insert(fila_limpia).execute()
+            except Exception as e:
+                errores.append(fila_limpia)
+                st.error(f"❌ Error insertando fila con ID {fila_limpia.get('ID_Programacion', '')}")
+                st.error(f"Detalles: {e}")
+
+        if errores:
+            errores_df = pd.DataFrame(errores)
+            errores_df.to_csv("errores_traficos.csv", index=False)
+            st.warning("⚠️ Algunas filas no se pudieron insertar. Se guardaron en 'errores_traficos.csv'")
+        else:
+            st.success("✅ Tráfico cerrado exitosamente.")
+            st.rerun()
 
 # =====================================
 # 4. FILTRO Y RESUMEN DE VIAJES CONCLUIDOS
