@@ -464,7 +464,7 @@ def cargar_programaciones_concluidas():
     df = pd.DataFrame(data.data)
     if df.empty:
         return pd.DataFrame()
-    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+    df["Fecha_Cierre"] = pd.to_datetime(df["Fecha_Cierre"], errors="coerce")
     return df
 
 df = cargar_programaciones_concluidas()
@@ -472,28 +472,34 @@ df = cargar_programaciones_concluidas()
 if df.empty:
     st.info("ℹ️ Aún no hay tráficos concluidos.")
 else:
-    programaciones = df.groupby("ID_Programacion").size().reset_index(name="Tramos")
-    concluidos = programaciones[programaciones["Tramos"] >= 2]["ID_Programacion"]
-    df_concluidos = df[df["ID_Programacion"].isin(concluidos)].copy()
-
     st.subheader("📅 Filtro por Fecha")
-    fecha_min = df_concluidos["Fecha"].min()
-    fecha_max = df_concluidos["Fecha"].max()
+    fecha_min = df["Fecha_Cierre"].min()
+    fecha_max = df["Fecha_Cierre"].max()
     hoy = datetime.today().date()
 
     fecha_inicio = st.date_input("Fecha inicio", value=fecha_min.date() if pd.notna(fecha_min) else hoy)
     fecha_fin = st.date_input("Fecha fin", value=fecha_max.date() if pd.notna(fecha_max) else hoy)
 
-    df_concluidos["Fecha_Cierre"] = pd.to_datetime(df_concluidos["Fecha_Cierre"], errors="coerce")
-    filtro = (df_concluidos["Fecha_Cierre"] >= pd.to_datetime(fecha_inicio)) & (df_concluidos["Fecha_Cierre"] <= pd.to_datetime(fecha_fin))
+    filtro = (df["Fecha_Cierre"] >= pd.to_datetime(fecha_inicio)) & (df["Fecha_Cierre"] <= pd.to_datetime(fecha_fin))
+    df_filtrado = df[filtro].copy()
 
     if df_filtrado.empty:
         st.warning("No hay tráficos concluidos en ese rango de fechas.")
     else:
-        resumen = df_filtrado.groupby(["ID_Programacion", "Número_Trafico", "Fecha"]).agg({
-            "Ingreso Total": "sum",
-            "Costo_Total_Ruta": "sum"
-        }).reset_index()
+        # Agrupar por tráfico consolidado
+        resumen = (
+            df_filtrado
+            .groupby("Número_Trafico", as_index=False)
+            .agg({
+                "ID_Programacion": "first",
+                "Fecha_Cierre": "max",
+                "Ingreso Total": "sum",
+                "Costo_Total_Ruta": "sum",
+                "Operador": "first",
+                "Unidad": "first"
+            })
+            .rename(columns={"Fecha_Cierre": "Fecha"})
+        )
 
         resumen["Utilidad Bruta"] = resumen["Ingreso Total"] - resumen["Costo_Total_Ruta"]
         resumen["% Utilidad Bruta"] = (resumen["Utilidad Bruta"] / resumen["Ingreso Total"] * 100).round(2)
