@@ -91,7 +91,7 @@ if archivo:
             fecha = datetime.today().strftime("%Y-%m-%d")
             viaje_sel = fila["Número_Trafico"]
             tipo = fila["Tipo"]
-            modo = fila["Modo_Viaje"]
+            modo = fila["Modo de Viaje"]
             operador = fila["Operador"]
             unidad = fila["Unidad"]
             cliente = fila["Cliente"]
@@ -160,7 +160,7 @@ if archivo:
                 "Fecha": fecha,
                 "Número_Trafico": viaje_sel,
                 "Tramo": "IDA",
-                "Modo_Viaje": modo,
+                "Modo de Viaje": modo,
                 "Operador": operador,
                 "Unidad": unidad,
                 "Cliente": cliente,
@@ -235,7 +235,7 @@ else:
             origen = st.text_input("Origen", seleccionado["Origen"])
             destino = st.text_input("Destino", seleccionado["Destino"])
             tipo = st.selectbox("Tipo", ["IMPORTACION", "EXPORTACION", "VACIO"], index=["IMPORTACION", "EXPORTACION", "VACIO"].index(seleccionado["Tipo"]))
-            modo = st.selectbox("Modo_Viaje", ["Operado", "Team"], index=["Operado", "Team"].index(seleccionado["Modo_Viaje"]))
+            modo = st.selectbox("Modo de Viaje", ["Operado", "Team"], index=["Operado", "Team"].index(seleccionado["Modo de Viaje"]))
             moneda = st.selectbox("Moneda", ["MXN", "USD"], index=["MXN", "USD"].index(seleccionado["Moneda"]))
 
             ingreso_original = st.number_input("Ingreso Original", value=round(float(seleccionado["Ingreso_Original"]), 2))
@@ -400,7 +400,7 @@ else:
 
             # === CÁLCULOS ADICIONALES PARA IGLOO ===
             tipo = datos.get("Tipo", "").upper()
-            modo = datos.get("Modo_Viaje", "Operado")
+            modo = datos.get("Modo de Viaje", "Operado")
             km = safe(datos.get("KM", 0))
             sueldo = safe(datos.get("Sueldo_Operador", 0))
 
