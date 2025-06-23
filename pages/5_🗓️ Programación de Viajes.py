@@ -458,20 +458,27 @@ else:
 # =====================================
 st.title("✅ Tráficos Concluidos con Filtro de Fechas")
 
-def cargar_programaciones_concluidas():
-    data = supabase.table("Traficos").select("*").not_.is_("Fecha_Cierre", None).execute()
+def cargar_programaciones():
+    data = supabase.table("Traficos").select("*").execute()
     df = pd.DataFrame(data.data)
     if df.empty:
         return pd.DataFrame()
     df["Fecha_Cierre"] = pd.to_datetime(df["Fecha_Cierre"], errors="coerce")
     return df
 
-df = cargar_programaciones_concluidas()
+df = cargar_programaciones()
 
 if df.empty:
-    st.info("ℹ️ Aún no hay tráficos concluidos.")
+    st.info("ℹ️ Aún no hay programaciones registradas.")
 else:
-    st.subheader("📅 Filtro por Fecha")
+    st.subheader("📅 Filtro por Fecha (Fecha de Cierre de la VUELTA)")
+    fecha_min = df["Fecha_Cierre"].min()
+    fecha_max = df["Fecha_Cierre"].max()
+    hoy = datetime.today().date()
+
+    fecha_inicio = st.date_input("Fecha inicio", value=fecha_min.date() if pd.notna(fecha_min) else hoy)
+    fecha_fin = st.date_input("Fecha fin", value=fecha_max.date() if pd.notna(fecha_max) else hoy)
+
     # Paso 1: detectar viajes con vuelta cerrada
     cerrados = df[df["Fecha_Cierre"].notna()]
     traficos_cerrados = cerrados["Número_Trafico"].unique()
@@ -480,13 +487,14 @@ else:
     df_filtrado = df[df["Número_Trafico"].isin(traficos_cerrados)].copy()
 
     # Paso 3: aplicar filtro de fechas sobre Fecha_Cierre de la vuelta
-    df_filtrado["Fecha_Cierre"] = pd.to_datetime(df_filtrado["Fecha_Cierre"], errors="coerce")
     fechas_vuelta = df_filtrado[df_filtrado["Fecha_Cierre"].notna()].groupby("Número_Trafico")["Fecha_Cierre"].max()
     fechas_vuelta = fechas_vuelta[(fechas_vuelta >= pd.to_datetime(fecha_inicio)) & (fechas_vuelta <= pd.to_datetime(fecha_fin))]
 
     # Paso 4: quedarnos con todos los tramos de esos tráficos en rango
     df_filtrado = df_filtrado[df_filtrado["Número_Trafico"].isin(fechas_vuelta.index)]
 
+    if df_filtrado.empty:
+        st.warning("No hay tráficos concluidos en ese rango de fechas.")
     else:
         resumen = []
         for trafico in df_filtrado["Número_Trafico"].unique():
@@ -504,10 +512,11 @@ else:
 
             clientes_vuelta = " | ".join(vuelta["Cliente"].dropna().astype(str))
             rutas_vuelta = " | ".join(f"{row['Origen']} → {row['Destino']}" for _, row in vuelta.iterrows())
+            fecha_cierre = vuelta["Fecha_Cierre"].max().date() if not vuelta.empty else ""
 
             resumen.append({
                 "Número_Trafico": trafico,
-                "Fecha": vuelta["Fecha_Cierre"].max().date() if not vuelta.empty else "",
+                "Fecha": fecha_cierre,
                 "Cliente IDA": cliente_ida,
                 "Ruta IDA": ruta_ida,
                 "Clientes VUELTA": clientes_vuelta,
