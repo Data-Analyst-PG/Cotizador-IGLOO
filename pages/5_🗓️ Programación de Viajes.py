@@ -202,77 +202,90 @@ if archivo:
         st.success("✅ Los viajes se registraron correctamente.")
     else:
         st.error("❌ El archivo no contiene la columna 'Número_Trafico'.")
-
+        
 # =====================================
-# 2. VER, EDITAR Y ELIMINAR PROGRAMACIONES
+# 2. CONSULTA, EDICIÓN Y ELIMINACIÓN DE TRÁFICOS ABIERTOS
 # =====================================
-st.markdown("---")
-st.header("🛠️ Gestión de Tráficos Programados")
+st.title("🔍 Consulta, Edición y Eliminación de Tráficos")
 
-# Función para cargar tráficos abiertos (sin Fecha_Cierre)
-def cargar_programaciones_abiertas():
-    data = supabase.table("Traficos").select("*").is_("Fecha_Cierre", None).execute()
-    df = pd.DataFrame(data.data)
-    if not df.empty:
-        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-    return df
+# Cargar todos los tráficos (abiertos y cerrados)
+traficos = supabase.table("Traficos").select("*").order("Fecha", desc=True).limit(100).execute()
+df_traficos = pd.DataFrame(traficos.data)
 
-df_prog = cargar_programaciones_abiertas()
-
-if df_prog.empty:
-    st.info("ℹ️ No hay tráficos abiertos para editar.")
+if df_traficos.empty:
+    st.warning("No hay programaciones registradas.")
 else:
-    columnas_numericas = [
-        "Movimiento_Local", "Puntualidad", "Pension", "Estancia",
-        "Pistas Extra", "Stop", "Falso", "Gatas", "Accesorios", "Guías",
-        "Costo_Extras", "Costo_Total_Ruta"
-    ]
-    for col in columnas_numericas:
-        if col not in df_prog.columns:
-            df_prog[col] = 0.0
-        df_prog[col] = pd.to_numeric(df_prog[col], errors="coerce").fillna(0.0)
+    seleccion = st.selectbox("Selecciona un tráfico para ver o editar", df_traficos["ID_Programacion"])
+    seleccionado = df_traficos[df_traficos["ID_Programacion"] == seleccion].iloc[0].to_dict()
+    cerrado = pd.notna(seleccionado.get("Fecha_Cierre"))
 
-    ids = df_prog["ID_Programacion"].dropna().unique()
-    id_edit = st.selectbox("Selecciona un tráfico para editar o eliminar", ids)
-
-    df_filtrado = df_prog[df_prog["ID_Programacion"] == id_edit].reset_index(drop=True)
     st.write("**Vista previa del tráfico seleccionado:**")
-    st.dataframe(df_filtrado)
+    st.dataframe(pd.DataFrame([seleccionado]))
 
     if st.button("🗑️ Eliminar tráfico completo"):
-        supabase.table("Traficos").delete().eq("ID_Programacion", id_edit).execute()
+        supabase.table("Traficos").delete().eq("ID_Programacion", seleccion).execute()
         st.success("✅ Tráfico eliminado exitosamente.")
         st.rerun()
 
-    df_ida = df_filtrado[df_filtrado["Tramo"] == "IDA"]
+    if cerrado:
+        st.warning("⚠️ Este tráfico ya está cerrado. No se puede editar.")
+    else:
+        with st.expander("✏️ Editar tráfico seleccionado", expanded=True):
+            cliente = st.text_input("Cliente", seleccionado["Cliente"])
+            origen = st.text_input("Origen", seleccionado["Origen"])
+            destino = st.text_input("Destino", seleccionado["Destino"])
+            tipo = st.selectbox("Tipo", ["IMPORTACION", "EXPORTACION", "VACIO"], index=["IMPORTACION", "EXPORTACION", "VACIO"].index(seleccionado["Tipo"]))
+            modo = st.selectbox("Modo de Viaje", ["Operado", "Team"], index=["Operado", "Team"].index(seleccionado["Modo_Viaje"]))
+            moneda = st.selectbox("Moneda", ["MXN", "USD"], index=["MXN", "USD"].index(seleccionado["Moneda"]))
 
-    if not df_ida.empty:
-        tramo_ida = df_ida.iloc[0]
-        with st.form("editar_trafico"):
-            nueva_unidad = st.text_input("Editar Unidad", value=str(tramo_ida.get("Unidad", "")))
-            nuevo_operador = st.text_input("Editar Operador", value=str(tramo_ida.get("Operador", "")))
+            ingreso_original = st.number_input("Ingreso Original", value=round(float(seleccionado["Ingreso_Original"]), 2))
+            tipo_cambio = 1 if moneda == "MXN" else float(st.session_state.get("tipo_cambio_usd", 17.0))
+            ingreso_total = round(ingreso_original * tipo_cambio, 2)
 
-            col1, col2 = st.columns(2)
-            with col1:
-                movimiento_local = st.number_input("Movimiento Local", min_value=0.0, value=safe(tramo_ida.get("Movimiento_Local")), key="mov_local_edit")
-                puntualidad = st.number_input("Puntualidad", min_value=0.0, value=safe(tramo_ida.get("Puntualidad")), key="puntualidad_edit")
-                pension = st.number_input("Pensión", min_value=0.0, value=safe(tramo_ida.get("Pension")), key="pension_edit")
-                estancia = st.number_input("Estancia", min_value=0.0, value=safe(tramo_ida.get("Estancia")), key="estancia_edit")
-                pistas_extra = st.number_input("Pistas Extra", min_value=0.0, value=safe(tramo_ida.get("Pistas Extra")), key="pistas_extra_edit")
-            with col2:
-                stop = st.number_input("Stop", min_value=0.0, value=safe(tramo_ida.get("Stop")), key="stop_edit")
-                falso = st.number_input("Falso", min_value=0.0, value=safe(tramo_ida.get("Falso")), key="falso_edit")
-                gatas = st.number_input("Gatas", min_value=0.0, value=safe(tramo_ida.get("Gatas")), key="gatas_edit")
-                accesorios = st.number_input("Accesorios", min_value=0.0, value=safe(tramo_ida.get("Accesorios")), key="accesorios_edit")
-                guias = st.number_input("Guías", min_value=0.0, value=safe(tramo_ida.get("Guías")), key="guias_edit")
+            km = st.number_input("KM", value=round(float(seleccionado["KM"]), 2))
+            horas_termo = st.number_input("Horas Termo", value=round(float(seleccionado.get("Horas_Termo", 0)), 2))
 
-            actualizar = st.form_submit_button("💾 Guardar cambios")
+            mov_local = st.number_input("Movimiento Local", value=round(float(seleccionado.get("Movimiento_Local", 0)), 2))
+            puntualidad = st.number_input("Puntualidad", value=round(float(seleccionado.get("Puntualidad", 0)), 2))
+            pension = st.number_input("Pensión", value=round(float(seleccionado.get("Pension", 0)), 2))
+            estancia = st.number_input("Estancia", value=round(float(seleccionado.get("Estancia", 0)), 2))
+            pistas_extra = st.number_input("Pistas Extra", value=round(float(seleccionado.get("Pistas Extra", 0)), 2))
+            stop = st.number_input("Stop", value=round(float(seleccionado.get("Stop", 0)), 2))
+            falso = st.number_input("Falso", value=round(float(seleccionado.get("Falso", 0)), 2))
+            gatas = st.number_input("Gatas", value=round(float(seleccionado.get("Gatas", 0)), 2))
+            accesorios = st.number_input("Accesorios", value=round(float(seleccionado.get("Accesorios", 0)), 2))
+            guias = st.number_input("Guías", value=round(float(seleccionado.get("Guías", 0)), 2))
 
-            if actualizar:
-                columnas = {
-                    "Unidad": nueva_unidad,
-                    "Operador": nuevo_operador,
-                    "Movimiento_Local": movimiento_local,
+            # Recalcular
+            tarifa = 2.1 if tipo == "IMPORTACION" else 2.5 if tipo == "EXPORTACION" else 0
+            sueldo = round(km * tarifa, 2)
+            rendimiento = float(seleccionado.get("Rendimiento Camion", 2.5))
+            diesel = round((km / rendimiento) * float(seleccionado.get("Costo Diesel", 24)), 2)
+
+            bono_isr = 280 if tipo in ["IMPORTACION", "EXPORTACION"] else 0
+            if modo == "Team":
+                bono_isr *= 2
+
+            costo_termo = horas_termo * 50
+            extras = sum([mov_local, puntualidad, pension, estancia, pistas_extra, stop, falso, gatas, accesorios, guias])
+            costo_total = sueldo + bono_isr + diesel + costo_termo + extras
+            costos_indirectos = ingreso_total * 0.35
+            utilidad_bruta = ingreso_total - costo_total
+            utilidad_neta = utilidad_bruta - costos_indirectos
+
+            if st.button("💾 Guardar cambios"):
+                supabase.table("Traficos").update({
+                    "Cliente": cliente,
+                    "Origen": origen,
+                    "Destino": destino,
+                    "Tipo": tipo,
+                    "Modo_Viaje": modo,
+                    "Moneda": moneda,
+                    "Ingreso_Original": ingreso_original,
+                    "Ingreso Total": ingreso_total,
+                    "KM": km,
+                    "Horas_Termo": horas_termo,
+                    "Movimiento_Local": mov_local,
                     "Puntualidad": puntualidad,
                     "Pension": pension,
                     "Estancia": estancia,
@@ -281,23 +294,19 @@ else:
                     "Falso": falso,
                     "Gatas": gatas,
                     "Accesorios": accesorios,
-                    "Guías": guias
-                }
-
-                extras = sum([safe(v) for k, v in columnas.items() if isinstance(v, (int, float)) and k not in ["Unidad", "Operador"]])
-                base = safe(tramo_ida.get("Costo_Total_Ruta")) - safe(tramo_ida.get("Costo_Extras"))
-                total = base + extras
-
-                columnas.update({
+                    "Guías": guias,
+                    "Sueldo_Operador": sueldo,
+                    "Costo_Diesel_Camion": diesel,
+                    "Costo_Termo": costo_termo,
                     "Costo_Extras": extras,
-                    "Costo_Total_Ruta": total
-                })
-
-                supabase.table("Traficos").update(columnas).eq("ID_Programacion", id_edit).eq("Tramo", "IDA").execute()
-                st.success("✅ Cambios guardados correctamente.")
-    else:
-        st.warning("⚠️ No hay tramo IDA para editar.")
-
+                    "Costo_Total_Ruta": costo_total,
+                    "Bono_ISR_IMSS": bono_isr,
+                    "Costos_Indirectos": costos_indirectos,
+                    "Utilidad_Bruta": utilidad_bruta,
+                    "Utilidad_Neta": utilidad_neta
+                }).eq("ID_Programacion", seleccionado["ID_Programacion"]).execute()
+                st.success("✅ Tráfico actualizado correctamente.")
+                
 # =====================================
 # 3. COMPLETAR Y SIMULAR TRÁFICO DETALLADO
 # =====================================
