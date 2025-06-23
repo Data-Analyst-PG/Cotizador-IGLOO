@@ -453,7 +453,6 @@ else:
         else:
             st.success("✅ Tráfico cerrado exitosamente.")
             st.rerun()
-
 # =====================================
 # 4. FILTRO Y RESUMEN DE VIAJES CONCLUIDOS
 # =====================================
@@ -486,34 +485,44 @@ else:
     if df_filtrado.empty:
         st.warning("No hay tráficos concluidos en ese rango de fechas.")
     else:
-        # Agrupar por tráfico consolidado
-        resumen = (
-            df_filtrado
-            .groupby("Número_Trafico", as_index=False)
-            .agg({
-                "ID_Programacion": "first",
-                "Fecha_Cierre": "max",
-                "Ingreso Total": "sum",
-                "Costo_Total_Ruta": "sum",
-                "Operador": "first",
-                "Unidad": "first"
+        resumen = []
+        for trafico in df_filtrado["Número_Trafico"].unique():
+            tramos = df_filtrado[df_filtrado["Número_Trafico"] == trafico]
+            ida = tramos[tramos["ID_Programacion"].str.contains("_IDA")].iloc[0] if not tramos[tramos["ID_Programacion"].str.contains("_IDA")].empty else None
+            vuelta = tramos[~tramos["ID_Programacion"].str.contains("_IDA")]
+
+            ingreso_total = tramos["Ingreso Total"].sum()
+            costo_total = tramos["Costo_Total_Ruta"].sum()
+            utilidad = ingreso_total - costo_total
+            utilidad_pct = round(utilidad / ingreso_total * 100, 2) if ingreso_total else 0
+
+            cliente_ida = ida["Cliente"] if ida is not None else ""
+            ruta_ida = f"{ida['Origen']} → {ida['Destino']}" if ida is not None else ""
+
+            clientes_vuelta = " | ".join(vuelta["Cliente"].dropna().astype(str))
+            rutas_vuelta = " | ".join(f"{row['Origen']} → {row['Destino']}" for _, row in vuelta.iterrows())
+
+            resumen.append({
+                "Número_Trafico": trafico,
+                "Fecha": vuelta["Fecha_Cierre"].max().date() if not vuelta.empty else "",
+                "Cliente IDA": cliente_ida,
+                "Ruta IDA": ruta_ida,
+                "Clientes VUELTA": clientes_vuelta,
+                "Rutas VUELTA": rutas_vuelta,
+                "Ingreso Total VR": ingreso_total,
+                "Costo Total VR": costo_total,
+                "Utilidad Total VR": utilidad,
+                "% Utilidad Total VR": utilidad_pct
             })
-            .rename(columns={"Fecha_Cierre": "Fecha"})
-        )
 
-        resumen["Utilidad Bruta"] = resumen["Ingreso Total"] - resumen["Costo_Total_Ruta"]
-        resumen["% Utilidad Bruta"] = (resumen["Utilidad Bruta"] / resumen["Ingreso Total"] * 100).round(2)
-        resumen["Costos Indirectos (35%)"] = (resumen["Ingreso Total"] * 0.35).round(2)
-        resumen["Utilidad Neta"] = resumen["Utilidad Bruta"] - resumen["Costos Indirectos (35%)"]
-        resumen["% Utilidad Neta"] = (resumen["Utilidad Neta"] / resumen["Ingreso Total"] * 100).round(2)
+        resumen_df = pd.DataFrame(resumen)
+        st.subheader("📋 Resumen de Viajes Redondos")
+        st.dataframe(resumen_df, use_container_width=True)
 
-        st.subheader("📋 Resumen de Viajes Concluidos")
-        st.dataframe(resumen, use_container_width=True)
-
-        csv = resumen.to_csv(index=False).encode("utf-8")
+        csv = resumen_df.to_csv(index=False).encode("utf-8")
         st.download_button(
             "📥 Descargar Resumen en CSV",
             data=csv,
-            file_name="resumen_traficos_concluidos.csv",
+            file_name="resumen_viajes_redondos.csv",
             mime="text/csv"
         )
