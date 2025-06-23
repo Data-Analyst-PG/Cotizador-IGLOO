@@ -235,7 +235,7 @@ else:
             origen = st.text_input("Origen", seleccionado["Origen"])
             destino = st.text_input("Destino", seleccionado["Destino"])
             tipo = st.selectbox("Tipo", ["IMPORTACION", "EXPORTACION", "VACIO"], index=["IMPORTACION", "EXPORTACION", "VACIO"].index(seleccionado["Tipo"]))
-            modo = st.selectbox("Modo de Viaje", ["Operado", "Team"], index=["Operado", "Team"].index(seleccionado["Modo_Viaje"]))
+            modo = st.selectbox("Modo_Viaje", ["Operado", "Team"], index=["Operado", "Team"].index(seleccionado["Modo_Viaje"]))
             moneda = st.selectbox("Moneda", ["MXN", "USD"], index=["MXN", "USD"].index(seleccionado["Moneda"]))
 
             ingreso_original = st.number_input("Ingreso Original", value=round(float(seleccionado["Ingreso_Original"]), 2))
