@@ -484,8 +484,8 @@ else:
     fecha_inicio = st.date_input("Fecha inicio", value=fecha_min.date() if pd.notna(fecha_min) else hoy)
     fecha_fin = st.date_input("Fecha fin", value=fecha_max.date() if pd.notna(fecha_max) else hoy)
 
-    filtro = (df_concluidos["Fecha"] >= pd.to_datetime(fecha_inicio)) & (df_concluidos["Fecha"] <= pd.to_datetime(fecha_fin))
-    df_filtrado = df_concluidos[filtro]
+    df_concluidos["Fecha_Cierre"] = pd.to_datetime(df_concluidos["Fecha_Cierre"], errors="coerce")
+    filtro = (df_concluidos["Fecha_Cierre"] >= pd.to_datetime(fecha_inicio)) & (df_concluidos["Fecha_Cierre"] <= pd.to_datetime(fecha_fin))
 
     if df_filtrado.empty:
         st.warning("No hay tráficos concluidos en ese rango de fechas.")
