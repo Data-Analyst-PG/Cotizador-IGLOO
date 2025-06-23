@@ -477,8 +477,12 @@ else:
     df_concluidos = df[df["ID_Programacion"].isin(concluidos)].copy()
 
     st.subheader("📅 Filtro por Fecha")
-    fecha_inicio = st.date_input("Fecha inicio", value=df_concluidos["Fecha"].min().date())
-    fecha_fin = st.date_input("Fecha fin", value=df_concluidos["Fecha"].max().date())
+    fecha_min = df_concluidos["Fecha"].min()
+    fecha_max = df_concluidos["Fecha"].max()
+    hoy = datetime.today().date()
+
+    fecha_inicio = st.date_input("Fecha inicio", value=fecha_min.date() if pd.notna(fecha_min) else hoy)
+    fecha_fin = st.date_input("Fecha fin", value=fecha_max.date() if pd.notna(fecha_max) else hoy)
 
     filtro = (df_concluidos["Fecha"] >= pd.to_datetime(fecha_inicio)) & (df_concluidos["Fecha"] <= pd.to_datetime(fecha_fin))
     df_filtrado = df_concluidos[filtro]
