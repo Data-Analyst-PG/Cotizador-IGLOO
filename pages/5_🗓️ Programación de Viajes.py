@@ -255,7 +255,8 @@ else:
             falso = st.number_input("Falso", value=round(float(seleccionado.get("Falso", 0)), 2))
             gatas = st.number_input("Gatas", value=round(float(seleccionado.get("Gatas", 0)), 2))
             accesorios = st.number_input("Accesorios", value=round(float(seleccionado.get("Accesorios", 0)), 2))
-            guias = st.number_input("Guías", value=round(float(seleccionado.get("Guías", 0)), 2))
+            guias_valor = seleccionado.get("Guías")
+            guias = st.number_input("Guías", value=round(float(guias_valor) if guias_valor is not None else 0, 2))
 
             # Recalcular
             tarifa = 2.1 if tipo == "IMPORTACION" else 2.5 if tipo == "EXPORTACION" else 0
