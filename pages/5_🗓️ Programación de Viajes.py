@@ -189,60 +189,56 @@ if mostrar_registro:
 
     with st.form("registro_trafico"):
         st.subheader("📝 Validar y completar datos")
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
+
+        # Validación segura
+        cliente_valor = str(datos["Cliente"]) if pd.notna(datos["Cliente"]) else ""
+        origen_valor = str(datos["Origen"]) if pd.notna(datos["Origen"]) else ""
+        destino_valor = str(datos["Destino"]) if pd.notna(datos["Destino"]) else ""
+        operador_valor = str(datos["Operador"]) if pd.notna(datos["Operador"]) else ""
+        unidad_valor = str(datos["Unidad"]) if pd.notna(datos["Unidad"]) else ""
+        tipo_valor = str(datos["Tipo"]).strip().upper() if pd.notna(datos["Tipo"]) else "IMPORTACION"
+        moneda_valor = str(datos["Moneda"]).strip().upper() if pd.notna(datos["Moneda"]) else "MXP"
 
         with col1:
-            fecha = st.date_input("Fecha", value=datos["Fecha"])
-            cliente = st.text_input("Cliente", value=str(datos.get("Cliente", "")))
-            origen = st.text_input("Origen", value=str(datos.get("Origen", "")))
-            destino = st.text_input("Destino", value=str(datos.get("Destino", "")))
-            tipo_valor = str(datos.get("Tipo", "IMPORTACION")).strip().upper()
-            tipo_opciones = ["IMPORTACION", "EXPORTACION", "VACIO"]
-            tipo_index = tipo_opciones.index(tipo_valor) if tipo_valor in tipo_opciones else 0
-            tipo = st.selectbox("Tipo", tipo_opciones, index=tipo_index)
-            moneda = st.selectbox("Moneda", ["MXP", "USD"],
-                                  index=["MXP", "USD"].index(datos.get("Moneda", "MXP")))
-            ingreso_original = st.number_input("Ingreso Original", value=safe(datos.get("Ingreso_Original", 0)))
+            fecha = st.date_input("Fecha", value=datos["Fecha"], key="fecha_input")
+            cliente = st.text_input("Cliente", value=cliente_valor)
+            origen = st.text_input("Origen", value=origen_valor)
+            destino = st.text_input("Destino", value=destino_valor)
+            tipo = st.selectbox("Tipo", ["IMPORTACION", "EXPORTACION", "VACIO"],
+                                index=["IMPORTACION", "EXPORTACION", "VACIO"].index(tipo_valor)
+                                if tipo_valor in ["IMPORTACION", "EXPORTACION", "VACIO"] else 0)
 
         with col2:
-            unidad = st.text_input("Unidad", value=str(datos.get("Unidad", "")))
-            operador = st.text_input("Operador", value=str(datos.get("Operador", "")))
-            km = st.number_input("KM", value=safe(datos.get("KM", 0)))
-            rendimiento = float(valores["Rendimiento Camion"])
-            diesel_precio = float(valores["Costo Diesel"])
-            tipo_cambio = float(valores["Tipo de cambio USD"]) if moneda == "USD" else 1.0
+            unidad = st.text_input("Unidad", value=unidad_valor)
+            operador = st.text_input("Operador", value=operador_valor)
+            km = st.number_input("KM", value=float(safe(datos["KM"])), min_value=0.0)
+            rendimiento = st.number_input("Rendimiento Camión", value=rendimiento_datos_generales, min_value=0.1)
+            costo_diesel = st.number_input("Costo Diesel", value=precio_diesel_datos_generales, min_value=0.1)
 
-        # === CÁLCULOS
-        ingreso_total = ingreso_original * tipo_cambio
-        diesel = (km / rendimiento) * diesel_precio
-        horas_termo = safe(datos.get("Horas_Termo", 0))
-        diesel_termo = horas_termo * diesel_precio
-        sueldo = safe(datos.get("Sueldo_Operador", 0))
-        bono = float(valores["Bono ISR IMSS"]) if tipo in ["IMPORTACION", "EXPORTACION"] else 0
+        with col3:
+            moneda = st.selectbox("Moneda", ["MXP", "USD"],
+                                  index=["MXP", "USD"].index(moneda_valor)
+                                  if moneda_valor in ["MXP", "USD"] else 0)
+            ingreso_original = st.number_input("Ingreso Original", value=float(safe(datos["Ingreso_Original"])))
+            horas_termo = st.number_input("Horas Termo", value=float(safe(datos.get("Horas_Termo", 0))))
+            tipo_cambio = st.number_input("Tipo de cambio USD", value=tipo_cambio_usd)
 
-        # Extras
-        extras = sum([
-            safe(datos.get("Movimiento_Local", 0)),
-            safe(datos.get("Puntualidad", 0)),
-            safe(datos.get("Pension", 0)),
-            safe(datos.get("Estancia", 0)),
-            safe(datos.get("Pistas Extra", 0)),
-            safe(datos.get("Stop", 0)),
-            safe(datos.get("Falso", 0)),
-            safe(datos.get("Gatas", 0)),
-            safe(datos.get("Accesorios", 0)),
-            safe(datos.get("Guías", 0))
-        ])
-
-        costo_total = sueldo + bono + diesel + diesel_termo + extras
+        ingreso_total = ingreso_original * (tipo_cambio if moneda == "USD" else 1)
+        diesel_camion = (km / rendimiento) * costo_diesel
+        diesel_termo = horas_termo * costo_diesel
+        tarifa = 2.1 if tipo == "IMPORTACION" else 2.5 if tipo == "EXPORTACION" else 0
+        sueldo = round(km * tarifa, 2)
+        bono_isr = bono_isr_base * (2 if tipo in ["IMPORTACION", "EXPORTACION"] and "Team" in "Operador" else 1)
+        costo_total = sueldo + bono_isr + diesel_camion + diesel_termo
         costos_indirectos = ingreso_total * 0.35
         utilidad_bruta = ingreso_total - costo_total
         utilidad_neta = utilidad_bruta - costos_indirectos
 
         st.markdown(f"💰 **Ingreso Total Convertido:** ${ingreso_total:,.2f}")
-        st.markdown(f"⛽ **Diésel Camión:** ${diesel:,.2f} | **Diésel Termo:** ${diesel_termo:,.2f}")
-        st.markdown(f"🧾 **Costo Total Ruta:** ${costo_total:,.2f}")
-        st.markdown(f"📈 **Utilidad Neta:** ${utilidad_neta:,.2f} ({utilidad_neta / ingreso_total * 100:.2f}%)")
+        st.markdown(f"⛽ **Diésel Camión:** ${diesel_camion:,.2f} | **Diésel Termo:** ${diesel_termo:,.2f}")
+        st.markdown(f"🧮 **Costo Total Ruta:** ${costo_total:,.2f}")
+        st.markdown(f"📈 **Utilidad Neta:** ${utilidad_neta:,.2f} ({(utilidad_neta / ingreso_total * 100):.2f}%)")
 
         if st.form_submit_button("📅 Registrar tráfico desde despacho"):
             id_programacion = f"{viaje_sel}_{fecha.strftime('%Y-%m-%d')}"
