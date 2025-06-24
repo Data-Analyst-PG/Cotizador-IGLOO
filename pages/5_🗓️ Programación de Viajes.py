@@ -229,34 +229,41 @@ else:
 
     if cerrado:
         st.warning("⚠️ Este tráfico ya está cerrado. No se puede editar.")
+    if cerrado:
+        st.warning("⚠️ Este tráfico ya está cerrado. No se puede editar.")
     else:
         with st.expander("✏️ Editar tráfico seleccionado", expanded=True):
-            cliente = st.text_input("Cliente", seleccionado["Cliente"])
-            origen = st.text_input("Origen", seleccionado["Origen"])
-            destino = st.text_input("Destino", seleccionado["Destino"])
-            tipo = st.selectbox("Tipo", ["IMPORTACION", "EXPORTACION", "VACIO"], index=["IMPORTACION", "EXPORTACION", "VACIO"].index(seleccionado["Tipo"]))
-            modo = st.selectbox("Modo de Viaje", ["Operador", "Team"], index=["Operador", "Team"].index(seleccionado["Modo de Viaje"]))
-            moneda = st.selectbox("Moneda", ["MXN", "USD"], index=["MXN", "USD"].index(seleccionado["Moneda"]))
+            col1, col2, col3 = st.columns(3)
 
-            ingreso_original = st.number_input("Ingreso Original", value=round(float(seleccionado["Ingreso_Original"]), 2))
-            tipo_cambio = 1 if moneda == "MXN" else float(st.session_state.get("tipo_cambio_usd", 17.0))
-            ingreso_total = round(ingreso_original * tipo_cambio, 2)
+            with col1:
+                cliente = st.text_input("Cliente", seleccionado["Cliente"])
+                origen = st.text_input("Origen", seleccionado["Origen"])
+                destino = st.text_input("Destino", seleccionado["Destino"])
+                tipo = st.selectbox("Tipo", ["IMPORTACION", "EXPORTACION", "VACIO"],
+                                    index=["IMPORTACION", "EXPORTACION", "VACIO"].index(seleccionado["Tipo"]))
+                modo = st.selectbox("Modo de Viaje", ["Operador", "Team"],
+                                    index=["Operador", "Team"].index(seleccionado["Modo de Viaje"]))
+                moneda = st.selectbox("Moneda", ["MXN", "USD"],
+                                      index=["MXN", "USD"].index(seleccionado["Moneda"]))
 
-            km = st.number_input("KM", value=round(float(seleccionado["KM"]), 2))
-            horas_termo = st.number_input("Horas Termo", value=round(float(seleccionado.get("Horas_Termo", 0)), 2))
+            with col2:
+                ingreso_original = st.number_input("Ingreso Original", value=round(float(seleccionado["Ingreso_Original"]), 2))
+                tipo_cambio = 1 if moneda == "MXN" else float(st.session_state.get("tipo_cambio_usd", 17.0))
+                ingreso_total = round(ingreso_original * tipo_cambio, 2)
+                km = st.number_input("KM", value=round(float(seleccionado["KM"]), 2))
+                horas_termo = st.number_input("Horas Termo", value=round(float(seleccionado.get("Horas_Termo", 0)), 2))
+                mov_local = st.number_input("Movimiento Local", value=round(float(seleccionado.get("Movimiento_Local", 0)), 2))
+                puntualidad = st.number_input("Puntualidad", value=round(float(seleccionado.get("Puntualidad", 0)), 2))
+                pension = st.number_input("Pensión", value=round(float(seleccionado.get("Pension", 0)), 2))
 
-            mov_local = st.number_input("Movimiento Local", value=round(float(seleccionado.get("Movimiento_Local", 0)), 2))
-            puntualidad = st.number_input("Puntualidad", value=round(float(seleccionado.get("Puntualidad", 0)), 2))
-            pension = st.number_input("Pensión", value=round(float(seleccionado.get("Pension", 0)), 2))
-            estancia = st.number_input("Estancia", value=round(float(seleccionado.get("Estancia", 0)), 2))
-            pistas_valor = seleccionado.get("Pistas Extra")
-            pistas_extra = st.number_input("Pistas Extra", value=round(float(pistas_valor) if pistas_valor is not None else 0, 2))
-            stop = st.number_input("Stop", value=round(float(seleccionado.get("Stop", 0)), 2))
-            falso = st.number_input("Falso", value=round(float(seleccionado.get("Falso", 0)), 2))
-            gatas = st.number_input("Gatas", value=round(float(seleccionado.get("Gatas", 0)), 2))
-            accesorios = st.number_input("Accesorios", value=round(float(seleccionado.get("Accesorios", 0)), 2))
-            guias_valor = seleccionado.get("Guías")
-            guias = st.number_input("Guías", value=round(float(guias_valor) if guias_valor is not None else 0, 2))
+            with col3:
+                estancia = st.number_input("Estancia", value=round(float(seleccionado.get("Estancia", 0)), 2))
+                pistas_extra = st.number_input("Pistas Extra", value=round(float(seleccionado.get("Pistas Extra") or 0), 2))
+                stop = st.number_input("Stop", value=round(float(seleccionado.get("Stop", 0)), 2))
+                falso = st.number_input("Falso", value=round(float(seleccionado.get("Falso", 0)), 2))
+                gatas = st.number_input("Gatas", value=round(float(seleccionado.get("Gatas", 0)), 2))
+                accesorios = st.number_input("Accesorios", value=round(float(seleccionado.get("Accesorios", 0)), 2))
+                guias = st.number_input("Guías", value=round(float(seleccionado.get("Guías") or 0), 2))
 
             # Recalcular
             tarifa = 2.1 if tipo == "IMPORTACION" else 2.5 if tipo == "EXPORTACION" else 0
@@ -281,7 +288,7 @@ else:
                     "Origen": origen,
                     "Destino": destino,
                     "Tipo": tipo,
-                    "Modo_Viaje": modo,
+                    "Modo de Viaje": modo,
                     "Moneda": moneda,
                     "Ingreso_Original": ingreso_original,
                     "Ingreso Total": ingreso_total,
