@@ -170,7 +170,10 @@ if mostrar_registro:
         "Accesorios", "Guías", "Horas_Termo"
     ]
     for col in columnas_num:
-        df_despacho[col] = pd.to_numeric(df_despacho.get(col, 0), errors="coerce").fillna(0.0)
+        if col not in df_despacho.columns:
+            df_despacho[col] = 0.0
+        else:
+            df_despacho[col] = pd.to_numeric(df_despacho[col], errors="coerce").fillna(0.0)
 
     df_despacho["Fecha"] = pd.to_datetime(df_despacho["Fecha"], errors="coerce").dt.date
     df_despacho["Tipo"] = df_despacho["Tipo"].str.upper()
