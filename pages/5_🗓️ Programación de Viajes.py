@@ -74,8 +74,11 @@ def guardar_programacion(nuevo_registro):
         else:
             st.warning(f"⚠️ El tráfico con ID {id_programacion} ya fue registrado previamente.")
 
+import os
+
 RUTA_DATOS = "datos_generales.csv"
 
+# Valores por defecto si no existe el archivo
 valores_por_defecto = {
     "Rendimiento Camion": 2.5,
     "Costo Diesel": 24.0,
@@ -84,21 +87,37 @@ valores_por_defecto = {
     "Pago x km IMPORTACION": 2.10,
     "Pago x km EXPORTACION": 2.50,
     "Pago fijo VACIO": 200.00,
-    "Tipo de cambio USD": 19.5,
+    "Tipo de cambio USD": 17.5,
     "Tipo de cambio MXP": 1.0
 }
 
 def cargar_datos_generales():
     if os.path.exists(RUTA_DATOS):
-        return pd.read_csv(RUTA_DATOS).set_index("Parametro").to_dict()["Valor"]
+        df = pd.read_csv(RUTA_DATOS)
+        return df.set_index("Parametro")["Valor"].to_dict()
     else:
         return valores_por_defecto.copy()
 
+def guardar_datos_generales(valores):
+    df = pd.DataFrame(list(valores.items()), columns=["Parametro", "Valor"])
+    df.to_csv(RUTA_DATOS, index=False)
+
+# Cargar valores actuales
 valores = cargar_datos_generales()
 
-with st.expander("⚙️ Datos Generales Actuales (usados en cálculos)"):
-    for k, v in valores.items():
-        st.markdown(f"**{k}**: {v}")
+with st.expander("⚙️ Configurar Datos Generales"):
+    st.markdown("Estos valores se usan para calcular el sueldo, bono, costos y utilidades de los tráficos.")
+    nuevos_valores = {}
+    for clave, valor in valores.items():
+        nuevos_valores[clave] = st.number_input(clave, value=float(valor), key=clave)
+
+    if st.button("💾 Guardar configuración"):
+        guardar_datos_generales(nuevos_valores)
+        st.success("✅ Configuración guardada correctamente.")
+        st.rerun()
+
+# Asignar los valores actualizados para usar en cálculos
+valores = nuevos_valores if nuevos_valores else valores
 
 # =====================================
 # 1. REGISTRO DE TRÁFICO DESDE EXCEL
