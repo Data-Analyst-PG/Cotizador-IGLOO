@@ -191,13 +191,15 @@ if mostrar_registro:
     try:
         datos_generales = pd.read_csv("datos_generales.csv")
         datos_dict = dict(zip(datos_generales["Concepto"], datos_generales["Valor"]))
+
         precio_diesel_datos_generales = float(datos_dict.get("Precio Diesel", 24))
         tipo_cambio_usd = float(datos_dict.get("Tipo de cambio USD", 17.5))
         rendimiento_datos_generales = float(datos_dict.get("Rendimiento Tracto", 2.5))
         bono_isr_base = float(datos_dict.get("Bono ISR IMSS", 462.66))
+
     except Exception as e:
         st.error(f"Error al cargar datos generales: {e}")
-        precio_diesel_datos_generales = 24
+        precio_diesel_datos_generales = 24.0
         tipo_cambio_usd = 17.5
         rendimiento_datos_generales = 2.5
         bono_isr_base = 462.66
@@ -229,7 +231,7 @@ if mostrar_registro:
             operador = st.text_input("Operador", value=operador_valor)
             km = st.number_input("KM", value=float(safe(datos["KM"])), min_value=0.0)
             rendimiento = st.number_input("Rendimiento Camión", value=rendimiento_datos_generales, min_value=0.1)
-            costo_diesel = st.number_input("Costo Diesel", value=precio_diesel_datos_generales, min_value=0.1)
+            costo_diesel = st.number_input("Costo Diesel", value=float(precio_diesel_datos_generales), min_value=0.1)
 
         with col3:
             moneda = st.selectbox("Moneda", ["MXP", "USD"],
