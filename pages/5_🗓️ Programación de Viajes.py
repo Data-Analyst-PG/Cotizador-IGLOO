@@ -236,6 +236,7 @@ else:
             col1, col2, col3 = st.columns(3)
 
             with col1:
+                
                 cliente = st.text_input("Cliente", seleccionado["Cliente"])
                 origen = st.text_input("Origen", seleccionado["Origen"])
                 destino = st.text_input("Destino", seleccionado["Destino"])
@@ -243,10 +244,12 @@ else:
                                     index=["IMPORTACION", "EXPORTACION", "VACIO"].index(seleccionado["Tipo"]))
                 modo = st.selectbox("Modo de Viaje", ["Operador", "Team"],
                                     index=["Operador", "Team"].index(seleccionado["Modo de Viaje"]))
-                moneda = st.selectbox("Moneda", ["MXN", "USD"],
-                                      index=["MXN", "USD"].index(seleccionado["Moneda"]))
+                unidad = st.text_input("Unidad", seleccionado.get("Unidad", ""))
+                operador = st.text_input("Operador", seleccionado.get("Operador", ""))
 
             with col2:
+                moneda = st.selectbox("Moneda", ["MXN", "USD"],
+                                      index=["MXN", "USD"].index(seleccionado["Moneda"]))
                 ingreso_original = st.number_input("Ingreso Original", value=round(float(seleccionado["Ingreso_Original"]), 2))
                 tipo_cambio = 1 if moneda == "MXN" else float(st.session_state.get("tipo_cambio_usd", 17.0))
                 ingreso_total = round(ingreso_original * tipo_cambio, 2)
