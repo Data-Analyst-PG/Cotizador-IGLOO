@@ -74,134 +74,197 @@ def guardar_programacion(nuevo_registro):
         else:
             st.warning(f"⚠️ El tráfico con ID {id_programacion} ya fue registrado previamente.")
 
-# =====================================
-# 1. REGISTRO DESDE DESPACHO
-# =====================================
-st.title("🛣️ Registro de Viajes desde Despacho")
+RUTA_DATOS = "datos_generales.csv"
 
-st.markdown("Carga un archivo de programación generado por despacho para registrar el tráfico inicial (IDA).")
+valores_por_defecto = {
+    "Rendimiento Camion": 2.5,
+    "Costo Diesel": 24.0,
+    "Rendimiento Termo": 3.0,
+    "Bono ISR IMSS": 462.66,
+    "Pago x km IMPORTACION": 2.10,
+    "Pago x km EXPORTACION": 2.50,
+    "Pago fijo VACIO": 200.00,
+    "Tipo de cambio USD": 19.5,
+    "Tipo de cambio MXP": 1.0
+}
 
-archivo = st.file_uploader("Selecciona el archivo Excel", type=["xlsx"])
-if archivo:
-    df = pd.read_excel(archivo)
-    columnas = df.columns
-
-    if "Número_Trafico" in columnas:
-        for i, fila in df.iterrows():
-            fecha = datetime.today().strftime("%Y-%m-%d")
-            viaje_sel = fila["Número_Trafico"]
-            tipo = fila["Tipo"]
-            modo = fila["Modo de Viaje"]
-            operador = fila["Operador"]
-            unidad = fila["Unidad"]
-            cliente = fila["Cliente"]
-            origen = fila["Origen"]
-            destino = fila["Destino"]
-            ingreso_original = float(safe(fila["Ingreso"]))
-            moneda = fila["Moneda"]
-            km = float(safe(fila["KM"]))
-            casetas = float(safe(fila["Casetas"]))
-            cruce = float(safe(fila["Costo_Cruce"]))
-            moneda_cruce = fila.get("Moneda_Costo_Cruce", "MXN")
-
-            puntualidad = safe(fila.get("Puntualidad", 0))
-            pension = safe(fila.get("Pension", 0))
-            estancia = safe(fila.get("Estancia", 0))
-            pistas_extra = safe(fila.get("Pistas Extra", 0))
-            stop = safe(fila.get("Stop", 0))
-            falso = safe(fila.get("Falso", 0))
-            gatas = safe(fila.get("Gatas", 0))
-            accesorios = safe(fila.get("Accesorios", 0))
-            guias = safe(fila.get("Guías", 0))
-            mov_local = safe(fila.get("Movimiento_Local", 0))
-            horas_termo = safe(fila.get("Horas_Termo", 0))
-
-            # Valores base
-            tarifa_operador = 2.1 if tipo == "IMPORTACION" else 2.5 if tipo == "EXPORTACION" else 0
-            tipo_cambio = float(safe(fila.get("Tipo_Cambio", 1)))
-            rendimiento = float(safe(fila.get("Rendimiento Camion", 2.5)))
-            costo_diesel = float(safe(fila.get("Costo Diesel", 24)))
-
-            sueldo = round(km * tarifa_operador, 2)
-            diesel = round((km / rendimiento) * costo_diesel, 2)
-            ingreso_total = round(ingreso_original * tipo_cambio, 2)
-
-            # Cálculo de bono ISR/IMSS
-            bono_isr = 0
-            if tipo in ["IMPORTACION", "EXPORTACION"]:
-                bono_isr = 280  # Valor estándar para Igloo
-                if modo == "Team":
-                    bono_isr *= 2
-
-            # Horas termo y costo termo
-            horas_termo = float(safe(horas_termo))
-            costo_termo = horas_termo * 50  # Costo por hora termo para Igloo
-
-            # Costo extras ya calculado por separado (pistas, stop, etc.)
-            extras = (
-                float(safe(puntualidad)) + float(safe(pension)) + float(safe(estancia)) +
-                float(safe(pistas_extra)) + float(safe(stop)) + float(safe(falso)) +
-                float(safe(gatas)) + float(safe(accesorios)) + float(safe(guias)) +
-                float(safe(mov_local))
-            )
-
-            # Costo total
-            costo_total = sueldo + bono_isr + diesel + costo_termo + extras
-
-            # Ingreso y utilidades
-            costos_indirectos = ingreso_total * 0.35
-            utilidad_bruta = ingreso_total - costo_total
-            utilidad_neta = utilidad_bruta - costos_indirectos
-
-            id_programacion = f"{viaje_sel}_IDA"
-
-            df_nuevo = pd.DataFrame([{
-                "ID_Programacion": id_programacion,
-                "Fecha": fecha,
-                "Número_Trafico": viaje_sel,
-                "Tramo": "IDA",
-                "Modo de Viaje": modo,
-                "Operador": operador,
-                "Unidad": unidad,
-                "Cliente": cliente,
-                "Origen": origen,
-                "Destino": destino,
-                "Tipo": tipo,
-                "Moneda": moneda,
-                "Ingreso_Original": ingreso_original,
-                "Ingreso Total": ingreso_total,
-                "KM": km,
-                "Costo Diesel": costo_diesel,
-                "Rendimiento Camion": rendimiento,
-                "Costo_Diesel_Camion": diesel,
-                "Sueldo_Operador": sueldo,
-                "Costo_Total_Ruta": costo_total,
-                "Costo_Extras": extras,
-                "Movimiento_Local": mov_local,
-                "Puntualidad": puntualidad,
-                "Pension": pension,
-                "Estancia": estancia,
-                "Pistas Extra": pistas_extra,
-                "Stop": stop,
-                "Falso": falso,
-                "Gatas": gatas,
-                "Accesorios": accesorios,
-                "Guías": guias,
-                "Bono_ISR_IMSS": bono_isr,
-                "Costo_Termo": costo_termo,
-                "Horas_Termo": horas_termo,
-                "Costos_Indirectos": costos_indirectos,
-                "Utilidad_Bruta": utilidad_bruta,
-                "Utilidad_Neta": utilidad_neta
-            }])
-
-            # Insertar a Supabase
-            for fila in df_nuevo.to_dict(orient="records"):
-                supabase.table("Traficos").insert(fila).execute()
-
-        st.success("✅ Los viajes se registraron correctamente.")
+def cargar_datos_generales():
+    if os.path.exists(RUTA_DATOS):
+        return pd.read_csv(RUTA_DATOS).set_index("Parametro").to_dict()["Valor"]
     else:
-        st.error("❌ El archivo no contiene la columna 'Número_Trafico'.")
+        return valores_por_defecto.copy()
+
+valores = cargar_datos_generales()
+
+with st.expander("⚙️ Datos Generales Actuales (usados en cálculos)"):
+    for k, v in valores.items():
+        st.markdown(f"**{k}**: {v}")
+
+# =====================================
+# 1. REGISTRO DE TRÁFICO DESDE EXCEL
+# =====================================
+st.header("🚛 Carga de Tráfico Desde Reporte")
+
+archivo_excel = st.file_uploader("📤 Sube el archivo de despacho (Excel)", type=["xlsx"])
+
+if archivo_excel is not None:
+    st.success("✅ Archivo de despacho cargado correctamente.")
+    mostrar_registro = True
+else:
+    mostrar_registro = False
+    st.info("ℹ️ No se ha cargado un archivo. Puedes gestionar los tráficos ya registrados.")
+
+if mostrar_registro:
+    df_despacho = pd.read_excel(archivo_excel)
+
+    # Renombrar columnas automáticamente
+    df_despacho = df_despacho.rename(columns={
+        "Fecha Guía": "Fecha",
+        "Pago al operador": "Sueldo_Operador",
+        "Viaje": "Número_Trafico",
+        "Operación": "Tipo",
+        "Tarifa": "Ingreso_Original",
+        "Moneda": "Moneda",
+        "Clasificación": "Ruta_Tipo",
+        "Unidad": "Unidad",
+        "Operador": "Operador",
+        "Cliente": "Cliente",
+        "Origen": "Origen",
+        "Destino": "Destino",
+        "Movimiento local": "Movimiento_Local",
+        "Puntualidad": "Puntualidad",
+        "Pensión": "Pension",
+        "Estancia": "Estancia",
+        "Pistas extra": "Pistas Extra",
+        "Stop": "Stop",
+        "Falso": "Falso",
+        "Gatas": "Gatas",
+        "Accesorios": "Accesorios",
+        "Guías": "Guías",
+        "Horas termo": "Horas_Termo"
+    })
+
+    columnas_num = [
+        "KM", "Ingreso_Original", "Sueldo_Operador", "Movimiento_Local", "Puntualidad",
+        "Pension", "Estancia", "Pistas Extra", "Stop", "Falso", "Gatas",
+        "Accesorios", "Guías", "Horas_Termo"
+    ]
+    for col in columnas_num:
+        df_despacho[col] = pd.to_numeric(df_despacho.get(col, 0), errors="coerce").fillna(0.0)
+
+    df_despacho["Fecha"] = pd.to_datetime(df_despacho["Fecha"], errors="coerce").dt.date
+    df_despacho["Tipo"] = df_despacho["Tipo"].str.upper()
+    df_despacho["Moneda"] = df_despacho["Moneda"].str.upper()
+
+    registros_existentes = supabase.table("Traficos").select("ID_Programacion").execute().data
+    traficos_registrados = {r["ID_Programacion"] for r in registros_existentes}
+
+    viajes_disponibles = df_despacho["Número_Trafico"].dropna().unique()
+    viaje_sel = st.selectbox("Selecciona un número de tráfico del despacho", viajes_disponibles)
+
+    datos = df_despacho[df_despacho["Número_Trafico"] == viaje_sel].iloc[0]
+
+    with st.form("registro_trafico"):
+        st.subheader("📝 Validar y completar datos")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            fecha = st.date_input("Fecha", value=datos["Fecha"])
+            cliente = st.text_input("Cliente", value=str(datos.get("Cliente", "")))
+            origen = st.text_input("Origen", value=str(datos.get("Origen", "")))
+            destino = st.text_input("Destino", value=str(datos.get("Destino", "")))
+            tipo = st.selectbox("Tipo", ["IMPORTACION", "EXPORTACION", "VACIO"],
+                                index=["IMPORTACION", "EXPORTACION", "VACIO"].index(datos.get("Tipo", "IMPORTACION")))
+            moneda = st.selectbox("Moneda", ["MXP", "USD"],
+                                  index=["MXP", "USD"].index(datos.get("Moneda", "MXP")))
+            ingreso_original = st.number_input("Ingreso Original", value=safe(datos.get("Ingreso_Original", 0)))
+
+        with col2:
+            unidad = st.text_input("Unidad", value=str(datos.get("Unidad", "")))
+            operador = st.text_input("Operador", value=str(datos.get("Operador", "")))
+            km = st.number_input("KM", value=safe(datos.get("KM", 0)))
+            rendimiento = float(valores["Rendimiento Camion"])
+            diesel_precio = float(valores["Costo Diesel"])
+            tipo_cambio = float(valores["Tipo de cambio USD"]) if moneda == "USD" else 1.0
+
+        # === CÁLCULOS
+        ingreso_total = ingreso_original * tipo_cambio
+        diesel = (km / rendimiento) * diesel_precio
+        horas_termo = safe(datos.get("Horas_Termo", 0))
+        diesel_termo = horas_termo * diesel_precio
+        sueldo = safe(datos.get("Sueldo_Operador", 0))
+        bono = float(valores["Bono ISR IMSS"]) if tipo in ["IMPORTACION", "EXPORTACION"] else 0
+
+        # Extras
+        extras = sum([
+            safe(datos.get("Movimiento_Local", 0)),
+            safe(datos.get("Puntualidad", 0)),
+            safe(datos.get("Pension", 0)),
+            safe(datos.get("Estancia", 0)),
+            safe(datos.get("Pistas Extra", 0)),
+            safe(datos.get("Stop", 0)),
+            safe(datos.get("Falso", 0)),
+            safe(datos.get("Gatas", 0)),
+            safe(datos.get("Accesorios", 0)),
+            safe(datos.get("Guías", 0))
+        ])
+
+        costo_total = sueldo + bono + diesel + diesel_termo + extras
+        costos_indirectos = ingreso_total * 0.35
+        utilidad_bruta = ingreso_total - costo_total
+        utilidad_neta = utilidad_bruta - costos_indirectos
+
+        st.markdown(f"💰 **Ingreso Total Convertido:** ${ingreso_total:,.2f}")
+        st.markdown(f"⛽ **Diésel Camión:** ${diesel:,.2f} | **Diésel Termo:** ${diesel_termo:,.2f}")
+        st.markdown(f"🧾 **Costo Total Ruta:** ${costo_total:,.2f}")
+        st.markdown(f"📈 **Utilidad Neta:** ${utilidad_neta:,.2f} ({utilidad_neta / ingreso_total * 100:.2f}%)")
+
+        if st.form_submit_button("📅 Registrar tráfico desde despacho"):
+            id_programacion = f"{viaje_sel}_{fecha.strftime('%Y-%m-%d')}"
+            if id_programacion in traficos_registrados:
+                st.warning("⚠️ Este tráfico ya fue registrado previamente.")
+            else:
+                fila = {
+                    "ID_Programacion": id_programacion,
+                    "Número_Trafico": viaje_sel,
+                    "Fecha": fecha,
+                    "Cliente": cliente,
+                    "Origen": origen,
+                    "Destino": destino,
+                    "Tipo": tipo,
+                    "Unidad": unidad,
+                    "Operador": operador,
+                    "Moneda": moneda,
+                    "Ingreso_Original": ingreso_original,
+                    "Ingreso Total": ingreso_total,
+                    "KM": km,
+                    "Costo Diesel": diesel_precio,
+                    "Rendimiento Camion": rendimiento,
+                    "Costo_Diesel_Camion": diesel,
+                    "Horas_Termo": horas_termo,
+                    "Diésel_Termo": diesel_termo,
+                    "Movimiento_Local": safe(datos.get("Movimiento_Local", 0)),
+                    "Puntualidad": safe(datos.get("Puntualidad", 0)),
+                    "Pension": safe(datos.get("Pension", 0)),
+                    "Estancia": safe(datos.get("Estancia", 0)),
+                    "Pistas Extra": safe(datos.get("Pistas Extra", 0)),
+                    "Stop": safe(datos.get("Stop", 0)),
+                    "Falso": safe(datos.get("Falso", 0)),
+                    "Gatas": safe(datos.get("Gatas", 0)),
+                    "Accesorios": safe(datos.get("Accesorios", 0)),
+                    "Guías": safe(datos.get("Guías", 0)),
+                    "Costo_Extras": extras,
+                    "Sueldo_Operador": sueldo,
+                    "Bono_ISR_IMSS": bono,
+                    "Costo_Total_Ruta": costo_total,
+                    "Costos_Indirectos": costos_indirectos,
+                    "Utilidad_Bruta": utilidad_bruta,
+                    "Utilidad_Neta": utilidad_neta,
+                    "Tramo": "IDA",
+                    "Modo_Viaje": "Operador"
+                }
+                supabase.table("Traficos").insert(fila).execute()
+                st.success("✅ Tráfico registrado exitosamente.")
         
 # =====================================
 # 2. CONSULTA, EDICIÓN Y ELIMINACIÓN DE TRÁFICOS ABIERTOS
@@ -410,42 +473,48 @@ else:
             datos["Tramo"] = "VUELTA"
             datos["Fecha_Cierre"] = datetime.today().strftime("%Y-%m-%d")
 
-            # === CÁLCULOS ADICIONALES PARA IGLOO ===
+            # === CÁLCULOS ACTUALIZADOS USANDO DATOS GENERALES ===
             tipo = datos.get("Tipo", "").upper()
-            modo = datos.get("Modo de Viaje", "Operado")
+            modo = datos.get("Modo de Viaje", "Operador")
             km = safe(datos.get("KM", 0))
-            sueldo = safe(datos.get("Sueldo_Operador", 0))
+            sueldo = 0
 
-            # Bono ISR/IMSS
-            bono_isr = 0
-            if tipo in ["IMPO", "EXPO"]:
-                bono_isr = safe(bonos.get("Bono_ISR_IMSS", 0))
-                if modo == "Team":
-                    bono_isr *= 2
+            if tipo == "VACIO":
+                sueldo = valores["Pago fijo VACIO"] if km <= 100 else km * 1.5
+            elif tipo == "IMPORTACION":
+                sueldo = km * valores["Pago x km IMPORTACION"]
+            elif tipo == "EXPORTACION":
+                sueldo = km * valores["Pago x km EXPORTACION"]
 
-            # Termo
+            bono = valores["Bono ISR IMSS"] if tipo in ["IMPORTACION", "EXPORTACION"] else 0
+            if modo == "Team":
+                bono *= 2
+
+            rendimiento = valores["Rendimiento Camion"]
+            diesel_precio = valores["Costo Diesel"]
+            diesel = (km / rendimiento) * diesel_precio
+
             horas_termo = safe(datos.get("Horas_Termo", 0))
-            costo_termo = horas_termo * safe(termo.get("Costo_Hora_Termo", 0))
+            diesel_termo = horas_termo * diesel_precio
 
-            # Extras y diesel
             extras = safe(datos.get("Costo_Extras", 0))
-            diesel_camion = safe(datos.get("Costo_Diesel_Camion", 0))
+            costo_total = sueldo + bono + diesel + diesel_termo + extras
 
-            # Costos y utilidad
-            costo_total = sueldo + bono_isr + diesel_camion + costo_termo + extras
-            ingreso = safe(datos.get("Ingreso Total", 0))
-            costos_indirectos = ingreso * 0.35
-            utilidad_bruta = ingreso - costo_total
+            ingreso_total = safe(datos.get("Ingreso Total", 0))
+            costos_indirectos = ingreso_total * 0.35
+            utilidad_bruta = ingreso_total - costo_total
             utilidad_neta = utilidad_bruta - costos_indirectos
 
-            # Asignar campos
-            datos["Bono_ISR_IMSS"] = bono_isr
-            datos["Costo_Termo"] = costo_termo
-            datos["Horas_Termo"] = horas_termo
-            datos["Costo_Total_Ruta"] = costo_total
-            datos["Costos_Indirectos"] = costos_indirectos
-            datos["Utilidad_Bruta"] = utilidad_bruta
-            datos["Utilidad_Neta"] = utilidad_neta
+            datos.update({
+                "Sueldo_Operador": sueldo,
+                "Bono_ISR_IMSS": bono,
+                "Costo_Diesel_Camion": diesel,
+                "Diésel_Termo": diesel_termo,
+                "Costo_Total_Ruta": costo_total,
+                "Costos_Indirectos": costos_indirectos,
+                "Utilidad_Bruta": utilidad_bruta,
+                "Utilidad_Neta": utilidad_neta
+            })
 
             nuevos_tramos.append(datos)
 
@@ -454,6 +523,7 @@ else:
 
         st.success("✅ Tráfico cerrado correctamente.")
         st.rerun()
+
 # =====================================
 # 4. FILTRO Y RESUMEN DE VIAJES CONCLUIDOS
 # =====================================
