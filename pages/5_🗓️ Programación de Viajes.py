@@ -506,7 +506,7 @@ else:
             ingreso_total = tramos["Ingreso Total"].sum()
             costo_total = tramos["Costo_Total_Ruta"].sum()
             utilidad = ingreso_total - costo_total
-            utilidad_pct = round(utilidad / ingreso_total * 100, 2) if ingreso_total else 0
+            utilidad_pct = round(utilidad / ingreso_total, 2) if ingreso_total else 0
 
             cliente_ida = ida["Cliente"] if ida is not None else ""
             ruta_ida = f"{ida['Origen']} → {ida['Destino']}" if ida is not None else ""
