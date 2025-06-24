@@ -74,8 +74,6 @@ def guardar_programacion(nuevo_registro):
         else:
             st.warning(f"⚠️ El tráfico con ID {id_programacion} ya fue registrado previamente.")
 
-import os
-
 RUTA_DATOS = "datos_generales.csv"
 
 # Valores por defecto si no existe el archivo
@@ -107,9 +105,12 @@ valores = cargar_datos_generales()
 
 with st.expander("⚙️ Configurar Datos Generales"):
     st.markdown("Estos valores se usan para calcular el sueldo, bono, costos y utilidades de los tráficos.")
+
     nuevos_valores = {}
-    for clave, valor in valores.items():
-        nuevos_valores[clave] = st.number_input(clave, value=float(valor), key=clave)
+    columnas = st.columns(3)
+    for i, (clave, valor) in enumerate(valores.items()):
+        with columnas[i % 3]:
+            nuevos_valores[clave] = st.number_input(clave, value=float(valor), key=clave)
 
     if st.button("💾 Guardar configuración"):
         guardar_datos_generales(nuevos_valores)
