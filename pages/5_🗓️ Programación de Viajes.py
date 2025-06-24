@@ -196,8 +196,10 @@ if mostrar_registro:
             cliente = st.text_input("Cliente", value=str(datos.get("Cliente", "")))
             origen = st.text_input("Origen", value=str(datos.get("Origen", "")))
             destino = st.text_input("Destino", value=str(datos.get("Destino", "")))
-            tipo = st.selectbox("Tipo", ["IMPORTACION", "EXPORTACION", "VACIO"],
-                                index=["IMPORTACION", "EXPORTACION", "VACIO"].index(datos.get("Tipo", "IMPORTACION")))
+            tipo_valor = str(datos.get("Tipo", "IMPORTACION")).strip().upper()
+            tipo_opciones = ["IMPORTACION", "EXPORTACION", "VACIO"]
+            tipo_index = tipo_opciones.index(tipo_valor) if tipo_valor in tipo_opciones else 0
+            tipo = st.selectbox("Tipo", tipo_opciones, index=tipo_index)
             moneda = st.selectbox("Moneda", ["MXP", "USD"],
                                   index=["MXP", "USD"].index(datos.get("Moneda", "MXP")))
             ingreso_original = st.number_input("Ingreso Original", value=safe(datos.get("Ingreso_Original", 0)))
