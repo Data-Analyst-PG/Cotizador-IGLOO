@@ -253,7 +253,8 @@ if mostrar_registro:
         utilidad_neta = utilidad_bruta - costos_indirectos
 
         st.markdown(f"💰 **Ingreso Total Convertido:** ${ingreso_total:,.2f}")
-        st.markdown(f"⛽ **Diésel Camión:** ${diesel_camion:,.2f} | **Diésel Termo:** ${diesel_termo:,.2f}")
+        st.markdown(f"⛽ **Diésel Camión:** ${diesel_camion:,.2f}")
+        st.markdown(f"⛽ **Diésel Termo:** ${diesel_termo:,.2f}")
         st.markdown(f"🧮 **Costo Total Ruta:** ${costo_total:,.2f}")
         st.markdown(f"📈 **Utilidad Neta:** ${utilidad_neta:,.2f} ({(utilidad_neta / ingreso_total * 100):.2f}%)")
 
