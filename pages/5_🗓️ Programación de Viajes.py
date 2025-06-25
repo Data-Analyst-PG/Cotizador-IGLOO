@@ -227,31 +227,56 @@ if mostrar_registro:
                                 if tipo_valor in ["IMPORTACION", "EXPORTACION", "VACIO"] else 0)
 
         with col2:
-            unidad = st.text_input("Unidad", value=unidad_valor)
-            operador = st.text_input("Operador", value=operador_valor)
             km = st.number_input("KM", value=float(safe(datos["KM"])), min_value=0.0)
-            rendimiento = st.number_input("Rendimiento Camión", value=rendimiento_datos_generales, min_value=0.1)
-            costo_diesel = st.number_input("Costo Diesel", value=float(precio_diesel_datos_generales), min_value=0.1)
-
-        with col3:
             moneda = st.selectbox("Moneda", ["MXP", "USD"],
                                   index=["MXP", "USD"].index(moneda_valor)
                                   if moneda_valor in ["MXP", "USD"] else 0)
             ingreso_original = st.number_input("Ingreso Original", value=float(safe(datos["Ingreso_Original"])))
             horas_termo = st.number_input("Horas Termo", value=float(safe(datos.get("Horas_Termo", 0))))
             tipo_cambio = st.number_input("Tipo de cambio USD", value=tipo_cambio_usd)
+        
+        with col3:
+            unidad = st.text_input("Unidad", value=unidad_valor)
+            modo_viaje = st.selectbox("Modo de Viaje", ["Operador", "Team"], index=0)
+            operador = st.text_input("Operador", value=operador_valor)
+            rendimiento = st.number_input("Rendimiento Camión", value=rendimiento_datos_generales, min_value=0.1)
+            costo_diesel = st.number_input("Costo Diesel", value=float(precio_diesel_datos_generales), min_value=0.1)
 
+        # Cálculos antes de guardar
         ingreso_total = ingreso_original * (tipo_cambio if moneda == "USD" else 1)
         diesel_camion = (km / rendimiento) * costo_diesel
         diesel_termo = horas_termo * costo_diesel
-        tarifa = 2.1 if tipo == "IMPORTACION" else 2.5 if tipo == "EXPORTACION" else 0
-        sueldo = round(km * tarifa, 2)
-        bono_isr = bono_isr_base * (2 if tipo in ["IMPORTACION", "EXPORTACION"] and "Team" in "Operador" else 1)
-        costo_total = sueldo + bono_isr + diesel_camion + diesel_termo
-        costos_indirectos = ingreso_total * 0.35
-        utilidad_bruta = ingreso_total - costo_total
-        utilidad_neta = utilidad_bruta - costos_indirectos
 
+        # Sueldo
+        if tipo == "VACIO":
+            sueldo = valores["Pago fijo VACIO"]
+        elif tipo == "IMPORTACION":
+            sueldo = km * valores["Pago x km IMPORTACION"]
+        elif tipo == "EXPORTACION":
+            sueldo = km * valores["Pago x km EXPORTACION"]
+        else:
+            sueldo = 0
+
+        sueldo = round(sueldo, 2)
+
+        # Bono ISR/IMSS
+        bono_isr = valores["Bono ISR IMSS"] if tipo in ["IMPORTACION", "EXPORTACION"] else 0
+        if modo_viaje == "Team" and bono_isr:
+            bono_isr *= 2
+
+        # Extras
+        extras = sum([
+            safe(datos.get("Movimiento_Local", 0)),
+            safe(datos.get("Puntualidad", 0)),
+            safe(datos.get("Pension", 0)),
+            safe(datos.get("Estancia", 0)),
+            safe(datos.get("Pistas Extra", 0)),
+            safe(datos.get("Stop", 0)),
+            safe(datos.get("Falso", 0)),
+            safe(datos.get("Gatas", 0)),
+            safe(datos.get("Accesorios", 0)),
+            safe(datos.get("Guías", 0))
+        ])
         st.markdown(f"💰 **Ingreso Total Convertido:** ${ingreso_total:,.2f}")
         st.markdown(f"⛽ **Diésel Camión:** ${diesel_camion:,.2f}")
         st.markdown(f"⛽ **Diésel Termo:** ${diesel_termo:,.2f}")
