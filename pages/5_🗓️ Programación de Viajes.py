@@ -277,6 +277,12 @@ if mostrar_registro:
             safe(datos.get("Accesorios", 0)),
             safe(datos.get("Guías", 0))
         ])
+
+        costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras
+        costos_indirectos = ingreso_total * 0.35
+        utilidad_bruta = ingreso_total - costo_total
+        utilidad_neta = utilidad_bruta - costos_indirectos
+        
         st.markdown(f"💰 **Ingreso Total Convertido:** ${ingreso_total:,.2f}")
         st.markdown(f"⛽ **Diésel Camión:** ${diesel_camion:,.2f}")
         st.markdown(f"⛽ **Diésel Termo:** ${diesel_termo:,.2f}")
@@ -317,9 +323,9 @@ if mostrar_registro:
                     "Gatas": safe(datos.get("Gatas", 0)),
                     "Accesorios": safe(datos.get("Accesorios", 0)),
                     "Guías": safe(datos.get("Guías", 0)),
-                    "Costo_Extras": 0,  # si luego calculas extras, cámbialo aquí
+                    "Costo_Extras": extras,
                     "Sueldo_Operador": sueldo,
-                    "Bono_ISR_IMSS": bono_isr,  # corregido
+                    "Bono_ISR_IMSS": bono_isr,
                     "Costo_Total_Ruta": costo_total,
                     "Costos_Indirectos": costos_indirectos,
                     "Utilidad_Bruta": utilidad_bruta,
