@@ -579,7 +579,7 @@ else:
                 "Sueldo_Operador": sueldo,
                 "Bono_ISR_IMSS": bono,
                 "Costo_Diesel_Camion": diesel,
-                "Diésel_Termo": diesel_termo,
+                "Costo_Diesel_Termo": diesel_termo,
                 "Costo_Total_Ruta": costo_total,
                 "Costos_Indirectos": costos_indirectos,
                 "Utilidad_Bruta": utilidad_bruta,
