@@ -39,8 +39,7 @@ def cargar_rutas():
     df["Ruta"] = df["Origen"] + " → " + df["Destino"]
     return df
 
-def guardar_programacion(nuevo_registro):
-    def limpiar_fila_json(fila: dict) -> dict:
+def limpiar_fila_json(fila: dict) -> dict:
         limpio = {}
         for k, v in fila.items():
             if v is None or (isinstance(v, float) and np.isnan(v)):
@@ -51,6 +50,7 @@ def guardar_programacion(nuevo_registro):
                 limpio[k] = v
         return limpio
     
+def guardar_programacion(nuevo_registro):
     columnas_base_data = supabase.table("Traficos").select("*").limit(1).execute().data
     columnas_base = columnas_base_data[0].keys() if columnas_base_data else nuevo_registro.columns
 
