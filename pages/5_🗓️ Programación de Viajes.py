@@ -190,7 +190,7 @@ if mostrar_registro:
     # === Cargar datos generales desde CSV ===
     try:
         datos_generales = pd.read_csv("datos_generales.csv")
-        datos_dict = dict(zip(datos_generales["Concepto"], datos_generales["Valor"]))
+        datos_dict = dict(zip(datos_generales["Parametro"], datos_generales["Valor"]))
 
         precio_diesel_datos_generales = float(datos_dict.get("Precio Diesel", 24))
         tipo_cambio_usd = float(datos_dict.get("Tipo de cambio USD", 17.5))
@@ -567,7 +567,7 @@ else:
             diesel = (km / rendimiento) * diesel_precio
 
             horas_termo = safe(datos.get("Horas_Termo", 0))
-            diesel_termo = horas_termo * diesel_precio
+            diesel_termo = horas_termo * valores["Rendimiento Termo"] * valores["Costo Diesel"]
 
             extras = safe(datos.get("Costo_Extras", 0))
             costo_total = sueldo + bono + diesel + diesel_termo + extras
