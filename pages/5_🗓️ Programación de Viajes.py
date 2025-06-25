@@ -333,7 +333,7 @@ if mostrar_registro:
                     "Tramo": "IDA",
                     "Modo de Viaje": "Operador"
                 }
-                supabase.table("Traficos").insert(fila).execute()
+                supabase.table("Traficos").insert(limpiar_fila_json(fila)).execute()
                 st.success("✅ Tráfico registrado exitosamente.")
         
 # =====================================
