@@ -43,12 +43,10 @@ def guardar_programacion(nuevo_registro):
     def limpiar_fila_json(fila: dict) -> dict:
         limpio = {}
         for k, v in fila.items():
-            # Si es float NaN o None → convierte a None (Supabase lo acepta)
             if v is None or (isinstance(v, float) and np.isnan(v)):
                 limpio[k] = None
-            # Si es fecha u objeto timestamp, convierte a string
-            elif isinstance(v, (pd.Timestamp, datetime)):
-                limpio[k] = v.strftime("%Y-%m-%d")
+            elif isinstance(v, (pd.Timestamp, datetime, np.datetime64)):
+                limpio[k] = str(v)[:10]
             else:
                 limpio[k] = v
         return limpio
