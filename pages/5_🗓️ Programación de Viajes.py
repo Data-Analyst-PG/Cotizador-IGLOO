@@ -277,11 +277,11 @@ if mostrar_registro:
                     "Ingreso_Original": ingreso_original,
                     "Ingreso Total": ingreso_total,
                     "KM": km,
-                    "Costo Diesel": diesel_precio,
+                    "Costo Diesel": costo_diesel,  # corregido
                     "Rendimiento Camion": rendimiento,
-                    "Costo_Diesel_Camion": diesel,
+                    "Costo_Diesel_Camion": diesel_camion,  # corregido
                     "Horas_Termo": horas_termo,
-                    "Diésel_Termo": diesel_termo,
+                    "Costo_Diesel_Termo": diesel_termo,  # corregido
                     "Movimiento_Local": safe(datos.get("Movimiento_Local", 0)),
                     "Puntualidad": safe(datos.get("Puntualidad", 0)),
                     "Pension": safe(datos.get("Pension", 0)),
@@ -292,15 +292,15 @@ if mostrar_registro:
                     "Gatas": safe(datos.get("Gatas", 0)),
                     "Accesorios": safe(datos.get("Accesorios", 0)),
                     "Guías": safe(datos.get("Guías", 0)),
-                    "Costo_Extras": extras,
+                    "Costo_Extras": 0,  # si luego calculas extras, cámbialo aquí
                     "Sueldo_Operador": sueldo,
-                    "Bono_ISR_IMSS": bono,
+                    "Bono_ISR_IMSS": bono_isr,  # corregido
                     "Costo_Total_Ruta": costo_total,
                     "Costos_Indirectos": costos_indirectos,
                     "Utilidad_Bruta": utilidad_bruta,
                     "Utilidad_Neta": utilidad_neta,
                     "Tramo": "IDA",
-                    "Modo_Viaje": "Operador"
+                    "Modo de Viaje": "Operador"
                 }
                 supabase.table("Traficos").insert(fila).execute()
                 st.success("✅ Tráfico registrado exitosamente.")
