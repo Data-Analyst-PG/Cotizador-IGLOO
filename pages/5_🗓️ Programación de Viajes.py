@@ -362,8 +362,6 @@ else:
 
     if cerrado:
         st.warning("⚠️ Este tráfico ya está cerrado. No se puede editar.")
-    if cerrado:
-        st.warning("⚠️ Este tráfico ya está cerrado. No se puede editar.")
     else:
         with st.expander("✏️ Editar tráfico seleccionado", expanded=True):
             col1, col2, col3 = st.columns(3)
