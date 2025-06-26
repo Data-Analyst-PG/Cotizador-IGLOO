@@ -60,7 +60,18 @@ def limpiar_fila_json(fila: dict) -> dict:
             except TypeError:
                 limpio[k] = str(v)  # Convertir a string si no se puede serializar
     return limpio
-    
+
+def limpiar_tramo_para_insert(tramo: dict) -> dict:
+    """
+    Limpia campos no válidos para inserción en Supabase desde un tramo.
+    Elimina campos auxiliares como % Utilidad, Ruta y Bono (no definidos en la tabla).
+    """
+    campos_no_validos = ["% Utilidad", "Ruta", "Bono"]
+    limpio = tramo.copy()
+    for campo in campos_no_validos:
+        limpio.pop(campo, None)
+    return limpio
+
 def guardar_programacion(nuevo_registro):
     columnas_base_data = supabase.table("Traficos").select("*").limit(1).execute().data
     columnas_base = columnas_base_data[0].keys() if columnas_base_data else nuevo_registro.columns
@@ -532,7 +543,7 @@ else:
     if st.button("💾 Guardar y cerrar tráfico"):
         nuevos_tramos = []
         for tramo in rutas[1:]:
-            datos = tramo.copy()
+            datos = limpiar_tramo_para_insert(tramo)
             datos["Fecha"] = ida["Fecha"]
             datos["Número_Trafico"] = ida["Número_Trafico"]
             datos["Unidad"] = ida["Unidad"]
