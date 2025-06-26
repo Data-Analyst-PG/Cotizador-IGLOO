@@ -196,16 +196,14 @@ if mostrar_registro:
 
     datos = df_despacho[df_despacho["Número_Trafico"] == viaje_sel].iloc[0]
 
-    # === Cargar datos generales desde CSV ===
-    try:
-        datos_generales = pd.read_csv("datos_generales.csv")
-        datos_dict = dict(zip(datos_generales["Parametro"], datos_generales["Valor"]))
+    # ✅ Cargar datos generales de forma segura
+    datos_dict = cargar_datos_generales()
 
-        precio_diesel_datos_generales = float(datos_dict.get("Costo Diesel", 24))
-        tipo_cambio_usd = float(datos_dict.get("Tipo de cambio USD", 17.5))
-        rendimiento_dg_tracto = float(datos_dict.get("Rendimiento Tracto", 2.5))
-        rendimiento_dg_termo = float(datos_dict.get("Rendimiento Termo", 3.0))
-        bono_isr_base = float(datos_dict.get("Bono ISR IMSS", 462.66))
+    precio_diesel_datos_generales = float(datos_dict.get("Costo Diesel", 24.0))
+    tipo_cambio_usd = float(datos_dict.get("Tipo de cambio USD", 17.5))
+    rendimiento_dg_tracto = float(datos_dict.get("Rendimiento Camion", 2.5))
+    rendimiento_dg_termo = float(datos_dict.get("Rendimiento Termo", 3.0))
+    bono_isr_base = float(datos_dict.get("Bono ISR IMSS", 462.66))
 
     except Exception as e:
         st.error(f"Error al cargar datos generales: {e}")
