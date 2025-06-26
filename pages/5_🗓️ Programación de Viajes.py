@@ -388,10 +388,10 @@ else:
                 operador = st.text_input("Operador", seleccionado.get("Operador", ""))
 
             with col2:
-                moneda = st.selectbox("Moneda", ["MXN", "USD"],
-                                      index=["MXN", "USD"].index(seleccionado["Moneda"]))
+                moneda = st.selectbox("Moneda", ["MXP", "USD"],
+                                      index=["MXP", "USD"].index(seleccionado["Moneda"]))
                 ingreso_original = st.number_input("Ingreso Original", value=round(float(seleccionado["Ingreso_Original"]), 2))
-                tipo_cambio = 1 if moneda == "MXN" else float(st.session_state.get("tipo_cambio_usd", 17.0))
+                tipo_cambio = 1 if moneda == "MXP" else float(st.session_state.get("tipo_cambio_usd", 17.0))
                 ingreso_total = round(ingreso_original * tipo_cambio, 2)
                 km = st.number_input("KM", value=round(float(seleccionado["KM"]), 2))
                 horas_termo = st.number_input("Horas Termo", value=round(float(seleccionado.get("Horas_Termo", 0)), 2))
