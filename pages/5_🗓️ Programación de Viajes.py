@@ -590,6 +590,8 @@ else:
             nuevos_tramos.append(datos)
 
         for fila in nuevos_tramos:
+            st.write("DEBUG fila a insertar:", fila)
+            st.write("DEBUG JSON limpio:", limpiar_fila_json(fila))
             supabase.table("Traficos").insert(limpiar_fila_json(fila)).execute()
 
         st.success("✅ Tráfico cerrado correctamente.")
