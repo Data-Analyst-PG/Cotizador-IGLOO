@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from supabase import create_client
 import numpy as np
+import json
 
 # ✅ Verificación de sesión y rol
 if "usuario" not in st.session_state:
