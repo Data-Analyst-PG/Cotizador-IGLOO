@@ -205,14 +205,6 @@ if mostrar_registro:
     rendimiento_dg_termo = float(datos_dict.get("Rendimiento Termo", 3.0))
     bono_isr_base = float(datos_dict.get("Bono ISR IMSS", 462.66))
 
-    except Exception as e:
-        st.error(f"Error al cargar datos generales: {e}")
-        precio_diesel_datos_generales = 24.0
-        tipo_cambio_usd = 17.5
-        rendimiento_dg_tracto = 2.5
-        rendimiento_dg_termo = 3.0
-        bono_isr_base = 462.66
-
     with st.form("registro_trafico"):
         st.subheader("📝 Validar y completar datos")
         col1, col2, col3 = st.columns(3)
