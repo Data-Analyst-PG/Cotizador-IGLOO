@@ -40,6 +40,19 @@ def cargar_rutas():
     df["Ruta"] = df["Origen"] + " → " + df["Destino"]
     return df
 
+def limpiar_tramo_para_insert(tramo: dict) -> dict:
+    """
+    Limpia campos no válidos para inserción en Supabase desde un tramo.
+    Elimina campos auxiliares como % Utilidad, Ruta y Bono (no definidos en la tabla).
+    """
+    if tramo is None:
+        return {}
+    campos_no_validos = ["% Utilidad", "Ruta", "Bono"]
+    limpio = tramo.copy()
+    for campo in campos_no_validos:
+        limpio.pop(campo, None)
+    return limpio
+
 def limpiar_fila_json(fila: dict) -> dict:
     limpio = {}
     for k, v in fila.items():
@@ -590,7 +603,7 @@ else:
             nuevos_tramos.append(datos)
 
         for fila in nuevos_tramos:
-            fila_limpio = limpiar_fila_json(fila)
+            fila_limpio = limpiar_fila_json(limpiar_tramo_para_insert(fila))
             st.write("DEBUG fila a insertar:", fila)
             st.write("DEBUG JSON limpio:", fila_limpio)
 
