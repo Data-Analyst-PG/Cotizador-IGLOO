@@ -201,7 +201,7 @@ if mostrar_registro:
         datos_generales = pd.read_csv("datos_generales.csv")
         datos_dict = dict(zip(datos_generales["Parametro"], datos_generales["Valor"]))
 
-        precio_diesel_datos_generales = float(datos_dict.get("Precio Diesel", 24))
+        precio_diesel_datos_generales = float(datos_dict.get("Costo Diesel", 24))
         tipo_cambio_usd = float(datos_dict.get("Tipo de cambio USD", 17.5))
         rendimiento_dg_tracto = float(datos_dict.get("Rendimiento Tracto", 2.5))
         rendimiento_dg_termo = float(datos_dict.get("Rendimiento Termo", 3.0))
