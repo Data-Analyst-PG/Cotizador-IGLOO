@@ -549,11 +549,13 @@ else:
             sueldo = 0
 
             if tipo == "VACIO":
-                sueldo = valores["Pago fijo VACIO"] if km <= 100 else km * 1.5
+                sueldo = valores["Pago fijo VACIO"]
             elif tipo == "IMPORTACION":
                 sueldo = km * valores["Pago x km IMPORTACION"]
             elif tipo == "EXPORTACION":
                 sueldo = km * valores["Pago x km EXPORTACION"]
+            else:
+                sueldo = 0
 
             bono = valores["Bono ISR IMSS"] if tipo in ["IMPORTACION", "EXPORTACION"] else 0
             if modo == "Team":
