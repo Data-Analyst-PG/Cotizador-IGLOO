@@ -40,15 +40,25 @@ def cargar_rutas():
     return df
 
 def limpiar_fila_json(fila: dict) -> dict:
-        limpio = {}
-        for k, v in fila.items():
-            if v is None or (isinstance(v, float) and np.isnan(v)):
-                limpio[k] = None
-            elif isinstance(v, (pd.Timestamp, datetime, np.datetime64)):
-                limpio[k] = str(v)[:10]
-            else:
+    limpio = {}
+    for k, v in fila.items():
+        if v is None or (isinstance(v, float) and np.isnan(v)):
+            limpio[k] = None
+        elif isinstance(v, (pd.Timestamp, datetime, np.datetime64)):
+            limpio[k] = str(v)[:10]
+        elif isinstance(v, (np.integer, np.int64, np.int32)):
+            limpio[k] = int(v)
+        elif isinstance(v, (np.floating, np.float64, np.float32)):
+            limpio[k] = float(v)
+        elif isinstance(v, pd.Timedelta):
+            limpio[k] = str(v)
+        else:
+            try:
+                json.dumps(v)  # Probar si es serializable
                 limpio[k] = v
-        return limpio
+            except TypeError:
+                limpio[k] = str(v)  # Convertir a string si no se puede serializar
+    return limpio
     
 def guardar_programacion(nuevo_registro):
     columnas_base_data = supabase.table("Traficos").select("*").limit(1).execute().data
