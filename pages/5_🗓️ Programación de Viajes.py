@@ -433,7 +433,7 @@ else:
 
             rendimiento = float(seleccionado.get("Rendimiento Camion", valores["Rendimiento Camion"]))
             costo_diesel = float(seleccionado.get("Costo Diesel", valores["Costo Diesel"]))
-            diesel = round((km / rendimiento) * costo_diesel, 2)
+            diesel_camion = round((km / rendimiento) * costo_diesel, 2)
 
             rendimiento_termo = float(seleccionado.get("Rendimiento Termo", valores["Rendimiento Termo"]))
             diesel_termo = horas_termo * rendimiento_termo * costo_diesel
@@ -443,7 +443,7 @@ else:
                 bono_isr *= 2
 
             extras = sum([mov_local, puntualidad, pension, estancia, pistas_extra, stop, falso, gatas, accesorios, guias])
-            costo_total = sueldo + bono_isr + diesel + diesel_termo + extras
+            costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras
             costos_indirectos = ingreso_total * 0.35
             utilidad_bruta = ingreso_total - costo_total
             utilidad_neta = utilidad_bruta - costos_indirectos
@@ -471,7 +471,7 @@ else:
                     "Accesorios": accesorios,
                     "Guías": guias,
                     "Sueldo_Operador": sueldo,
-                    "Costo_Diesel_Camion": diesel,
+                    "Costo_Diesel_Camion": diesel_camion,
                     "Costo_Diesel_Termo": diesel_termo,
                     "Costo_Extras": extras,
                     "Costo_Total_Ruta": costo_total,
@@ -612,7 +612,7 @@ else:
             datos.update({
                 "Sueldo_Operador": sueldo,
                 "Bono_ISR_IMSS": bono,
-                "Costo_Diesel_Camion": diesel,
+                "Costo_Diesel_Camion": diesel_camion,
                 "Costo_Diesel_Termo": diesel_termo,
                 "Costo_Total_Ruta": costo_total,
                 "Costos_Indirectos": costos_indirectos,
