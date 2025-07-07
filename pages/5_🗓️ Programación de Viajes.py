@@ -545,6 +545,8 @@ else:
     if st.button("💾 Guardar y cerrar tráfico"):
         nuevos_tramos = []
         for tramo in rutas[1:]:
+            if isinstance(tramo, pd.Series):
+                tramo = tramo.to_dict()
             datos = limpiar_tramo_para_insert(tramo)
             datos["Fecha"] = ida["Fecha"]
             datos["Número_Trafico"] = ida["Número_Trafico"]
