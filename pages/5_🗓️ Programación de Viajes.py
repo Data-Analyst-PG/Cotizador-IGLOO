@@ -304,7 +304,7 @@ if mostrar_registro:
         st.markdown(f"📈 **Utilidad Neta:** ${utilidad_neta:,.2f} ({(utilidad_neta / ingreso_total * 100):.2f}%)")
 
         if st.form_submit_button("📅 Registrar tráfico desde despacho"):
-            id_programacion = f"{viaje_sel}_IDA}"
+            id_programacion = f"{viaje_sel}_IDA"
             if id_programacion in traficos_registrados:
                 st.warning("⚠️ Este tráfico ya fue registrado previamente.")
             else:
@@ -413,19 +413,37 @@ else:
                 accesorios = st.number_input("Accesorios", value=round(float(seleccionado.get("Accesorios", 0)), 2))
                 guias = st.number_input("Guías", value=round(float(seleccionado.get("Guías") or 0), 2))
 
-            # Recalcular
-            tarifa = 2.1 if tipo == "IMPORTACION" else 2.5 if tipo == "EXPORTACION" else 0
-            sueldo = round(km * tarifa, 2)
-            rendimiento = float(seleccionado.get("Rendimiento Camion", 2.5))
-            diesel = round((km / rendimiento) * float(seleccionado.get("Costo Diesel", 24)), 2)
+            # Recalcular (usando datos_generales)
+            tarifa_impo = valores["Pago x km IMPORTACION"]
+            tarifa_expo = valores["Pago x km EXPORTACION"]
+            bono_isr_valor = valores["Bono ISR IMSS"]
+            pago_fijo_vacio = valores["Pago fijo VACIO"]
 
-            bono_isr = 280 if tipo in ["IMPORTACION", "EXPORTACION"] else 0
+            tarifa = 0
+            if tipo == "VACIO":
+                sueldo = pago_fijo_vacio
+            elif tipo == "IMPORTACION":
+                sueldo = km * tarifa_impo
+            elif tipo == "EXPORTACION":
+                sueldo = km * tarifa_expo
+            else:
+                sueldo = 0
+
+            sueldo = round(sueldo, 2)
+
+            rendimiento = float(seleccionado.get("Rendimiento Camion", valores["Rendimiento Camion"]))
+            costo_diesel = float(seleccionado.get("Costo Diesel", valores["Costo Diesel"]))
+            diesel = round((km / rendimiento) * costo_diesel, 2)
+
+            rendimiento_termo = float(seleccionado.get("Rendimiento Termo", valores["Rendimiento Termo"]))
+            diesel_termo = horas_termo * rendimiento_termo * costo_diesel
+
+            bono_isr = bono_isr_valor if tipo in ["IMPORTACION", "EXPORTACION"] else 0
             if modo == "Team":
                 bono_isr *= 2
 
-            costo_termo = horas_termo * 50
             extras = sum([mov_local, puntualidad, pension, estancia, pistas_extra, stop, falso, gatas, accesorios, guias])
-            costo_total = sueldo + bono_isr + diesel + costo_termo + extras
+            costo_total = sueldo + bono_isr + diesel + diesel_termo + extras
             costos_indirectos = ingreso_total * 0.35
             utilidad_bruta = ingreso_total - costo_total
             utilidad_neta = utilidad_bruta - costos_indirectos
