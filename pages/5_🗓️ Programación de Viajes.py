@@ -304,7 +304,7 @@ if mostrar_registro:
         st.markdown(f"📈 **Utilidad Neta:** ${utilidad_neta:,.2f} ({(utilidad_neta / ingreso_total * 100):.2f}%)")
 
         if st.form_submit_button("📅 Registrar tráfico desde despacho"):
-            id_programacion = f"{viaje_sel}_{fecha.strftime('%Y-%m-%d')}"
+            id_programacion = f"{viaje_sel}_IDA}"
             if id_programacion in traficos_registrados:
                 st.warning("⚠️ Este tráfico ya fue registrado previamente.")
             else:
