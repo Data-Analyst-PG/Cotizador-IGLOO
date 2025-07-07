@@ -472,7 +472,7 @@ else:
                     "Guías": guias,
                     "Sueldo_Operador": sueldo,
                     "Costo_Diesel_Camion": diesel,
-                    "Costo_Termo": costo_termo,
+                    "Costo_Diesel_Termo": diesel_termo,
                     "Costo_Extras": extras,
                     "Costo_Total_Ruta": costo_total,
                     "Bono_ISR_IMSS": bono_isr,
