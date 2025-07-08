@@ -556,7 +556,7 @@ else:
     st.header("📊 Ingresos y Utilidades")
     st.metric("Ingreso Total", f"${ingreso:,.2f}")
     st.metric("Costo Total", f"${costo:,.2f}")
-    st.metric("Utilidad Bruta", f"${utilidad:,.2f} ({(utilidad_bruta/ingreso*100):.2f}%)")
+    st.metric("Utilidad Bruta", f"${utilidad_bruta:,.2f} ({(utilidad_bruta/ingreso*100):.2f}%)")
     st.metric("Costos Indirectos (35%)", f"${indirectos:,.2f}")
     st.metric("Utilidad Neta", f"${utilidad_neta:,.2f} ({(utilidad_neta/ingreso*100):.2f}%)")
 
