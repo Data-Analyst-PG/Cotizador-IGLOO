@@ -182,14 +182,14 @@ if mostrar_registro:
         "Falso": "Falso",
         "Gatas": "Gatas",
         "Accesorios": "Accesorios",
-        "Guías": "Guías",
+        "Guias": "Guias",
         "Horas termo": "Horas_Termo"
     })
 
     columnas_num = [
         "KM", "Ingreso_Original", "Sueldo_Operador", "Movimiento_Local", "Puntualidad",
         "Pension", "Estancia", "Pistas Extra", "Stop", "Falso", "Gatas",
-        "Accesorios", "Guías", "Horas_Termo"
+        "Accesorios", "Guias", "Horas_Termo"
     ]
     for col in columnas_num:
         if col not in df_despacho.columns:
@@ -289,7 +289,7 @@ if mostrar_registro:
             safe(datos.get("Falso", 0)),
             safe(datos.get("Gatas", 0)),
             safe(datos.get("Accesorios", 0)),
-            safe(datos.get("Guías", 0))
+            safe(datos.get("Guias", 0))
         ])
 
         costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras
@@ -336,7 +336,7 @@ if mostrar_registro:
                     "Falso": safe(datos.get("Falso", 0)),
                     "Gatas": safe(datos.get("Gatas", 0)),
                     "Accesorios": safe(datos.get("Accesorios", 0)),
-                    "Guías": safe(datos.get("Guías", 0)),
+                    "Guias": safe(datos.get("Guias", 0)),
                     "Costo_Extras": extras,
                     "Sueldo_Operador": sueldo,
                     "Bono_ISR_IMSS": bono_isr,
@@ -411,7 +411,7 @@ else:
                 falso = st.number_input("Falso", value=round(float(seleccionado.get("Falso", 0)), 2))
                 gatas = st.number_input("Gatas", value=round(float(seleccionado.get("Gatas", 0)), 2))
                 accesorios = st.number_input("Accesorios", value=round(float(seleccionado.get("Accesorios", 0)), 2))
-                guias = st.number_input("Guías", value=round(float(seleccionado.get("Guías") or 0), 2))
+                guias = st.number_input("Guias", value=round(float(seleccionado.get("Guias") or 0), 2))
 
             # Recalcular (usando datos_generales)
             tarifa_impo = valores["Pago x km IMPORTACION"]
@@ -469,7 +469,7 @@ else:
                     "Falso": falso,
                     "Gatas": gatas,
                     "Accesorios": accesorios,
-                    "Guías": guias,
+                    "Guias": guias,
                     "Sueldo_Operador": sueldo,
                     "Costo_Diesel_Camion": diesel_camion,
                     "Costo_Diesel_Termo": diesel_termo,
