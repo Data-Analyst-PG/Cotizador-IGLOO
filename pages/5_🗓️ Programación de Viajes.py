@@ -531,9 +531,9 @@ else:
                 exportacion = exportacion.sort_values(by="% Utilidad", ascending=False).iloc[0]
                 ingreso_total = safe(ida["Ingreso Total"]) + safe(exportacion["Ingreso Total"])
                 costo_total = safe(ida["Costo_Total_Ruta"]) + safe(vacio["Costo_Total_Ruta"]) + safe(exportacion["Costo_Total_Ruta"])
-                utilidad = ingreso_total - costo_total
-                if utilidad > mejor_utilidad:
-                    mejor_utilidad = utilidad
+                utilidad_bruta = ingreso_total - costo_total
+                if utilidad_bruta > mejor_utilidad:
+                    mejor_utilidad = utilidad_bruta
                     mejor_combo = (vacio, exportacion)
 
         if mejor_combo:
@@ -549,14 +549,14 @@ else:
 
     ingreso = sum(safe(r["Ingreso Total"]) for r in rutas)
     costo = sum(safe(r["Costo_Total_Ruta"]) for r in rutas)
-    utilidad = ingreso - costo
+    utilidad_bruta = ingreso - costo
     indirectos = ingreso * 0.35
-    utilidad_neta = utilidad - indirectos
+    utilidad_neta = utilidad_bruta - indirectos
 
     st.header("📊 Ingresos y Utilidades")
     st.metric("Ingreso Total", f"${ingreso:,.2f}")
     st.metric("Costo Total", f"${costo:,.2f}")
-    st.metric("Utilidad Bruta", f"${utilidad:,.2f} ({(utilidad/ingreso*100):.2f}%)")
+    st.metric("Utilidad Bruta", f"${utilidad:,.2f} ({(utilidad_bruta/ingreso*100):.2f}%)")
     st.metric("Costos Indirectos (35%)", f"${indirectos:,.2f}")
     st.metric("Utilidad Neta", f"${utilidad_neta:,.2f} ({(utilidad_neta/ingreso*100):.2f}%)")
 
@@ -687,8 +687,8 @@ else:
 
             ingreso_total = tramos["Ingreso Total"].sum()
             costo_total = tramos["Costo_Total_Ruta"].sum()
-            utilidad = ingreso_total - costo_total
-            utilidad_pct = round(utilidad / ingreso_total * 100, 2) if ingreso_total else 0
+            utilidad_bruta = ingreso_total - costo_total
+            utilidad_pct = round(utilidad_bruta / ingreso_total * 100, 2) if ingreso_total else 0
 
             cliente_ida = ida["Cliente"] if ida is not None else ""
             ruta_ida = f"{ida['Origen']} → {ida['Destino']}" if ida is not None else ""
@@ -706,7 +706,7 @@ else:
                 "Rutas VUELTA": rutas_vuelta,
                 "Ingreso Total VR": ingreso_total,
                 "Costo Total VR": costo_total,
-                "Utilidad Total VR": utilidad,
+                "Utilidad Total VR": utilidad_bruta,
                 "% Utilidad Total VR": utilidad_pct
             })
 
