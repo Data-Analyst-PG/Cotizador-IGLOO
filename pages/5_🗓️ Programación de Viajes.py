@@ -239,6 +239,7 @@ if mostrar_registro:
             tipo = st.selectbox("Tipo", ["IMPORTACION", "EXPORTACION", "VACIO"],
                                 index=["IMPORTACION", "EXPORTACION", "VACIO"].index(tipo_valor)
                                 if tipo_valor in ["IMPORTACION", "EXPORTACION", "VACIO"] else 0)
+            ingreso_cruce_incluido = st.checkbox("✅ ¿El ingreso de cruce ya está incluido en la tarifa?", value=False)
 
         with col2:
             km = st.number_input("KM", value=float(safe(datos["KM"])), min_value=0.0)
@@ -248,6 +249,7 @@ if mostrar_registro:
             ingreso_original = st.number_input("Ingreso Original", value=float(safe(datos["Ingreso_Original"])))
             horas_termo = st.number_input("Horas Termo", value=float(safe(datos.get("Horas_Termo", 0))))
             tipo_cambio = st.number_input("Tipo de cambio USD", value=tipo_cambio_usd)
+            extras_cobrados = st.checkbox("✅ ¿Costos extras cobrados al cliente?", value=bool(datos.get("Extras_Cobrados", False)))
         
         with col3:
             unidad = st.text_input("Unidad", value=unidad_valor)
@@ -258,6 +260,10 @@ if mostrar_registro:
 
         # Cálculos antes de guardar
         ingreso_total = ingreso_original * (tipo_cambio if moneda == "USD" else 1)
+        if extras_cobrados:
+            ingreso_total += extras
+        if ingreso_cruce_incluido:
+            st.info("ℹ️ El ingreso de cruce ya está incluido en la tarifa original.")
         diesel_camion = (km / rendimiento) * costo_diesel
         diesel_termo = horas_termo * rendimiento_dg_termo * costo_diesel
 
@@ -345,7 +351,9 @@ if mostrar_registro:
                     "Utilidad_Bruta": utilidad_bruta,
                     "Utilidad_Neta": utilidad_neta,
                     "Tramo": "IDA",
-                    "Modo de Viaje": "Operador"
+                    "Modo de Viaje": "Operador",
+                    "Extras_Cobrados": extras_cobrados,
+                    "Ingreso_Cruce_Incluido": ingreso_cruce_incluido,
                 }
                 supabase.table("Traficos").insert(limpiar_fila_json(fila)).execute()
                 st.success("✅ Tráfico registrado exitosamente.")
@@ -391,6 +399,7 @@ else:
                                     index=["Operador", "Team"].index(seleccionado["Modo de Viaje"]))
                 unidad = st.text_input("Unidad", seleccionado.get("Unidad", ""))
                 operador = st.text_input("Operador", seleccionado.get("Operador", ""))
+                ingreso_cruce_incluido = st.checkbox("✅ ¿El ingreso de cruce ya está incluido en la tarifa?", value=False)
 
             with col2:
                 moneda = st.selectbox("Moneda", ["MXP", "USD"],
@@ -403,6 +412,7 @@ else:
                 mov_local = st.number_input("Movimiento Local", value=round(float(seleccionado.get("Movimiento_Local", 0)), 2))
                 puntualidad = st.number_input("Puntualidad", value=round(float(seleccionado.get("Puntualidad", 0)), 2))
                 pension = st.number_input("Pensión", value=round(float(seleccionado.get("Pension", 0)), 2))
+                extras_cobrados = st.checkbox("✅ ¿Costos extras fueron cobrados?", value=bool(seleccionado.get("Extras_Cobrados", False)))
 
             with col3:
                 estancia = st.number_input("Estancia", value=round(float(seleccionado.get("Estancia", 0)), 2))
@@ -443,6 +453,9 @@ else:
                 bono_isr *= 2
 
             extras = sum([mov_local, puntualidad, pension, estancia, pistas_extra, stop, falso, gatas, accesorios, guias])
+            extras_cobrados = bool(seleccionado.get("Extras_Cobrados", False))
+            if extras_cobrados:
+                ingreso_total += extras
             costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras
             costos_indirectos = ingreso_total * 0.35
             utilidad_bruta = ingreso_total - costo_total
@@ -478,7 +491,8 @@ else:
                     "Bono_ISR_IMSS": bono_isr,
                     "Costos_Indirectos": costos_indirectos,
                     "Utilidad_Bruta": utilidad_bruta,
-                    "Utilidad_Neta": utilidad_neta
+                    "Utilidad_Neta": utilidad_neta,
+                    "Extras_Cobrados": extras_cobrados,
                 }).eq("ID_Programacion", seleccionado["ID_Programacion"]).execute()
                 st.success("✅ Tráfico actualizado correctamente.")
                 
