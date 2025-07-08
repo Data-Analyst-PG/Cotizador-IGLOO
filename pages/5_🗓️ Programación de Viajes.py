@@ -47,7 +47,7 @@ def limpiar_tramo_para_insert(tramo: dict) -> dict:
     """
     if tramo is None:
         return {}
-    campos_no_validos = ["% Utilidad", "Ruta", "Bono"]
+    campos_no_validos = ["% Utilidad", "Ruta", "Bono", "Utilidad"]
     limpio = tramo.copy()
     for campo in campos_no_validos:
         limpio.pop(campo, None)
