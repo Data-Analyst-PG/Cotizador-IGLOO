@@ -91,6 +91,7 @@ with st.form("captura_ruta"):
         ingreso_flete = st.number_input("Ingreso Flete", min_value=0.0)
         moneda_cruce = st.selectbox("Moneda Ingreso Cruce", ["MXP", "USD"])
         ingreso_cruce = st.number_input("Ingreso Cruce", min_value=0.0)
+        
     with col2:
         moneda_costo_cruce = st.selectbox("Moneda Costo Cruce", ["MXP", "USD"])
         costo_cruce = st.number_input("Costo Cruce", min_value=0.0)        
@@ -111,6 +112,8 @@ with st.form("captura_ruta"):
         pistas_extra = st.number_input("Pistas Extra (MXP)", min_value=0.0)
         stop = st.number_input("Stop (MXP)", min_value=0.0)
         falso = st.number_input("Falso (MXP)", min_value=0.0)
+        costos_extras_cobrados = st.checkbox("✅ ¿Costos Extras fueron cobrados al cliente?", value=False)
+
     with col4:
         gatas = st.number_input("Gatas (MXP)", min_value=0.0)
         accesorios = st.number_input("Accesorios (MXP)", min_value=0.0)
@@ -129,10 +132,15 @@ with st.form("captura_ruta"):
             "puntualidad": puntualidad, "pension": pension, "estancia": estancia,
             "fianza_termo": fianza_termo, "renta_termo": renta_termo, "casetas": casetas,
             "pistas_extra": pistas_extra, "stop": stop, "falso": falso,
-            "gatas": gatas, "accesorios": accesorios, "guias": guias
+            "gatas": gatas, "accesorios": accesorios, "guias": guias,
+            "costos_extras_cobrados": costos_extras_cobrados
         }
         ingreso_total = (ingreso_flete * valores["Tipo de cambio USD"] if moneda_ingreso == "USD" else ingreso_flete)
         ingreso_total += (ingreso_cruce * valores["Tipo de cambio USD"] if moneda_cruce == "USD" else ingreso_cruce)
+        if costos_extras_cobrados:
+            
+            ingreso_total += extras
+
         costo_cruce_convertido = costo_cruce * (valores["Tipo de cambio USD"] if moneda_costo_cruce == "USD" else 1)
 
         costo_diesel_camion = (km / valores["Rendimiento Camion"]) * valores["Costo Diesel"]
@@ -190,6 +198,8 @@ if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
     ingreso_cruce_convertido = d["ingreso_cruce"] * tipo_cambio_cruce
     costo_cruce_convertido = d["costo_cruce"] * tipo_cambio_costo_cruce
     ingreso_total = ingreso_flete_convertido + ingreso_cruce_convertido
+    if costos_extras_cobrados:
+        ingreso_total += extras
 
     costo_diesel_camion = (d["km"] / valores["Rendimiento Camion"]) * valores["Costo Diesel"]
     costo_diesel_termo = d["horas_termo"] * valores["Rendimiento Termo"] * valores["Costo Diesel"]
@@ -209,7 +219,9 @@ if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
         sueldo = valores["Pago fijo VACIO"] * factor
         bono = 0.0
 
+    
     puntualidad = d["puntualidad"] * factor
+    costos_extras_cobrados = d.get("costos_extras_cobrados", False)
     extras = sum([
         safe_number(d["lavado_termo"]), safe_number(d["movimiento_local"]), safe_number(puntualidad),
         safe_number(d["pension"]), safe_number(d["estancia"]),
@@ -236,7 +248,8 @@ if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
         "Pistas_Extra": d["pistas_extra"], "Stop": d["stop"], "Falso": d["falso"],
         "Gatas": d["gatas"], "Accesorios": d["accesorios"], "Guias": d["guias"],
         "Costo_Diesel_Camion": costo_diesel_camion, "Costo_Diesel_Termo": costo_diesel_termo,
-        "Costo_Extras": extras, "Costo_Total_Ruta": costo_total, "Costo Diesel": valores["Costo Diesel"], "Rendimiento Camion": valores["Rendimiento Camion"], "Rendimiento Termo": valores["Rendimiento Termo"]
+        "Costo_Extras": extras, "Costo_Total_Ruta": costo_total, "Costo Diesel": valores["Costo Diesel"], "Rendimiento Camion": valores["Rendimiento Camion"], "Rendimiento Termo": valores["Rendimiento Termo"],
+        "Extras_Cobrados": costos_extras_cobrados,
     }
 
     # Generar nuevo ID y verificar duplicado
