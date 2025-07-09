@@ -261,7 +261,6 @@ if mostrar_registro:
         # Extras
         extras = sum([
             safe(datos.get("Movimiento_Local", 0)),
-            safe(datos.get("Puntualidad", 0)),
             safe(datos.get("Pension", 0)),
             safe(datos.get("Estancia", 0)),
             safe(datos.get("Pistas Extra", 0)),
@@ -280,6 +279,7 @@ if mostrar_registro:
             st.info("ℹ️ El ingreso de cruce ya está incluido en la tarifa original.")
         diesel_camion = (km / rendimiento) * costo_diesel
         diesel_termo = horas_termo * rendimiento_dg_termo * costo_diesel
+        puntualidad = safe(datos.get("Puntualidad", 0))
 
         # Sueldo
         if tipo == "VACIO":
@@ -298,7 +298,7 @@ if mostrar_registro:
         if modo_viaje == "Team" and bono_isr:
             bono_isr *= 2
 
-        costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras
+        costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras + puntualidad
         costos_indirectos = ingreso_total * 0.35
         utilidad_bruta = ingreso_total - costo_total
         utilidad_neta = utilidad_bruta - costos_indirectos
@@ -452,11 +452,14 @@ else:
             if modo == "Team":
                 bono_isr *= 2
 
-            extras = sum([mov_local, puntualidad, pension, estancia, pistas_extra, stop, falso, gatas, accesorios, guias])
+            # Puntualidad como costo (aunque no se cobra al cliente)
+            puntualidad = safe(datos.get("Puntualidad", 0))
+
+            extras = sum([mov_local, pension, estancia, pistas_extra, stop, falso, gatas, accesorios, guias])
             extras_cobrados = bool(seleccionado.get("Extras_Cobrados", False))
             if extras_cobrados:
                 ingreso_total += extras
-            costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras
+            costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras + puntualidad
             costos_indirectos = ingreso_total * 0.35
             utilidad_bruta = ingreso_total - costo_total
             utilidad_neta = utilidad_bruta - costos_indirectos
