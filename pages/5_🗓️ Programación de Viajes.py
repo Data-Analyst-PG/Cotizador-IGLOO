@@ -279,6 +279,8 @@ if mostrar_registro:
             st.info("ℹ️ El ingreso de cruce ya está incluido en la tarifa original.")
         diesel_camion = (km / rendimiento) * costo_diesel
         diesel_termo = horas_termo * rendimiento_dg_termo * costo_diesel
+        
+        # Puntualidad como costo (aunque no se cobra al cliente)
         puntualidad = safe(datos.get("Puntualidad", 0))
 
         # Sueldo
@@ -453,7 +455,7 @@ else:
                 bono_isr *= 2
 
             # Puntualidad como costo (aunque no se cobra al cliente)
-            puntualidad = safe(datos.get("Puntualidad", 0))
+            puntualidad = safe(seleccionado.get("Puntualidad", 0))
 
             extras = sum([mov_local, pension, estancia, pistas_extra, stop, falso, gatas, accesorios, guias])
             extras_cobrados = bool(seleccionado.get("Extras_Cobrados", False))
