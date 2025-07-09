@@ -258,6 +258,20 @@ if mostrar_registro:
             rendimiento = st.number_input("Rendimiento Camión", value=rendimiento_dg_tracto, min_value=0.1)
             costo_diesel = st.number_input("Costo Diesel", value=float(precio_diesel_datos_generales), min_value=0.1)
 
+        # Extras
+        extras = sum([
+            safe(datos.get("Movimiento_Local", 0)),
+            safe(datos.get("Puntualidad", 0)),
+            safe(datos.get("Pension", 0)),
+            safe(datos.get("Estancia", 0)),
+            safe(datos.get("Pistas Extra", 0)),
+            safe(datos.get("Stop", 0)),
+            safe(datos.get("Falso", 0)),
+            safe(datos.get("Gatas", 0)),
+            safe(datos.get("Accesorios", 0)),
+            safe(datos.get("Guias", 0))
+        ])
+
         # Cálculos antes de guardar
         ingreso_total = ingreso_original * (tipo_cambio if moneda == "USD" else 1)
         if extras_cobrados:
@@ -283,20 +297,6 @@ if mostrar_registro:
         bono_isr = valores["Bono ISR IMSS"] if tipo in ["IMPORTACION", "EXPORTACION"] else 0
         if modo_viaje == "Team" and bono_isr:
             bono_isr *= 2
-
-        # Extras
-        extras = sum([
-            safe(datos.get("Movimiento_Local", 0)),
-            safe(datos.get("Puntualidad", 0)),
-            safe(datos.get("Pension", 0)),
-            safe(datos.get("Estancia", 0)),
-            safe(datos.get("Pistas Extra", 0)),
-            safe(datos.get("Stop", 0)),
-            safe(datos.get("Falso", 0)),
-            safe(datos.get("Gatas", 0)),
-            safe(datos.get("Accesorios", 0)),
-            safe(datos.get("Guias", 0))
-        ])
 
         costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras
         costos_indirectos = ingreso_total * 0.35
