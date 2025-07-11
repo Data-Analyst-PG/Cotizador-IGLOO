@@ -53,7 +53,7 @@ if respuesta.data:
         for idr in ids_a_eliminar:
             supabase.table("Rutas").delete().eq("ID_Ruta", idr).execute()
         st.success("✅ Rutas eliminadas correctamente.")
-        st.experimental_rerun()
+        st.rerun()
 
     st.markdown("---")
     st.subheader("✏️ Editar Ruta Existente")
