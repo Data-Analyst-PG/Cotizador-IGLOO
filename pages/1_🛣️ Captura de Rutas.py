@@ -152,7 +152,7 @@ with st.form("captura_ruta"):
             pago_km = valores["Pago x km IMPORTACION"]
             sueldo = km * pago_km * factor
             bono = valores["Bono ISR IMSS"] * factor
-        elif tipo == "EXPO":
+        elif tipo == "EXPORTACION":
             pago_km = valores["Pago x km EXPORTACION"]
             sueldo = km * pago_km * factor
             bono = valores["Bono ISR IMSS"] * factor
@@ -210,7 +210,7 @@ if st.session_state.revisar_ruta and st.button("💾 Guardar Ruta"):
         pago_km = valores["Pago x km IMPORTACION"]
         sueldo = d["km"] * pago_km * factor
         bono = valores["Bono ISR IMSS"] * factor
-    elif d["tipo"] == "EXPO":
+    elif d["tipo"] == "EXPORTACION":
         pago_km = valores["Pago x km EXPORTACION"]
         sueldo = d["km"] * pago_km * factor
         bono = valores["Bono ISR IMSS"] * factor
