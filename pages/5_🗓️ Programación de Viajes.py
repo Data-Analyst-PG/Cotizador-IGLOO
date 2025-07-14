@@ -373,7 +373,7 @@ if mostrar_registro:
 st.title("🔍 Consulta, Edición y Eliminación de Tráficos")
 
 # Cargar todos los tráficos (abiertos y cerrados)
-traficos = supabase.table("Traficos").select("*").order("Fecha", desc=True).limit(100).execute()
+traficos = supabase.table("Traficos").select("*").is_("Fecha_Cierre", None).order("Fecha", desc=True).limit(100).execute()
 df_traficos = pd.DataFrame(traficos.data)
 
 if df_traficos.empty:
