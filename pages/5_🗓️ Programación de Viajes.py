@@ -319,7 +319,7 @@ if mostrar_registro:
                 fila = {
                     "ID_Programacion": id_programacion,
                     "Número_Trafico": viaje_sel,
-                    "Fecha": fecha,
+                    "Fecha": fecha.strftime("%Y-%m-%d"),
                     "Cliente": cliente,
                     "Origen": origen,
                     "Destino": destino,
