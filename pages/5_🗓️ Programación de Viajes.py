@@ -364,6 +364,8 @@ if mostrar_registro:
                     "Ingreso_Cruce_Incluido": ingreso_cruce_incluido,
                 }
 
+                st.write("DEBUG fila que estás enviando a Supabase:", fila)
+                
                 supabase.table("Traficos").insert(limpiar_fila_json(fila)).execute()
                 st.success("✅ Tráfico registrado exitosamente.")
         
