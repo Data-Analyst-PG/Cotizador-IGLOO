@@ -329,12 +329,12 @@ if mostrar_registro:
                     "Moneda": moneda,
                     "Ingreso_Original": ingreso_original,
                     "Ingreso Total": ingreso_total,
+                    "Ingreso_Flete": ingreso_original * (tipo_cambio if moneda == "USD" else 1),
                     "KM": km,
-                    "Costo Diesel": costo_diesel,  # corregido
-                    "Rendimiento Camion": rendimiento,
-                    "Costo_Diesel_Camion": diesel_camion,  # corregido
+                    "Costo Diesel": costo_diesel,
+                    "Costo_Diesel_Camion": diesel_camion,
                     "Horas_Termo": horas_termo,
-                    "Costo_Diesel_Termo": diesel_termo,  # corregido
+                    "Costo_Diesel_Termo": diesel_termo,
                     "Movimiento_Local": safe(datos.get("Movimiento_Local", 0)),
                     "Puntualidad": safe(datos.get("Puntualidad", 0)),
                     "Pension": safe(datos.get("Pension", 0)),
@@ -352,11 +352,16 @@ if mostrar_registro:
                     "Costos_Indirectos": costos_indirectos,
                     "Utilidad_Bruta": utilidad_bruta,
                     "Utilidad_Neta": utilidad_neta,
+                    "Rendimiento_Camion": rendimiento,
+                    "Rendimiento_Termo": rendimiento_dg_termo,
+                    "Costo_Diesel": costo_diesel,
+                    "Tipo_Cambio_USD": tipo_cambio,
                     "Tramo": "IDA",
                     "Modo de Viaje": "Operador",
                     "Extras_Cobrados": extras_cobrados,
                     "Ingreso_Cruce_Incluido": ingreso_cruce_incluido,
                 }
+
                 supabase.table("Traficos").insert(limpiar_fila_json(fila)).execute()
                 st.success("✅ Tráfico registrado exitosamente.")
         
@@ -594,34 +599,30 @@ else:
             datos["Tramo"] = "VUELTA"
             datos["Fecha_Cierre"] = datetime.today().strftime("%Y-%m-%d")
 
-            # === CÁLCULOS ACTUALIZADOS USANDO DATOS GENERALES ===
             tipo = datos.get("Tipo", "").upper()
             modo = datos.get("Modo de Viaje", "Operador")
             km = safe(datos.get("KM", 0))
-            sueldo = 0
+            horas_termo = safe(datos.get("Horas_Termo", 0))
 
             if tipo == "VACIO":
                 sueldo = valores["Pago fijo VACIO"]
             elif tipo == "IMPORTACION":
                 sueldo = km * valores["Pago x km IMPORTACION"]
             elif tipo == "EXPORTACION":
-                sueldo = km * valores["Pago x km EXPORTACION"]
+               sueldo = km * valores["Pago x km EXPORTACION"]
             else:
                 sueldo = 0
-
             bono = valores["Bono ISR IMSS"] if tipo in ["IMPORTACION", "EXPORTACION"] else 0
             if modo == "Team":
                 bono *= 2
 
             rendimiento = valores["Rendimiento Camion"]
             diesel_precio = valores["Costo Diesel"]
-            diesel = (km / rendimiento) * diesel_precio
-
-            horas_termo = safe(datos.get("Horas_Termo", 0))
+            diesel_camion = (km / rendimiento) * diesel_precio
             diesel_termo = horas_termo * valores["Rendimiento Termo"] * valores["Costo Diesel"]
 
             extras = safe(datos.get("Costo_Extras", 0))
-            costo_total = sueldo + bono + diesel + diesel_termo + extras
+            costo_total = sueldo + bono + diesel_camion + diesel_termo + extras
 
             ingreso_total = safe(datos.get("Ingreso Total", 0))
             costos_indirectos = ingreso_total * 0.35
@@ -629,17 +630,21 @@ else:
             utilidad_neta = utilidad_bruta - costos_indirectos
 
             datos.update({
-                "Sueldo_Operador": sueldo,
                 "Bono_ISR_IMSS": bono,
                 "Costo_Diesel_Camion": diesel_camion,
                 "Costo_Diesel_Termo": diesel_termo,
                 "Costo_Total_Ruta": costo_total,
                 "Costos_Indirectos": costos_indirectos,
                 "Utilidad_Bruta": utilidad_bruta,
-                "Utilidad_Neta": utilidad_neta
+                "Utilidad_Neta": utilidad_neta,
+                "Rendimiento_Camion": rendimiento,
+                "Rendimiento_Termo": valores["Rendimiento Termo"],
+                "Costo_Diesel": valores["Costo Diesel"],
+                "Tipo_Cambio_USD": valores["Tipo de cambio USD"],
             })
 
             nuevos_tramos.append(datos)
+
 
         for fila in nuevos_tramos:
             fila_limpio = limpiar_fila_json(limpiar_tramo_para_insert(fila))
