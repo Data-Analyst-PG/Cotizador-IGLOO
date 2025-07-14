@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
-from datetime import datetime
+from datetime import date, datetime
 from supabase import create_client
 import numpy as np
 import json
@@ -58,7 +58,7 @@ def limpiar_fila_json(fila: dict) -> dict:
     for k, v in fila.items():
         if v is None or (isinstance(v, float) and np.isnan(v)):
             limpio[k] = None
-        elif isinstance(v, (pd.Timestamp, datetime, np.datetime64)):
+        elif isinstance(v, (pd.Timestamp, datetime, date, np.datetime64)):
             limpio[k] = str(v)[:10]
         elif isinstance(v, (np.integer, np.int64, np.int32)):
             limpio[k] = int(v)
@@ -71,7 +71,7 @@ def limpiar_fila_json(fila: dict) -> dict:
                 json.dumps(v)  # Probar si es serializable
                 limpio[k] = v
             except TypeError:
-                limpio[k] = str(v)  # Convertir a string si no se puede serializar
+                limpio[k] = str(v)
     return limpio
 
 def guardar_programacion(nuevo_registro):
