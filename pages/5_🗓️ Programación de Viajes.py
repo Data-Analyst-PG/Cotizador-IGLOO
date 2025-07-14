@@ -365,9 +365,8 @@ if mostrar_registro:
                 }
 
                 debug_fila = limpiar_fila_json(fila)
-                st.write("DEBUG fila que estás enviando a Supabase:", fila)
-                
-                supabase.table("Traficos").insert(limpiar_fila_json(fila)).execute()
+                st.write("DEBUG JSON limpio:", debug_fila)
+                supabase.table("Traficos").insert(debug_fila).execute()
                 st.success("✅ Tráfico registrado exitosamente.")
         
 # =====================================
