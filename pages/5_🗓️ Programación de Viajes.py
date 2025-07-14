@@ -285,15 +285,21 @@ if mostrar_registro:
 
         # Sueldo
         if tipo == "VACIO":
-            sueldo = valores["Pago fijo VACIO"]
+            tarifa_por_km = 0
+            sueldo = valores["Pago fijo VACIO"]  # 200
         elif tipo == "IMPORTACION":
-            sueldo = km * valores["Pago x km IMPORTACION"]
+            tarifa_por_km = valores["Pago x km IMPORTACION"]  # 2.1
+            sueldo = km * tarifa_por_km
         elif tipo == "EXPORTACION":
-            sueldo = km * valores["Pago x km EXPORTACION"]
+            tarifa_por_km = valores["Pago x km EXPORTACION"]  # 2.5
+            sueldo = km * tarifa_por_km
         else:
+            tarifa_por_km = 0
             sueldo = 0
 
-        sueldo = round(sueldo, 2)
+        # 🔴 Si es modo Team, duplica el sueldo
+        if modo_viaje == "Team":
+            sueldo *= 2
 
         # Bono ISR/IMSS
         bono_isr = valores["Bono ISR IMSS"] if tipo in ["IMPORTACION", "EXPORTACION"] else 0
@@ -363,12 +369,18 @@ if mostrar_registro:
                     "Extras_Cobrados": extras_cobrados,
                     "Ingreso_Cruce_Incluido": ingreso_cruce_incluido,
                 }
-
+                
                 debug_fila = limpiar_fila_json(fila)
                 st.write("DEBUG JSON limpio:", debug_fila)
                 supabase.table("Traficos").insert(debug_fila).execute()
                 st.success("✅ Tráfico registrado exitosamente.")
-        
+
+                try:
+                    supabase.table("Traficos").insert(debug_fila).execute()
+                except Exception as e:
+                    st.error(f"❌ Error al guardar tráfico: {e}")
+                    st.stop()
+                    
 # =====================================
 # 2. CONSULTA, EDICIÓN Y ELIMINACIÓN DE TRÁFICOS ABIERTOS
 # =====================================
