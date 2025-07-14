@@ -279,7 +279,7 @@ if mostrar_registro:
             st.info("ℹ️ El ingreso de cruce ya está incluido en la tarifa original.")
         diesel_camion = (km / rendimiento) * costo_diesel
         diesel_termo = horas_termo * rendimiento_dg_termo * costo_diesel
-        
+
         # Puntualidad como costo (aunque no se cobra al cliente)
         puntualidad = safe(datos.get("Puntualidad", 0))
 
@@ -330,6 +330,8 @@ if mostrar_registro:
                     "Ingreso_Original": ingreso_original,
                     "Ingreso Total": ingreso_total,
                     "Ingreso_Flete": ingreso_original * (tipo_cambio if moneda == "USD" else 1),
+                    "Pago por KM": sueldo if tipo in ["IMPORTACION", "EXPORTACION"] else 0,
+                    "% Utilidad": (utilidad_bruta / ingreso_total * 100) if ingreso_total else 0,
                     "KM": km,
                     "Costo Diesel": costo_diesel,
                     "Costo_Diesel_Camion": diesel_camion,
