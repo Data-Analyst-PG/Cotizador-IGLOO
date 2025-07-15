@@ -777,6 +777,7 @@ else:
         st.subheader("📋 Resumen de Viajes Redondos")
         st.dataframe(resumen_df, use_container_width=True)
 
+        # Botón para descargar resumen
         csv = resumen_df.to_csv(index=False).encode("utf-8")
         st.download_button(
             "📥 Descargar Resumen en CSV",
@@ -784,3 +785,14 @@ else:
             file_name="resumen_viajes_redondos.csv",
             mime="text/csv"
         )
+        
+        # Botón para descargar detalle completo filtrado
+        detalle = df_filtrado.copy()
+        detalle_csv = detalle.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "📥 Descargar Detalle Completo en CSV",
+            data=detalle_csv,
+            file_name="detalle_completo_viajes_redondos.csv",
+            mime="text/csv"
+        )
+
