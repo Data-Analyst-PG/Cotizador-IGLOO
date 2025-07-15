@@ -637,21 +637,29 @@ else:
             horas_termo = safe(datos.get("Horas_Termo", 0))
 
             if tipo == "VACIO":
+                tarifa_por_km = 0
                 sueldo = valores["Pago fijo VACIO"]
             elif tipo == "IMPORTACION":
-                sueldo = km * valores["Pago x km IMPORTACION"]
+                tarifa_por_km = valores["Pago x km IMPORTACION"]
+                sueldo = km * tarifa_por_km
             elif tipo == "EXPORTACION":
-               sueldo = km * valores["Pago x km EXPORTACION"]
+                tarifa_por_km = valores["Pago x km EXPORTACION"]
+                sueldo = km * tarifa_por_km
             else:
+                tarifa_por_km = 0
                 sueldo = 0
+
+            if modo == "Team":
+                sueldo *= 2
+
             bono = valores["Bono ISR IMSS"] if tipo in ["IMPORTACION", "EXPORTACION"] else 0
             if modo == "Team":
                 bono *= 2
 
             rendimiento = valores["Rendimiento Camion"]
             diesel_precio = valores["Costo Diesel"]
-            diesel_camion = (km / rendimiento) * diesel_precio
-            diesel_termo = horas_termo * valores["Rendimiento Termo"] * valores["Costo Diesel"]
+            diesel_camion = round((km / rendimiento) * diesel_precio, 2)
+            diesel_termo = round(horas_termo * valores["Rendimiento Termo"] * diesel_precio, 2)
 
             extras = safe(datos.get("Costo_Extras", 0))
             costo_total = sueldo + bono + diesel_camion + diesel_termo + extras
@@ -662,6 +670,7 @@ else:
             utilidad_neta = utilidad_bruta - costos_indirectos
 
             datos.update({
+                "Pago por KM": tarifa_por_km,
                 "Bono_ISR_IMSS": bono,
                 "Costo_Diesel_Camion": diesel_camion,
                 "Costo_Diesel_Termo": diesel_termo,
@@ -672,21 +681,19 @@ else:
                 "Rendimiento_Camion": rendimiento,
                 "Rendimiento_Termo": valores["Rendimiento Termo"],
                 "Costo_Diesel": valores["Costo Diesel"],
-                "Tipo_Cambio_USD": valores["Tipo de cambio USD"],
+                "Tipo de cambio": valores["Tipo de cambio USD"],
             })
 
             nuevos_tramos.append(datos)
 
-
         for fila in nuevos_tramos:
             fila_limpio = limpiar_fila_json(limpiar_tramo_para_insert(fila))
-            st.write("DEBUG fila a insertar:", fila)
-            st.write("DEBUG JSON limpio:", fila_limpio)
-
             try:
-                supabase.table("Traficos").insert(fila_limpio).execute()
+                supabase.table("Traficos").insert([fila_limpio]).execute()
             except Exception as e:
+                import traceback
                 st.error(f"❌ Error al guardar tráfico: {e}")
+                st.code(traceback.format_exc())
                 st.stop()
 
         st.success("✅ Tráfico cerrado correctamente.")
