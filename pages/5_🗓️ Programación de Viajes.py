@@ -374,8 +374,11 @@ if mostrar_registro:
                     "Ingreso_Cruce_Incluido": ingreso_cruce_incluido,
                 }
                 
-                import traceback
+                debug_fila = limpiar_fila_json(fila)
 
+                st.write("DEBUG JSON limpio:", debug_fila)
+
+                import traceback
                 try:
                     supabase.table("Traficos").insert([debug_fila]).execute()
                     st.success("✅ Tráfico registrado exitosamente.")
