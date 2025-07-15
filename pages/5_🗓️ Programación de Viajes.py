@@ -341,7 +341,7 @@ if mostrar_registro:
                     "Ingreso Total": ingreso_total,
                     "Ingreso_Flete": ingreso_original * tipo_cambio,
                     "Pago por KM": tarifa_por_km,
-                    "% Utilidad": (utilidad_bruta / ingreso_total * 100) if ingreso_total else 0,
+                    "% Utilidad": float(utilidad_bruta / ingreso_total * 100) if ingreso_total else 0,
                     "KM": km,
                     "Costo Diesel": costo_diesel,
                     "Costo_Diesel_Camion": diesel_camion,
