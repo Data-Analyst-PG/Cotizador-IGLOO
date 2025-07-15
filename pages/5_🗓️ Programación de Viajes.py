@@ -525,7 +525,7 @@ else:
                         "Utilidad_Neta": utilidad_neta,
                         "Rendimiento_Camion": rendimiento,
                         "Rendimiento_Termo": rendimiento_termo,
-                        "Costo_Diesel": costo_diesel,
+                        "Costo Diesel": costo_diesel,
                         "Tipo de cambio": tipo_cambio,
                         "Extras_Cobrados": extras_cobrados,
                         "Ingreso_Cruce_Incluido": ingreso_cruce_incluido,
