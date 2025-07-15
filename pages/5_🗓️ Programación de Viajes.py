@@ -366,7 +366,6 @@ if mostrar_registro:
                     "Utilidad_Neta": utilidad_neta,
                     "Rendimiento_Camion": rendimiento,
                     "Rendimiento_Termo": rendimiento_dg_termo,
-                    "Costo_Diesel": costo_diesel,
                     "Tipo de cambio": tipo_cambio,
                     "Tramo": "IDA",
                     "Modo de Viaje": "Operador",
