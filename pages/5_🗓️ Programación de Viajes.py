@@ -283,28 +283,32 @@ if mostrar_registro:
         # Puntualidad como costo (aunque no se cobra al cliente)
         puntualidad = safe(datos.get("Puntualidad", 0))
 
-        # Sueldo
+        # Tipo de cambio correcto
+        tipo_cambio = 1 if moneda == "MXP" else float(st.session_state.get("tipo_cambio_usd", 17.0))
+
+        # Sueldo y tarifa por KM según tipo de ruta
         if tipo == "VACIO":
             tarifa_por_km = 0
-            sueldo = valores["Pago fijo VACIO"]  # 200
+            sueldo = valores["Pago fijo VACIO"]
         elif tipo == "IMPORTACION":
-            tarifa_por_km = valores["Pago x km IMPORTACION"]  # 2.1
+            tarifa_por_km = valores["Pago x km IMPORTACION"]
             sueldo = km * tarifa_por_km
         elif tipo == "EXPORTACION":
-            tarifa_por_km = valores["Pago x km EXPORTACION"]  # 2.5
+            tarifa_por_km = valores["Pago x km EXPORTACION"]
             sueldo = km * tarifa_por_km
         else:
             tarifa_por_km = 0
             sueldo = 0
 
-        # 🔴 Si es modo Team, duplica el sueldo
+        # Si es modo Team, sueldo doble
         if modo_viaje == "Team":
             sueldo *= 2
 
-        # Bono ISR/IMSS
+        # Bono ISR (solo IMPO o EXPO)
         bono_isr = valores["Bono ISR IMSS"] if tipo in ["IMPORTACION", "EXPORTACION"] else 0
-        if modo_viaje == "Team" and bono_isr:
+        if modo_viaje == "Team":
             bono_isr *= 2
+
 
         costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras + puntualidad
         costos_indirectos = ingreso_total * 0.35
@@ -363,7 +367,7 @@ if mostrar_registro:
                     "Rendimiento_Camion": rendimiento,
                     "Rendimiento_Termo": rendimiento_dg_termo,
                     "Costo_Diesel": costo_diesel,
-                    "Tipo_Cambio_USD": tipo_cambio,
+                    "Tipo de cambio": tipo_cambio,
                     "Tramo": "IDA",
                     "Modo de Viaje": "Operador",
                     "Extras_Cobrados": extras_cobrados,
