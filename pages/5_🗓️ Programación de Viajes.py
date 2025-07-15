@@ -374,7 +374,7 @@ if mostrar_registro:
                     "Ingreso_Cruce_Incluido": ingreso_cruce_incluido,
                 }
                 
-                supabase.table("Traficos").insert(debug_fila).execute()
+                supabase.table("Traficos").insert([debug_fila]).execute()
                 st.success("✅ Tráfico registrado exitosamente.")
 
                 try:
