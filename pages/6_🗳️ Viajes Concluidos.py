@@ -1,122 +1,96 @@
-# 6_📂 Administración de Archivos
-import streamlit as st
-import pandas as pd
-import os
-from PIL import Image
-import base64
-from io import BytesIO
+# =====================================
+# 4. FILTRO Y RESUMEN DE VIAJES CONCLUIDOS
+# =====================================
+st.title("✅ Tráficos Concluidos con Filtro de Fechas")
 
-# ✅ Verificación de sesión y rol
-if "usuario" not in st.session_state:
-    st.error("⚠️ No has iniciado sesión.")
-    st.stop()
+def cargar_programaciones():
+    data = supabase.table("Traficos").select("*").execute()
+    df = pd.DataFrame(data.data)
+    if df.empty:
+        return pd.DataFrame()
+    df["Fecha_Cierre"] = pd.to_datetime(df["Fecha_Cierre"], errors="coerce")
+    return df
 
-rol = st.session_state.usuario.get("Rol", "").lower()
-if rol not in ["admin", "gerente", "ejecutivo"]:
-    st.error("🚫 No tienes permiso para acceder a este módulo.")
-    st.stop()
+df = cargar_programaciones()
 
-# Función para convertir imagen en base64
-def image_to_base64(img):
-    buffer = BytesIO()
-    img.save(buffer, format="PNG")
-    return base64.b64encode(buffer.getvalue()).decode()
+if df.empty:
+    st.info("ℹ️ Aún no hay programaciones registradas.")
+else:
+    st.subheader("📅 Filtro por Fecha (Fecha de Cierre de la VUELTA)")
+    fecha_min = df["Fecha_Cierre"].min()
+    fecha_max = df["Fecha_Cierre"].max()
+    hoy = datetime.today().date()
 
-# Cargar logos
-logo_claro = Image.open("PG Brand.png")
-logo_oscuro = Image.open("PG Brand.png")
-logo_claro_b64 = image_to_base64(logo_claro)
-logo_oscuro_b64 = image_to_base64(logo_oscuro)
+    fecha_inicio = st.date_input("Fecha inicio", value=fecha_min.date() if pd.notna(fecha_min) else hoy)
+    fecha_fin = st.date_input("Fecha fin", value=fecha_max.date() if pd.notna(fecha_max) else hoy)
 
-# Mostrar logo
-st.markdown(f"""
-    <div style='text-align: left; margin-bottom: 10px;'>
-        <img src="data:image/png;base64,{logo_claro_b64}" class="logo-light" style="height:50px;">
-        <img src="data:image/png;base64,{logo_oscuro_b64}" class="logo-dark" style="height:50px;">
-    </div>
-    <style>
-    @media (prefers-color-scheme: dark) {{
-        .logo-light {{ display: none; }}
-        .logo-dark {{ display: inline; }}
-    }}
-    @media (prefers-color-scheme: light) {{
-        .logo-light {{ display: inline; }}
-        .logo-dark {{ display: none; }}
-    }}
-    </style>
-""", unsafe_allow_html=True)
+    # Paso 1: detectar viajes con vuelta cerrada
+    cerrados = df[df["Fecha_Cierre"].notna()]
+    traficos_cerrados = cerrados["Número_Trafico"].unique()
 
-st.title("Administración de Archivos 📂")
+    # Paso 2: recuperar todos los tramos (IDA y vuelta) de esos tráficos
+    df_filtrado = df[df["Número_Trafico"].isin(traficos_cerrados)].copy()
 
-RUTA_RUTAS = "rutas_guardadas.csv"
-RUTA_DATOS = "datos_generales.csv"
-RUTA_PROG = "viajes_programados.csv"
+    # Paso 3: aplicar filtro de fechas sobre Fecha_Cierre de la vuelta
+    fechas_vuelta = df_filtrado[df_filtrado["Fecha_Cierre"].notna()].groupby("Número_Trafico")["Fecha_Cierre"].max()
+    fechas_vuelta = fechas_vuelta[(fechas_vuelta >= pd.to_datetime(fecha_inicio)) & (fechas_vuelta <= pd.to_datetime(fecha_fin))]
 
-st.subheader("📥 Descargar respaldos")
+    # Paso 4: quedarnos con todos los tramos de esos tráficos en rango
+    df_filtrado = df_filtrado[df_filtrado["Número_Trafico"].isin(fechas_vuelta.index)]
 
-# Descargar rutas_guardadas.csv
-if os.path.exists(RUTA_RUTAS):
-    rutas = pd.read_csv(RUTA_RUTAS)
-    st.download_button(
-        label="Descargar rutas_guardadas.csv",
-        data=rutas.to_csv(index=False),
-        file_name="rutas_guardadas.csv",
-        mime="text/csv"
-    )
+    if df_filtrado.empty:
+        st.warning("No hay tráficos concluidos en ese rango de fechas.")
+    else:
+        resumen = []
+        for trafico in df_filtrado["Número_Trafico"].unique():
+            tramos = df_filtrado[df_filtrado["Número_Trafico"] == trafico]
+            ida = tramos[tramos["ID_Programacion"].str.contains("_IDA")].iloc[0] if not tramos[tramos["ID_Programacion"].str.contains("_IDA")].empty else None
+            vuelta = tramos[~tramos["ID_Programacion"].str.contains("_IDA")]
 
-# Descargar datos_generales.csv
-if os.path.exists(RUTA_DATOS):
-    datos = pd.read_csv(RUTA_DATOS)
-    st.download_button(
-        label="Descargar datos_generales.csv",
-        data=datos.to_csv(index=False),
-        file_name="datos_generales.csv",
-        mime="text/csv"
-    )
+            ingreso_total = tramos["Ingreso Total"].sum()
+            costo_total = tramos["Costo_Total_Ruta"].sum()
+            utilidad_bruta = ingreso_total - costo_total
+            utilidad_pct = round(utilidad_bruta / ingreso_total * 100, 2) if ingreso_total else 0
 
-# Descargar viajes_programados.csv
-if os.path.exists(RUTA_PROG):
-    viajes = pd.read_csv(RUTA_PROG)
-    st.download_button(
-        label="Descargar viajes_programados.csv",
-        data=viajes.to_csv(index=False),
-        file_name="viajes_programados.csv",
-        mime="text/csv"
-    )
+            cliente_ida = ida["Cliente"] if ida is not None else ""
+            ruta_ida = f"{ida['Origen']} → {ida['Destino']}" if ida is not None else ""
 
-st.markdown("---")
+            clientes_vuelta = " | ".join(vuelta["Cliente"].dropna().astype(str))
+            rutas_vuelta = " | ".join(f"{row['Origen']} → {row['Destino']}" for _, row in vuelta.iterrows())
+            fecha_cierre = vuelta["Fecha_Cierre"].max().date() if not vuelta.empty else ""
 
-st.subheader("📤 Restaurar desde archivos")
+            resumen.append({
+                "Número_Trafico": trafico,
+                "Fecha": fecha_cierre,
+                "Cliente IDA": cliente_ida,
+                "Ruta IDA": ruta_ida,
+                "Clientes VUELTA": clientes_vuelta,
+                "Rutas VUELTA": rutas_vuelta,
+                "Ingreso Total VR": ingreso_total,
+                "Costo Total VR": costo_total,
+                "Utilidad Total VR": utilidad_bruta,
+                "% Utilidad Total VR": utilidad_pct
+            })
 
-# Subir rutas_guardadas.csv
-rutas_file = st.file_uploader("Subir rutas_guardadas.csv", type="csv", key="rutas_upload")
-if rutas_file:
-    try:
-        rutas_df = pd.read_csv(rutas_file)
-        rutas_df.to_csv(RUTA_RUTAS, index=False)
-        st.success("✅ Rutas restauradas correctamente.")
-        st.rerun()
-    except Exception as e:
-        st.error(f"❌ Error al cargar rutas: {e}")
+        resumen_df = pd.DataFrame(resumen)
+        st.subheader("📋 Resumen de Viajes Redondos")
+        st.dataframe(resumen_df, use_container_width=True)
 
-# Subir datos_generales.csv
-datos_file = st.file_uploader("Subir datos_generales.csv", type="csv", key="datos_upload")
-if datos_file:
-    try:
-        datos_df = pd.read_csv(datos_file)
-        datos_df.to_csv(RUTA_DATOS, index=False)
-        st.success("✅ Datos generales restaurados correctamente.")
-        st.rerun()
-    except Exception as e:
-        st.error(f"❌ Error al cargar datos generales: {e}")
-
-# Subir viajes_programados.csv
-prog_file = st.file_uploader("Subir viajes_programados.csv", type="csv", key="programacion_upload")
-if prog_file:
-    try:
-        prog_df = pd.read_csv(prog_file)
-        prog_df.to_csv(RUTA_PROG, index=False)
-        st.success("✅ Programaciones de viaje restauradas correctamente.")
-        st.rerun()
-    except Exception as e:
-        st.error(f"❌ Error al cargar programaciones: {e}")
+        # Botón para descargar resumen
+        csv = resumen_df.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "📥 Descargar Resumen en CSV",
+            data=csv,
+            file_name="resumen_viajes_redondos.csv",
+            mime="text/csv"
+        )
+        
+        # Botón para descargar detalle completo filtrado
+        detalle = df_filtrado.copy()
+        detalle_csv = detalle.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "📥 Descargar Detalle Completo en CSV",
+            data=detalle_csv,
+            file_name="detalle_completo_viajes_redondos.csv",
+            mime="text/csv"
+        )
