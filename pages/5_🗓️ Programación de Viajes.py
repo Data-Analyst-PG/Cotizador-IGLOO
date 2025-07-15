@@ -177,7 +177,7 @@ if mostrar_registro:
         "Puntualidad": "Puntualidad",
         "Pensión": "Pension",
         "Estancia": "Estancia",
-        "Pistas extra": "Pistas Extra",
+        "Pistas_Extra": "Pistas_Extra",
         "Stop": "Stop",
         "Falso": "Falso",
         "Gatas": "Gatas",
@@ -188,7 +188,7 @@ if mostrar_registro:
 
     columnas_num = [
         "KM", "Ingreso_Original", "Sueldo_Operador", "Movimiento_Local", "Puntualidad",
-        "Pension", "Estancia", "Pistas Extra", "Stop", "Falso", "Gatas",
+        "Pension", "Estancia", "Pistas_Extra", "Stop", "Falso", "Gatas",
         "Accesorios", "Guias", "Horas_Termo"
     ]
     for col in columnas_num:
@@ -263,7 +263,7 @@ if mostrar_registro:
             safe(datos.get("Movimiento_Local", 0)),
             safe(datos.get("Pension", 0)),
             safe(datos.get("Estancia", 0)),
-            safe(datos.get("Pistas Extra", 0)),
+            safe(datos.get("Pistas_Extra", 0)),
             safe(datos.get("Stop", 0)),
             safe(datos.get("Falso", 0)),
             safe(datos.get("Gatas", 0)),
@@ -351,7 +351,7 @@ if mostrar_registro:
                     "Puntualidad": safe(datos.get("Puntualidad", 0)),
                     "Pension": safe(datos.get("Pension", 0)),
                     "Estancia": safe(datos.get("Estancia", 0)),
-                    "Pistas Extra": safe(datos.get("Pistas Extra", 0)),
+                    "Pistas_Extra": safe(datos.get("Pistas_Extra", 0)),
                     "Stop": safe(datos.get("Stop", 0)),
                     "Falso": safe(datos.get("Falso", 0)),
                     "Gatas": safe(datos.get("Gatas", 0)),
@@ -508,7 +508,7 @@ else:
                         "Puntualidad": puntualidad,
                         "Pension": pension,
                         "Estancia": estancia,
-                        "Pistas Extra": pistas_extra,
+                        "Pistas_Extra": pistas_extra,
                         "Stop": stop,
                         "Falso": falso,
                         "Gatas": gatas,
