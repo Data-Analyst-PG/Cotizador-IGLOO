@@ -389,8 +389,17 @@ if mostrar_registro:
 # =====================================
 st.title("🔍 Consulta, Edición y Eliminación de Tráficos")
 
-traficos = supabase.table("Traficos").select("*").is_("Fecha_Cierre", None).order("Fecha", desc=True).limit(100).execute()
+traficos = supabase.table("Traficos").select("*").execute()
 df_traficos = pd.DataFrame(traficos.data)
+
+if not df_traficos.empty:
+    # Excluir tráficos que ya tienen VUELTA o VACIO cerrados
+    cerrados = df_traficos[df_traficos["Fecha_Cierre"].notna() & df_traficos["ID_Programacion"].str.contains("_VUELTA|_VACIO")]
+    traficos_cerrados = cerrados["Número_Trafico"].unique()
+
+    # Mantener solo los IDA que no tengan VUELTA o VACIO cerrados
+    df_traficos = df_traficos[~df_traficos["Número_Trafico"].isin(traficos_cerrados)]
+    df_traficos = df_traficos[df_traficos["ID_Programacion"].str.contains("_IDA")]
 
 if df_traficos.empty:
     st.warning("No hay programaciones registradas.")
@@ -545,13 +554,20 @@ st.markdown("---")
 st.title("🔁 Completar y Simular Tráfico Detallado")
 
 def cargar_programaciones_pendientes():
-    data = supabase.table("Traficos").select("*").is_("Fecha_Cierre", None).execute()
+    data = supabase.table("Traficos").select("*").execute()
     df = pd.DataFrame(data.data)
     if df.empty:
         return pd.DataFrame()
-    conteo = df.groupby("ID_Programacion").size().reset_index(name="count")
-    pendientes = conteo[conteo["count"] == 1]["ID_Programacion"]
-    return df[df["ID_Programacion"].isin(pendientes)]
+
+    # Detectar tráficos que ya tienen VUELTA o VACIO cerrados
+    cerrados = df[df["Fecha_Cierre"].notna() & df["ID_Programacion"].str.contains("_VUELTA|_VACIO")]
+    traficos_cerrados = cerrados["Número_Trafico"].unique()
+
+    # Mostrar solo los IDA que no tienen tráfico cerrado asociado
+    pendientes = df[~df["Número_Trafico"].isin(traficos_cerrados)]
+    pendientes = pendientes[pendientes["ID_Programacion"].str.contains("_IDA")]
+
+    return pendientes
 
 df_prog = cargar_programaciones_pendientes()
 df_rutas = cargar_rutas()
