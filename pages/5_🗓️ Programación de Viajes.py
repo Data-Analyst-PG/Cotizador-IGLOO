@@ -375,8 +375,6 @@ if mostrar_registro:
                 
                 debug_fila = limpiar_fila_json(fila)
 
-                st.write("DEBUG JSON limpio:", debug_fila)
-
                 import traceback
                 try:
                     supabase.table("Traficos").insert([debug_fila]).execute()
