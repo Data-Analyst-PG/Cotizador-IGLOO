@@ -280,8 +280,9 @@ if mostrar_registro:
         diesel_camion = (km / rendimiento) * costo_diesel
         diesel_termo = horas_termo * rendimiento_dg_termo * costo_diesel
 
-        # Puntualidad como costo (aunque no se cobra al cliente)
+        # Como costo (aunque no se cobra al cliente)
         puntualidad = safe(datos.get("Puntualidad", 0))
+        casetas = safe(datos.get("Casetas", 0))
 
         # Tipo de cambio correcto
         tipo_cambio = 1 if moneda == "MXP" else float(st.session_state.get("tipo_cambio_usd", 17.0))
@@ -310,7 +311,7 @@ if mostrar_registro:
             bono_isr *= 2
 
 
-        costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras + puntualidad
+        costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras + puntualidad + casetas
         costos_indirectos = ingreso_total * 0.35
         utilidad_bruta = ingreso_total - costo_total
         utilidad_neta = utilidad_bruta - costos_indirectos
@@ -358,6 +359,7 @@ if mostrar_registro:
                     "Accesorios": safe(datos.get("Accesorios", 0)),
                     "Guias": safe(datos.get("Guias", 0)),
                     "Costo_Extras": extras,
+                    "Casetas": casetas,
                     "Sueldo_Operador": sueldo,
                     "Bono_ISR_IMSS": bono_isr,
                     "Costo_Total_Ruta": costo_total,
@@ -492,7 +494,7 @@ else:
             if extras_cobrados:
                 ingreso_total += extras
 
-            costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras + puntualidad
+            costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras + puntualidad + casetas
             costos_indirectos = ingreso_total * 0.35
             utilidad_bruta = ingreso_total - costo_total
             utilidad_neta = utilidad_bruta - costos_indirectos
@@ -527,6 +529,7 @@ else:
                         "Costo_Diesel_Camion": diesel_camion,
                         "Costo_Diesel_Termo": diesel_termo,
                         "Costo_Extras": extras,
+                        "Casetas": casetas,
                         "Costo_Total_Ruta": costo_total,
                         "Bono_ISR_IMSS": bono_isr,
                         "Costos_Indirectos": costos_indirectos,
@@ -651,6 +654,7 @@ else:
             modo = datos.get("Modo de Viaje", "Operador")
             km = safe(datos.get("KM", 0))
             horas_termo = safe(datos.get("Horas_Termo", 0))
+            casetas = safe(datos.get("Casetas", 0))
 
             if tipo == "VACIO":
                 tarifa_por_km = 0
@@ -678,7 +682,7 @@ else:
             diesel_termo = round(horas_termo * valores["Rendimiento Termo"] * diesel_precio, 2)
 
             extras = safe(datos.get("Costo_Extras", 0))
-            costo_total = sueldo + bono + diesel_camion + diesel_termo + extras
+            costo_total = sueldo + bono + diesel_camion + diesel_termo + extras + casetas
 
             ingreso_total = safe(datos.get("Ingreso Total", 0))
             costos_indirectos = ingreso_total * 0.35
