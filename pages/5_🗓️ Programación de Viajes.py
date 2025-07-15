@@ -389,7 +389,6 @@ if mostrar_registro:
 # =====================================
 st.title("🔍 Consulta, Edición y Eliminación de Tráficos")
 
-# Cargar todos los tráficos (abiertos y cerrados)
 traficos = supabase.table("Traficos").select("*").is_("Fecha_Cierre", None).order("Fecha", desc=True).limit(100).execute()
 df_traficos = pd.DataFrame(traficos.data)
 
@@ -415,7 +414,6 @@ else:
             col1, col2, col3 = st.columns(3)
 
             with col1:
-                
                 cliente = st.text_input("Cliente", seleccionado["Cliente"])
                 origen = st.text_input("Origen", seleccionado["Origen"])
                 destino = st.text_input("Destino", seleccionado["Destino"])
@@ -455,75 +453,90 @@ else:
             bono_isr_valor = valores["Bono ISR IMSS"]
             pago_fijo_vacio = valores["Pago fijo VACIO"]
 
-            tarifa = 0
             if tipo == "VACIO":
+                tarifa_por_km = 0
                 sueldo = pago_fijo_vacio
             elif tipo == "IMPORTACION":
-                sueldo = km * tarifa_impo
+                tarifa_por_km = tarifa_impo
+                sueldo = km * tarifa_por_km
             elif tipo == "EXPORTACION":
-                sueldo = km * tarifa_expo
+                tarifa_por_km = tarifa_expo
+                sueldo = km * tarifa_por_km
             else:
+                tarifa_por_km = 0
                 sueldo = 0
 
-            sueldo = round(sueldo, 2)
+            if modo == "Team":
+                sueldo *= 2
 
             rendimiento = float(seleccionado.get("Rendimiento Camion", valores["Rendimiento Camion"]))
             costo_diesel = float(seleccionado.get("Costo Diesel", valores["Costo Diesel"]))
             diesel_camion = round((km / rendimiento) * costo_diesel, 2)
-
             rendimiento_termo = float(seleccionado.get("Rendimiento Termo", valores["Rendimiento Termo"]))
-            diesel_termo = horas_termo * rendimiento_termo * costo_diesel
+            diesel_termo = round(horas_termo * rendimiento_termo * costo_diesel, 2)
 
             bono_isr = bono_isr_valor if tipo in ["IMPORTACION", "EXPORTACION"] else 0
             if modo == "Team":
                 bono_isr *= 2
 
-            # Puntualidad como costo (aunque no se cobra al cliente)
-            puntualidad = safe(seleccionado.get("Puntualidad", 0))
-
             extras = sum([mov_local, pension, estancia, pistas_extra, stop, falso, gatas, accesorios, guias])
-            extras_cobrados = bool(seleccionado.get("Extras_Cobrados", False))
             if extras_cobrados:
                 ingreso_total += extras
+
             costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras + puntualidad
             costos_indirectos = ingreso_total * 0.35
             utilidad_bruta = ingreso_total - costo_total
             utilidad_neta = utilidad_bruta - costos_indirectos
 
             if st.button("💾 Guardar cambios"):
-                supabase.table("Traficos").update({
-                    "Cliente": cliente,
-                    "Origen": origen,
-                    "Destino": destino,
-                    "Tipo": tipo,
-                    "Modo de Viaje": modo,
-                    "Moneda": moneda,
-                    "Ingreso_Original": ingreso_original,
-                    "Ingreso Total": ingreso_total,
-                    "KM": km,
-                    "Horas_Termo": horas_termo,
-                    "Movimiento_Local": mov_local,
-                    "Puntualidad": puntualidad,
-                    "Pension": pension,
-                    "Estancia": estancia,
-                    "Pistas Extra": pistas_extra,
-                    "Stop": stop,
-                    "Falso": falso,
-                    "Gatas": gatas,
-                    "Accesorios": accesorios,
-                    "Guias": guias,
-                    "Sueldo_Operador": sueldo,
-                    "Costo_Diesel_Camion": diesel_camion,
-                    "Costo_Diesel_Termo": diesel_termo,
-                    "Costo_Extras": extras,
-                    "Costo_Total_Ruta": costo_total,
-                    "Bono_ISR_IMSS": bono_isr,
-                    "Costos_Indirectos": costos_indirectos,
-                    "Utilidad_Bruta": utilidad_bruta,
-                    "Utilidad_Neta": utilidad_neta,
-                    "Extras_Cobrados": extras_cobrados,
-                }).eq("ID_Programacion", seleccionado["ID_Programacion"]).execute()
-                st.success("✅ Tráfico actualizado correctamente.")
+                try:
+                    supabase.table("Traficos").update({
+                        "Cliente": cliente,
+                        "Origen": origen,
+                        "Destino": destino,
+                        "Tipo": tipo,
+                        "Modo de Viaje": modo,
+                        "Moneda": moneda,
+                        "Ingreso_Original": ingreso_original,
+                        "Ingreso Total": ingreso_total,
+                        "Ingreso_Flete": ingreso_original * tipo_cambio,
+                        "Pago por KM": tarifa_impo if tipo == "IMPORTACION" else tarifa_expo if tipo == "EXPORTACION" else 0,
+                        "% Utilidad": round((utilidad_bruta / ingreso_total * 100), 2) if ingreso_total else 0,
+                        "KM": km,
+                        "Horas_Termo": horas_termo,
+                        "Movimiento_Local": mov_local,
+                        "Puntualidad": puntualidad,
+                        "Pension": pension,
+                        "Estancia": estancia,
+                        "Pistas Extra": pistas_extra,
+                        "Stop": stop,
+                        "Falso": falso,
+                        "Gatas": gatas,
+                        "Accesorios": accesorios,
+                        "Guias": guias,
+                        "Sueldo_Operador": sueldo,
+                        "Costo_Diesel_Camion": diesel_camion,
+                        "Costo_Diesel_Termo": diesel_termo,
+                        "Costo_Extras": extras,
+                        "Costo_Total_Ruta": costo_total,
+                        "Bono_ISR_IMSS": bono_isr,
+                        "Costos_Indirectos": costos_indirectos,
+                        "Utilidad_Bruta": utilidad_bruta,
+                        "Utilidad_Neta": utilidad_neta,
+                        "Rendimiento_Camion": rendimiento,
+                        "Rendimiento_Termo": rendimiento_termo,
+                        "Costo_Diesel": costo_diesel,
+                        "Tipo de cambio": tipo_cambio,
+                        "Extras_Cobrados": extras_cobrados,
+                        "Ingreso_Cruce_Incluido": ingreso_cruce_incluido,
+                    }).eq("ID_Programacion", seleccionado["ID_Programacion"]).execute()
+
+                    st.success("✅ Tráfico actualizado correctamente.")
+                except Exception as e:
+                    import traceback
+                    st.error(f"❌ Error al guardar cambios: {e}")
+                    st.code(traceback.format_exc())
+                    st.stop()
                 
 # =====================================
 # 3. COMPLETAR Y SIMULAR TRÁFICO DETALLADO
