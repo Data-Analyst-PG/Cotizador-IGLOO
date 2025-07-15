@@ -374,17 +374,16 @@ if mostrar_registro:
                     "Ingreso_Cruce_Incluido": ingreso_cruce_incluido,
                 }
                 
-                supabase.table("Traficos").insert([debug_fila]).execute()
-                st.success("✅ Tráfico registrado exitosamente.")
+                import traceback
 
                 try:
-                    supabase.table("Traficos").insert(debug_fila).execute()
+                    supabase.table("Traficos").insert([debug_fila]).execute()
+                    st.success("✅ Tráfico registrado exitosamente.")
                 except Exception as e:
                     st.error(f"❌ Error al guardar tráfico: {e}")
-                    import traceback
-                    st.write(traceback.format_exc())
+                    st.code(traceback.format_exc())
                     st.stop()
-                    
+
 # =====================================
 # 2. CONSULTA, EDICIÓN Y ELIMINACIÓN DE TRÁFICOS ABIERTOS
 # =====================================
