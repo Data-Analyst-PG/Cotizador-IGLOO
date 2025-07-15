@@ -680,7 +680,7 @@ else:
                 "Utilidad_Neta": utilidad_neta,
                 "Rendimiento_Camion": rendimiento,
                 "Rendimiento_Termo": valores["Rendimiento Termo"],
-                "Costo_Diesel": valores["Costo Diesel"],
+                "Costo Diesel": valores["Costo Diesel"],
                 "Tipo de cambio": valores["Tipo de cambio USD"],
             })
 
