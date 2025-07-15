@@ -249,7 +249,7 @@ if mostrar_registro:
             ingreso_original = st.number_input("Ingreso Original", value=float(safe(datos["Ingreso_Original"])))
             horas_termo = st.number_input("Horas Termo", value=float(safe(datos.get("Horas_Termo", 0))))
             tipo_cambio = st.number_input("Tipo de cambio USD", value=tipo_cambio_usd)
-            extras_cobrados = st.checkbox("✅ ¿Costos extras cobrados al cliente?", value=bool(datos.get("Extras_Cobrados", False)))
+            extras_cobrados = st.checkbox("✅ ¿Costos extras se incluiran al ingreso?", value=bool(datos.get("Extras_Cobrados", False)))
         
         with col3:
             unidad = st.text_input("Unidad", value=unidad_valor)
@@ -445,7 +445,7 @@ else:
                 mov_local = st.number_input("Movimiento Local", value=round(float(seleccionado.get("Movimiento_Local", 0)), 2))
                 puntualidad = st.number_input("Puntualidad", value=round(float(seleccionado.get("Puntualidad", 0)), 2))
                 pension = st.number_input("Pensión", value=round(float(seleccionado.get("Pension", 0)), 2))
-                extras_cobrados = st.checkbox("✅ ¿Costos extras fueron cobrados?", value=bool(seleccionado.get("Extras_Cobrados", False)))
+                extras_cobrados = st.checkbox("✅ ¿Costos extras se incluiran al ingreso?", value=bool(seleccionado.get("Extras_Cobrados", False)))
 
             with col3:
                 estancia = st.number_input("Estancia", value=round(float(seleccionado.get("Estancia", 0)), 2))
