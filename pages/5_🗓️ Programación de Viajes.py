@@ -383,6 +383,8 @@ if mostrar_registro:
                     supabase.table("Traficos").insert(debug_fila).execute()
                 except Exception as e:
                     st.error(f"❌ Error al guardar tráfico: {e}")
+                    import traceback
+                    st.write(traceback.format_exc())
                     st.stop()
                     
 # =====================================
