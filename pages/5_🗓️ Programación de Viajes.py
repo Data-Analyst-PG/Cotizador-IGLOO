@@ -213,7 +213,7 @@ if mostrar_registro:
     datos_dict = cargar_datos_generales()
 
     precio_diesel_datos_generales = float(datos_dict.get("Costo Diesel", 24.0))
-    tipo_cambio_usd = float(datos_dict.get("Tipo de cambio USD", 17.5))
+    tipo_cambio = float(datos_dict.get("Tipo de cambio MXP", 1.0)) if moneda == "MXP" else float(datos_dict.get("Tipo de cambio USD", 17.5))
     rendimiento_dg_tracto = float(datos_dict.get("Rendimiento Camion", 2.5))
     rendimiento_dg_termo = float(datos_dict.get("Rendimiento Termo", 3.0))
     bono_isr_base = float(datos_dict.get("Bono ISR IMSS", 462.66))
@@ -287,11 +287,6 @@ if mostrar_registro:
         ])
 
         # Cálculos antes de guardar
-        ingreso_total = ingreso_original * (tipo_cambio if moneda == "USD" else 1)
-        if extras_cobrados:
-            ingreso_total += extras
-        if ingreso_cruce_incluido:
-            st.info("ℹ️ El ingreso de cruce ya está incluido en la tarifa original.")
         diesel_camion = (km / rendimiento) * costo_diesel
         diesel_termo = horas_termo * rendimiento_dg_termo * costo_diesel
 
