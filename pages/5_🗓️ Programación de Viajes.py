@@ -300,7 +300,7 @@ if mostrar_registro:
         casetas = safe(datos.get("Casetas", 0))
 
         # Tipo de cambio correcto
-        tipo_cambio = 1 if moneda == "MXP" else float(st.session_state.get("tipo_cambio_usd", 17.0))
+        tipo_cambio = float(datos_dict.get("Tipo de cambio MXP", 1.0)) if moneda == "MXP" else float(datos_dict.get("Tipo de cambio USD", 17.5))
 
         # Calcula ingreso cruce y costo cruce convertido
         ingreso_cruce = cruce_original * (tipo_cambio if moneda_cruce == "USD" else 1)
