@@ -477,7 +477,8 @@ else:
                 moneda_cruce_valor = seleccionado.get("Moneda_Cruce") or "MXP"
                 moneda_cruce = st.selectbox("Moneda Cruce", ["MXP", "USD"], index=["MXP", "USD"].index(moneda_cruce_valor))
                 cruce_original = st.number_input("Cruce Original", value=round(float(seleccionado.get("Cruce_Original", 0)), 2))
-                moneda_costo_cruce = st.selectbox("Moneda Costo Cruce", ["MXP", "USD"], index=["MXP", "USD"].index(seleccionado.get("Moneda Costo Cruce", "MXP")))
+                moneda_costo_cruce_valor = seleccionado.get("Moneda_Cruce") or "MXP"
+                moneda_costo_cruce = st.selectbox("Moneda Costo Cruce", ["MXP", "USD"], index=["MXP", "USD"].index(moneda_costo_cruce_valor))
                 costo_cruce = st.number_input("Costo Cruce", value=round(float(seleccionado.get("Costo Cruce", 0)), 2))
                 casetas = st.number_input("Casetas", value=round(float(seleccionado.get("Casetas", 0)), 2))
                 horas_termo = st.number_input("Horas Termo", value=round(float(seleccionado.get("Horas_Termo", 0)), 2))
