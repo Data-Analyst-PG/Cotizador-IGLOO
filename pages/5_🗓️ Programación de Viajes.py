@@ -338,7 +338,7 @@ if mostrar_registro:
         utilidad_bruta = ingreso_total - costo_total
         utilidad_neta = utilidad_bruta - costos_indirectos
         
-        if st.button("🔍 Revisar cálculos del tráfico"):
+        if st.form_submit_button("🔍 Revisar cálculos del tráfico"):
                 st.markdown(f"💰 **Ingreso Total:** ${ingreso_total:,.2f}")
                 st.markdown(f"⛽ **Diésel Camión:** ${diesel_camion:,.2f}")
                 st.markdown(f"⛽ **Diésel Termo:** ${diesel_termo:,.2f}")
