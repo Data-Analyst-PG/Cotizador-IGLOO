@@ -637,41 +637,56 @@ else:
     ida = df_prog[df_prog["ID_Programacion"] == id_sel].iloc[0]
     destino_ida = ida["Destino"]
     tipo_ida = ida["Tipo"]
+    tipo_cambio = ida["Tipo de cambio"]
+    extras_cobrados = ida.get("Extras_Cobrados", False)
+    ingreso_cruce_incluido = ida.get("Ingreso_Cruce_Incluido", False)
 
     tipo_regreso = "EXPORTACION" if tipo_ida == "IMPORTACION" else "IMPORTACION"
+
+    sugerencias = []
+
     directas = df_rutas[(df_rutas["Tipo"] == tipo_regreso) & (df_rutas["Origen"] == destino_ida)].copy()
+    for _, row in directas.iterrows():
+        ingreso_total = safe(ida["Ingreso Total"]) + safe(row["Ingreso Total"])
+        costo_total = safe(ida["Costo_Total_Ruta"]) + safe(row["Costo_Total_Ruta"])
+        utilidad = ingreso_total - costo_total
+        porcentaje = (utilidad / ingreso_total * 100) if ingreso_total else 0
+        sugerencias.append({
+            "descripcion": f"{row['Cliente']} {row['Origen']}→{row['Destino']} ({porcentaje:.2f}%)",
+            "tramos": [row],
+            "utilidad": utilidad
+        })
 
-    if not directas.empty:
-        directas = directas.sort_values(by="% Utilidad", ascending=False)
-        idx = st.selectbox(
+    vacios = df_rutas[(df_rutas["Tipo"] == "VACIO") & (df_rutas["Origen"] == destino_ida)].copy()
+    for _, vacio in vacios.iterrows():
+        origen_post = vacio["Destino"]
+        candidatos = df_rutas[(df_rutas["Tipo"] == tipo_regreso) & (df_rutas["Origen"] == origen_post)].copy()
+        for _, final in candidatos.iterrows():
+            ingreso_total = safe(ida["Ingreso Total"]) + safe(final["Ingreso Total"])
+            costo_total = safe(ida["Costo_Total_Ruta"]) + safe(vacio["Costo_Total_Ruta"]) + safe(final["Costo_Total_Ruta"])
+            utilidad = ingreso_total - costo_total
+            porcentaje = (utilidad / ingreso_total * 100) if ingreso_total else 0
+            descripcion = f"{final['Cliente']} (Vacío→{vacio['Origen']}→{vacio['Destino']})→{final['Destino']} ({porcentaje:.2f}%)"
+            sugerencias.append({
+                "descripcion": descripcion,
+                "tramos": [vacio, final],
+                "utilidad": utilidad
+            })
+
+    sugerencias = sorted(sugerencias, key=lambda x: x["utilidad"], reverse=True)
+
+    if sugerencias:
+        descripciones = [s["descripcion"] for s in sugerencias]
+        descripcion_sel = st.selectbox(
             "Cliente sugerido (por utilidad)",
-            directas.index,
-            format_func=lambda x: f"{directas.loc[x, 'Cliente']} - {directas.loc[x, 'Ruta']} ({directas.loc[x, '% Utilidad']:.2f}%)"
+            descripciones,
+            index=0
         )
-        rutas = [ida, directas.loc[idx]]
+        seleccion = next(s for s in sugerencias if s["descripcion"] == descripcion_sel)
+        rutas = [ida] + seleccion["tramos"]
     else:
-        vacios = df_rutas[(df_rutas["Tipo"] == "VACIO") & (df_rutas["Origen"] == destino_ida)].copy()
-        mejor_combo = None
-        mejor_utilidad = -999999
-
-        for _, vacio in vacios.iterrows():
-            origen_exp = vacio["Destino"]
-            exportacion = df_rutas[(df_rutas["Tipo"] == tipo_regreso) & (df_rutas["Origen"] == origen_exp)]
-            if not exportacion.empty:
-                exportacion = exportacion.sort_values(by="% Utilidad", ascending=False).iloc[0]
-                ingreso_total = safe(ida["Ingreso Total"]) + safe(exportacion["Ingreso Total"])
-                costo_total = safe(ida["Costo_Total_Ruta"]) + safe(vacio["Costo_Total_Ruta"]) + safe(exportacion["Costo_Total_Ruta"])
-                utilidad_bruta = ingreso_total - costo_total
-                if utilidad_bruta > mejor_utilidad:
-                    mejor_utilidad = utilidad_bruta
-                    mejor_combo = (vacio, exportacion)
-
-        if mejor_combo:
-            vacio, exportacion = mejor_combo
-            rutas = [ida, vacio, exportacion]
-        else:
-            st.warning("❌ No se encontraron rutas de regreso disponibles.")
-            st.stop()
+        st.warning("❌ No se encontraron rutas de regreso disponibles.")
+        st.stop()
 
     st.header("🛤️ Resumen de Tramos Utilizados")
     for tramo in rutas:
@@ -710,7 +725,19 @@ else:
             km = safe(datos.get("KM", 0))
             horas_termo = safe(datos.get("Horas_Termo", 0))
             casetas = safe(datos.get("Casetas", 0))
+            mov_local = safe(datos.get("Movimiento_Local", 0))
+            puntualidad = safe(datos.get("Puntualidad", 0))
+            pension = safe(datos.get("Pension", 0))
+            estancia = safe(datos.get("Estancia", 0))
+            pistas_extra = safe(datos.get("Pistas_Extra", 0))
+            stop = safe(datos.get("Stop", 0))
+            falso = safe(datos.get("Falso", 0))
+            gatas = safe(datos.get("Gatas", 0))
+            accesorios = safe(datos.get("Accesorios", 0))
+            guias = safe(datos.get("Guias", 0))
 
+            tarifa_por_km = 0
+            sueldo = 0
             if tipo == "VACIO":
                 tarifa_por_km = 0
                 sueldo = valores["Pago fijo VACIO"]
@@ -720,9 +747,6 @@ else:
             elif tipo == "EXPORTACION":
                 tarifa_por_km = valores["Pago x km EXPORTACION"]
                 sueldo = km * tarifa_por_km
-            else:
-                tarifa_por_km = 0
-                sueldo = 0
 
             if modo == "Team":
                 sueldo *= 2
@@ -736,10 +760,21 @@ else:
             diesel_camion = round((km / rendimiento) * diesel_precio, 2)
             diesel_termo = round(horas_termo * valores["Rendimiento Termo"] * diesel_precio, 2)
 
-            extras = safe(datos.get("Costo_Extras", 0))
-            costo_total = sueldo + bono + diesel_camion + diesel_termo + extras + casetas
+            ingreso_original = safe(datos.get("Ingreso_Original", 0))
+            cruce_original = safe(datos.get("Cruce_Original", 0))
+            costo_cruce = safe(datos.get("Costo Cruce", 0))
 
-            ingreso_total = safe(datos.get("Ingreso Total", 0))
+            ingreso_flete = ingreso_original * tipo_cambio
+            ingreso_cruce = cruce_original * tipo_cambio
+            costo_cruce_convertido = costo_cruce * tipo_cambio
+
+            extras = sum([mov_local, pension, estancia, pistas_extra, stop, falso, gatas, accesorios, guias])
+
+            ingreso_total = ingreso_flete + ingreso_cruce
+            if extras_cobrados:
+                ingreso_total += extras
+
+            costo_total = sueldo + bono + diesel_camion + diesel_termo + extras + puntualidad + casetas + costo_cruce_convertido
             costos_indirectos = ingreso_total * 0.35
             utilidad_bruta = ingreso_total - costo_total
             utilidad_neta = utilidad_bruta - costos_indirectos
@@ -756,7 +791,18 @@ else:
                 "Rendimiento Camion": rendimiento,
                 "Rendimiento Termo": valores["Rendimiento Termo"],
                 "Costo Diesel": valores["Costo Diesel"],
-                "Tipo de cambio": valores["Tipo de cambio USD"],
+                "Tipo de cambio": tipo_cambio,
+                "Ingreso_Original": ingreso_original,
+                "Ingreso Flete": ingreso_flete,
+                "Ingreso Cruce": ingreso_cruce,
+                "Moneda_Cruce": "USD",
+                "Cruce_Original": cruce_original,
+                "Costo Cruce Convertido": costo_cruce_convertido,
+                "Ingreso Total": ingreso_total,
+                "Costo_Extras": extras,
+                "Casetas": casetas,
+                "Extras_Cobrados": extras_cobrados,
+                "Ingreso_Cruce_Incluido": ingreso_cruce_incluido
             })
 
             nuevos_tramos.append(datos)
