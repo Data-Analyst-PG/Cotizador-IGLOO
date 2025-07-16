@@ -258,6 +258,7 @@ if mostrar_registro:
             costo_diesel = st.number_input("Costo Diesel", value=float(precio_diesel_datos_generales), min_value=0.1)
             mov_local = st.number_input("Movimiento Local", value=float(safe(datos.get("Movimiento_Local", 0))), min_value=0.0)
             puntualidad = st.number_input("Puntualidad", value=float(safe(datos.get("Puntualidad", 0))), min_value=0.0)
+            
         with col3:
             pension = st.number_input("Pensión", value=float(safe(datos.get("Pension", 0))), min_value=0.0)
             estancia = st.number_input("Estancia", value=float(safe(datos.get("Estancia", 0))), min_value=0.0)
@@ -482,9 +483,9 @@ else:
                 casetas = st.number_input("Casetas", value=round(float(seleccionado.get("Casetas", 0)), 2))
                 horas_termo = st.number_input("Horas Termo", value=round(float(seleccionado.get("Horas_Termo", 0)), 2))
                 mov_local = st.number_input("Movimiento Local", value=round(float(seleccionado.get("Movimiento_Local", 0)), 2)) 
+                puntualidad = st.number_input("Puntualidad", value=round(float(seleccionado.get("Puntualidad", 0)), 2))
 
             with col3:
-                puntualidad = st.number_input("Puntualidad", value=round(float(seleccionado.get("Puntualidad", 0)), 2))
                 pension = st.number_input("Pensión", value=round(float(seleccionado.get("Pension", 0)), 2)) 
                 estancia = st.number_input("Estancia", value=round(float(seleccionado.get("Estancia", 0)), 2))
                 pistas_extra = st.number_input("Pistas Extra", value=round(float(seleccionado.get("Pistas Extra") or 0), 2))
