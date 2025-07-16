@@ -214,7 +214,7 @@ if mostrar_registro:
 
     precio_diesel_datos_generales = float(datos_dict.get("Costo Diesel", 24.0))
     moneda_valor = str(datos["Moneda"]).strip().upper() if pd.notna(datos["Moneda"]) else "MXP"
-    tipo_cambio = float(datos_dict.get("Tipo de cambio MXP", 1.0)) if moneda == "MXP" else float(datos_dict.get("Tipo de cambio USD", 17.5))
+    tipo_cambio = float(datos_dict.get("Tipo de cambio MXP", 1.0)) if moneda_valor == "MXP" else float(datos_dict.get("Tipo de cambio USD", 17.5))
     rendimiento_dg_tracto = float(datos_dict.get("Rendimiento Camion", 2.5))
     rendimiento_dg_termo = float(datos_dict.get("Rendimiento Termo", 3.0))
     bono_isr_base = float(datos_dict.get("Bono ISR IMSS", 462.66))
