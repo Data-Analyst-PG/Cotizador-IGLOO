@@ -434,20 +434,21 @@ else:
                                     index=["Operador", "Team"].index(seleccionado["Modo de Viaje"]))
                 unidad = st.text_input("Unidad", seleccionado.get("Unidad", ""))
                 operador = st.text_input("Operador", seleccionado.get("Operador", ""))
-                ingreso_cruce_incluido = st.checkbox("✅ ¿El ingreso de cruce ya está incluido en la tarifa?", value=False)
-
-            with col2:
+                km = st.number_input("KM", value=round(float(seleccionado["KM"]), 2))
                 moneda = st.selectbox("Moneda", ["MXP", "USD"],
                                       index=["MXP", "USD"].index(seleccionado["Moneda"]))
                 ingreso_original = st.number_input("Ingreso Original", value=round(float(seleccionado["Ingreso_Original"]), 2))
-                tipo_cambio = 1 if moneda == "MXP" else float(st.session_state.get("tipo_cambio_usd", 17.0))
-                ingreso_total = round(ingreso_original * tipo_cambio, 2)
-                km = st.number_input("KM", value=round(float(seleccionado["KM"]), 2))
+                
+            with col2:
+                moneda_cruce = st.selectbox("Moneda Cruce", ["MXP", "USD"], index=["MXP", "USD"].index(seleccionado.get("Moneda_Cruce", "MXP")))
+                cruce_original = st.number_input("Cruce Original", value=round(float(seleccionado.get("Cruce_Original", 0)), 2))
+                moneda_costo_cruce = st.selectbox("Moneda Costo Cruce", ["MXP", "USD"], index=["MXP", "USD"].index(seleccionado.get("Moneda Costo Cruce", "MXP")))
+                costo_cruce = st.number_input("Costo Cruce", value=round(float(seleccionado.get("Costo Cruce", 0)), 2))
+                casetas = st.number_input("Casetas", value=round(float(seleccionado.get("Casetas", 0)), 2))
                 horas_termo = st.number_input("Horas Termo", value=round(float(seleccionado.get("Horas_Termo", 0)), 2))
                 mov_local = st.number_input("Movimiento Local", value=round(float(seleccionado.get("Movimiento_Local", 0)), 2))
                 puntualidad = st.number_input("Puntualidad", value=round(float(seleccionado.get("Puntualidad", 0)), 2))
-                pension = st.number_input("Pensión", value=round(float(seleccionado.get("Pension", 0)), 2))
-                extras_cobrados = st.checkbox("✅ ¿Costos extras se incluiran al ingreso?", value=bool(seleccionado.get("Extras_Cobrados", False)))
+                pension = st.number_input("Pensión", value=round(float(seleccionado.get("Pension", 0)), 2))  
 
             with col3:
                 estancia = st.number_input("Estancia", value=round(float(seleccionado.get("Estancia", 0)), 2))
@@ -457,13 +458,15 @@ else:
                 gatas = st.number_input("Gatas", value=round(float(seleccionado.get("Gatas", 0)), 2))
                 accesorios = st.number_input("Accesorios", value=round(float(seleccionado.get("Accesorios", 0)), 2))
                 guias = st.number_input("Guias", value=round(float(seleccionado.get("Guias") or 0), 2))
+                ingreso_cruce_incluido = st.checkbox("✅ ¿El ingreso de cruce ya está incluido en la tarifa?", value=False)
+                extras_cobrados = st.checkbox("✅ ¿Costos extras se incluiran al ingreso?", value=bool(seleccionado.get("Extras_Cobrados", False)))
 
             # Recalcular (usando datos_generales)
             tarifa_impo = valores["Pago x km IMPORTACION"]
             tarifa_expo = valores["Pago x km EXPORTACION"]
             bono_isr_valor = valores["Bono ISR IMSS"]
             pago_fijo_vacio = valores["Pago fijo VACIO"]
-            casetas = st.number_input("Casetas", value=round(float(seleccionado.get("Casetas", 0)), 2))
+            tipo_cambio = 1 if moneda == "MXP" else float(st.session_state.get("tipo_cambio_usd", 17.0))
 
             if tipo == "VACIO":
                 tarifa_por_km = 0
@@ -481,6 +484,9 @@ else:
             if modo == "Team":
                 sueldo *= 2
 
+            ingreso_flete = ingreso_original * tipo_cambio
+            ingreso_cruce = cruce_original * tipo_cambio
+            costo_cruce_convertido = costo_cruce * tipo_cambio
             rendimiento = float(seleccionado.get("Rendimiento Camion", valores["Rendimiento Camion"]))
             costo_diesel = float(seleccionado.get("Costo Diesel", valores["Costo Diesel"]))
             diesel_camion = round((km / rendimiento) * costo_diesel, 2)
@@ -492,13 +498,23 @@ else:
                 bono_isr *= 2
 
             extras = sum([mov_local, pension, estancia, pistas_extra, stop, falso, gatas, accesorios, guias])
+
+            ingreso_total = ingreso_flete + ingreso_cruce
             if extras_cobrados:
                 ingreso_total += extras
-
-            costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras + puntualidad + casetas
+            costo_total = sueldo + bono_isr + diesel_camion + diesel_termo + extras + puntualidad + casetas + costo_cruce_convertido
             costos_indirectos = ingreso_total * 0.35
             utilidad_bruta = ingreso_total - costo_total
             utilidad_neta = utilidad_bruta - costos_indirectos
+
+            if st.button("🔍 Revisar cálculos del tráfico"):
+                st.markdown(f"💰 **Ingreso Total:** ${ingreso_total:,.2f}")
+                st.markdown(f"⛽ **Diésel Camión:** ${diesel_camion:,.2f}")
+                st.markdown(f"⛽ **Diésel Termo:** ${diesel_termo:,.2f}")
+                st.markdown(f"👷🏽‍♂️ **Sueldo:** ${sueldo:,.2f}")
+                st.markdown(f"🧮 **Costo Total Ruta:** ${costo_total:,.2f}")
+                st.markdown(f"📈 **Utilidad Bruta:** ${utilidad_bruta:,.2f} ({(utilidad_bruta / ingreso_total * 100):.2f}%)")
+
 
             if st.button("💾 Guardar cambios"):
                 try:
@@ -511,7 +527,7 @@ else:
                         "Moneda": moneda,
                         "Ingreso_Original": ingreso_original,
                         "Ingreso Total": ingreso_total,
-                        "Ingreso Flete": ingreso_original * tipo_cambio,
+                        "Ingreso Flete": ingreso_flete,
                         "Pago por KM": tarifa_impo if tipo == "IMPORTACION" else tarifa_expo if tipo == "EXPORTACION" else 0,
                         "% Utilidad": round((utilidad_bruta / ingreso_total * 100), 2) if ingreso_total else 0,
                         "KM": km,
@@ -542,6 +558,13 @@ else:
                         "Tipo de cambio": tipo_cambio,
                         "Extras_Cobrados": extras_cobrados,
                         "Ingreso_Cruce_Incluido": ingreso_cruce_incluido,
+                        "Moneda_Cruce": moneda_cruce,
+                        "Cruce_Original": cruce_original,
+                        "Tipo cambio Cruce": tipo_cambio,
+                        "Ingreso Cruce": ingreso_cruce,
+                        "Moneda Costo Cruce": moneda_costo_cruce,
+                        "Costo Cruce": costo_cruce,
+                        "Costo Cruce Convertido": costo_cruce_convertido,
                     }).eq("ID_Programacion", seleccionado["ID_Programacion"]).execute()
 
                     st.success("✅ Tráfico actualizado correctamente.")
