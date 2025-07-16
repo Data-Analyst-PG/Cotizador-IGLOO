@@ -244,23 +244,24 @@ if mostrar_registro:
             modo_viaje = st.selectbox("Modo de Viaje", ["Operador", "Team"], index=0)
             operador = st.text_input("Operador", value=operador_valor)
             unidad = st.text_input("Unidad", value=unidad_valor)
+            rendimiento = st.number_input("Rendimiento Camión", value=rendimiento_dg_tracto, min_value=0.1)
+            
+        with col2:
             moneda = st.selectbox("Moneda", ["MXP", "USD"],
                                   index=["MXP", "USD"].index(moneda_valor)
                                   if moneda_valor in ["MXP", "USD"] else 0)
             ingreso_original = st.number_input("Ingreso Original", value=float(safe(datos["Ingreso_Original"])))
-        with col2:
             moneda_cruce = st.selectbox("Moneda Cruce", ["MXP", "USD"], index=0)
             cruce_original = st.number_input("Cruce Original", value=0.0)
             moneda_costo_cruce = st.selectbox("Moneda Costo Cruce", ["MXP", "USD"], index=0)
             costo_cruce = st.number_input("Costo Cruce", value=0.0)
             casetas = st.number_input("Casetas", value=0.0)     
             horas_termo = st.number_input("Horas Termo", value=float(safe(datos.get("Horas_Termo", 0))))
-            rendimiento = st.number_input("Rendimiento Camión", value=rendimiento_dg_tracto, min_value=0.1)
             costo_diesel = st.number_input("Costo Diesel", value=float(precio_diesel_datos_generales), min_value=0.1)
             mov_local = st.number_input("Movimiento Local", value=float(safe(datos.get("Movimiento_Local", 0))), min_value=0.0)
-            puntualidad = st.number_input("Puntualidad", value=float(safe(datos.get("Puntualidad", 0))), min_value=0.0)
             
         with col3:
+            puntualidad = st.number_input("Puntualidad", value=float(safe(datos.get("Puntualidad", 0))), min_value=0.0)
             pension = st.number_input("Pensión", value=float(safe(datos.get("Pension", 0))), min_value=0.0)
             estancia = st.number_input("Estancia", value=float(safe(datos.get("Estancia", 0))), min_value=0.0)
             pistas_extra = st.number_input("Pistas Extra", value=float(safe(datos.get("Pistas_Extra", 0))), min_value=0.0)
@@ -271,8 +272,6 @@ if mostrar_registro:
             guias = st.number_input("Guías", value=float(safe(datos.get("Guias", 0))), min_value=0.0)
             ingreso_cruce_incluido = st.checkbox("✅ ¿El ingreso de cruce ya está incluido en la tarifa?", value=False)
             extras_cobrados = st.checkbox("✅ ¿Costos extras se incluiran al ingreso?", value=bool(datos.get("Extras_Cobrados", False)))
-
-
 
         # Extras
         extras = sum([
