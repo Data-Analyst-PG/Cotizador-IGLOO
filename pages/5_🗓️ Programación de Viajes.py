@@ -469,11 +469,9 @@ else:
                 unidad = st.text_input("Unidad", seleccionado.get("Unidad", ""))
                 operador = st.text_input("Operador", seleccionado.get("Operador", ""))
                 km = st.number_input("KM", value=round(float(seleccionado["KM"]), 2))
-                ingreso_cruce_incluido = st.checkbox("✅ ¿El ingreso de cruce ya está incluido en la tarifa?", value=False)
-                
-            with col2:
                 moneda = st.selectbox("Moneda", ["MXP", "USD"],
                                       index=["MXP", "USD"].index(seleccionado["Moneda"]))
+            with col2:
                 ingreso_original = st.number_input("Ingreso Original", value=round(float(seleccionado["Ingreso_Original"]), 2))
                 moneda_cruce_valor = seleccionado.get("Moneda_Cruce") or "MXP"
                 moneda_cruce = st.selectbox("Moneda Cruce", ["MXP", "USD"], index=["MXP", "USD"].index(moneda_cruce_valor))
@@ -483,10 +481,9 @@ else:
                 costo_cruce = st.number_input("Costo Cruce", value=round(float(seleccionado.get("Costo Cruce", 0)), 2))
                 casetas = st.number_input("Casetas", value=round(float(seleccionado.get("Casetas", 0)), 2))
                 horas_termo = st.number_input("Horas Termo", value=round(float(seleccionado.get("Horas_Termo", 0)), 2))
-                extras_cobrados = st.checkbox("✅ ¿Costos extras se incluiran al ingreso?", value=bool(seleccionado.get("Extras_Cobrados", False))) 
+                mov_local = st.number_input("Movimiento Local", value=round(float(seleccionado.get("Movimiento_Local", 0)), 2)) 
 
             with col3:
-                mov_local = st.number_input("Movimiento Local", value=round(float(seleccionado.get("Movimiento_Local", 0)), 2))
                 puntualidad = st.number_input("Puntualidad", value=round(float(seleccionado.get("Puntualidad", 0)), 2))
                 pension = st.number_input("Pensión", value=round(float(seleccionado.get("Pension", 0)), 2)) 
                 estancia = st.number_input("Estancia", value=round(float(seleccionado.get("Estancia", 0)), 2))
@@ -496,8 +493,8 @@ else:
                 gatas = st.number_input("Gatas", value=round(float(seleccionado.get("Gatas", 0)), 2))
                 accesorios = st.number_input("Accesorios", value=round(float(seleccionado.get("Accesorios", 0)), 2))
                 guias = st.number_input("Guias", value=round(float(seleccionado.get("Guias") or 0), 2))
-               
-                
+                ingreso_cruce_incluido = st.checkbox("✅ ¿El ingreso de cruce ya está incluido en la tarifa?", value=False)
+                extras_cobrados = st.checkbox("✅ ¿Costos extras se incluiran al ingreso?", value=bool(seleccionado.get("Extras_Cobrados", False)))
 
             # Recalcular (usando datos_generales)
             tarifa_impo = valores["Pago x km IMPORTACION"]
