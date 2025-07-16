@@ -463,8 +463,7 @@ else:
             tarifa_expo = valores["Pago x km EXPORTACION"]
             bono_isr_valor = valores["Bono ISR IMSS"]
             pago_fijo_vacio = valores["Pago fijo VACIO"]
-            casetas = safe(datos.get("Casetas", 0))
-
+            casetas = st.number_input("Casetas", value=round(float(seleccionado.get("Casetas", 0)), 2))
 
             if tipo == "VACIO":
                 tarifa_por_km = 0
