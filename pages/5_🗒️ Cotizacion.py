@@ -61,6 +61,22 @@ if respuesta.data:
         empresa_telefono = st.text_input("Teléfono de la Empresa")
         fecha = st.date_input("Fecha de cotización", value=date.today(), format="DD/MM/YYYY")
 
+    
+    # ---------------------------
+    # MONEDA Y TIPO DE CAMBIO
+    # ---------------------------
+    st.subheader("Moneda y Tipo de Cambio para la Cotización")
+    moneda_cotizacion = st.selectbox("Moneda Principal de la Cotización", ["MXP", "USD"])
+    tipo_cambio = st.number_input("Tipo de Cambio USD/MXP", min_value=0.0, value=18.0)
+
+    def convertir_moneda(valor, origen, destino, tipo_cambio):
+        if origen == destino:
+            return valor
+        if origen == "MXP" and destino == "USD":
+            return valor / tipo_cambio
+        if origen == "USD" and destino == "MXP":
+            return valor * tipo_cambio
+        return valor
     # ---------------------------
     # FILTRAR RUTAS DEL CLIENTE + VACÍOS y GUARDAR SELECCIÓN DE CONCEPTOS POR RUTA
     # ---------------------------
@@ -79,7 +95,9 @@ if respuesta.data:
         st.markdown(f"**Selecciona los conceptos para la ruta {ruta}**")
         conceptos = st.multiselect(
             f"Conceptos para {ruta}",
-            options=["Ingreso_Original", "Casetas", "Stop", "Pension", "Estancia", "Gatas", "Accesorios", "Guias", "Costo_Extras"],
+            options=["Ingreso_Original", "Cruce_Original", "Movimiento_Local", "Puntualidad", "Pension", "Estancia",
+                     "Pistas_Extra", "Stop", "Falso", "Gatas", "Accesorios", "Casetas", "Fianza_Termo", "Guias",
+                     "Lavado_Termo", "Renta_Termo"],
             default=["Ingreso_Original", "Casetas"]
         )
         rutas_conceptos[ruta] = conceptos
@@ -108,23 +126,18 @@ if respuesta.data:
         pdf.cell(0, 10, f"Fecha: {fecha.strftime('%d/%m/%Y')}", ln=True)
 
         # DETALLE DE CONCEPTOS
-        pdf.set_xy(25, 100)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(90, 10, "Concepto", border=0)
-        pdf.cell(20, 10, "Cantidad", border=0)
-        pdf.cell(30, 10, "Precio", border=0)
-        pdf.cell(30, 10, "Total", ln=True)
-
         pdf.set_font("Arial", "", 10)
-        y = 110
+        y = 100
         total_global = 0
 
         for ruta in ids_seleccionados:
             id_ruta = ruta.split(" | ")[0]
             ruta_data = df[df["ID_Ruta"] == id_ruta].iloc[0]
+
+            descripcion_ruta = f"{ruta_data['Tipo']} | {ruta_data['Origen']} → {ruta_data['Destino']}"
             pdf.set_xy(25, y)
             pdf.set_font("Arial", "B", 10)
-            pdf.cell(0, 10, f"{id_ruta}", ln=True)
+            pdf.cell(0, 10, descripcion_ruta, ln=True)
             y += 8
             pdf.set_font("Arial", "", 10)
 
@@ -133,19 +146,28 @@ if respuesta.data:
             for campo in conceptos:
                 valor = ruta_data[campo]
                 if pd.notnull(valor) and valor != 0:
+                    if campo == "Ingreso_Original":
+                        moneda = ruta_data["Moneda"]
+                    elif campo == "Cruce_Original":
+                        moneda = ruta_data["Moneda_Cruce"]
+                    else:
+                        moneda = "MXP"
+
+                    valor_convertido = convertir_moneda(valor, moneda, moneda_cotizacion, tipo_cambio)
+
                     pdf.set_xy(25, y)
                     pdf.cell(90, 8, campo.replace("_", " ").title())
                     pdf.cell(20, 8, "1")
-                    pdf.cell(30, 8, f"${valor:,.2f}")
-                    pdf.cell(30, 8, f"${valor:,.2f}", ln=True)
-                    total_global += valor
+                    pdf.cell(30, 8, moneda)
+                    pdf.cell(30, 8, f"${valor_convertido:,.2f}", ln=True)
+                    total_global += valor_convertido
                     y += 8
 
         # TOTAL GENERAL
         pdf.set_xy(130, y + 10)
         pdf.set_font("Arial", "B", 12)
         pdf.cell(40, 10, "Total", 0, 0, "L")
-        pdf.cell(30, 10, f"${total_global:,.2f}", 0, 1, "L")
+        pdf.cell(30, 10, f"${total_global:,.2f} {moneda_cotizacion}", 0, 1, "L")
 
         # LEYENDA FINAL
         pdf.set_xy(25, 250)
