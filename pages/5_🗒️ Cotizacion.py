@@ -62,22 +62,12 @@ if respuesta.data:
         fecha = st.date_input("Fecha de cotización", value=date.today(), format="DD/MM/YYYY")
 
     # ---------------------------
-    # FILTRAR RUTAS DEL CLIENTE + VACÍOS
+    # FILTRAR RUTAS DEL CLIENTE + VACÍOS y GUARDAR SELECCIÓN DE CONCEPTOS POR RUTA
     # ---------------------------
     rutas_filtradas = df[
         ((df["Cliente"] == cliente_nombre) & (df["Tipo"].isin(["IMPORTACION", "EXPORTACION"]))) |
         (df["Tipo"] == "VACIO")
     ]
-
-    ids_seleccionados = st.multiselect(
-        "Elige las rutas que deseas incluir:",
-        rutas_filtradas["ID_Ruta"] + " | " + rutas_filtradas["Tipo"] + " | " + rutas_filtradas["Origen"] + " → " + rutas_filtradas["Destino"]
-    )
-
-
-    # ---------------------------
-    # GUARDAR SELECCIÓN DE CONCEPTOS POR RUTA
-    # ---------------------------
 
     ids_seleccionados = st.multiselect(
         "Elige las rutas que deseas incluir:",
