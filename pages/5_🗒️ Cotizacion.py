@@ -24,21 +24,29 @@ if rol not in ["admin", "gerente"]:
     st.stop()
 
 # ---------------------------
+# TITULO
+# ---------------------------
+st.title("📝 Generador de Cotización para Clientes")
+
+# ---------------------------
 # DATOS DE CLIENTE Y EMPRESA
 # ---------------------------
-st.header("Datos del Cliente")
-cliente_nombre = st.text_input("Nombre del Cliente")
-cliente_direccion = st.text_input("Dirección del Cliente")
-cliente_mail = st.text_input("Email del Cliente")
-cliente_telefono = st.text_input("Teléfono del Cliente")
+col1, col2 = st.columns(2)
 
-st.header("Datos de la Empresa (quien cotiza)")
-empresa_nombre = st.text_input("Nombre de tu Empresa", "IGLOO TRANSPORT")
-empresa_direccion = st.text_input("Dirección de la Empresa")
-empresa_mail = st.text_input("Email de la Empresa")
-empresa_telefono = st.text_input("Teléfono de la Empresa")
+with col1:
+    st.subheader("Datos del Cliente")
+    cliente_nombre = st.text_input("Nombre del Cliente")
+    cliente_direccion = st.text_input("Dirección del Cliente")
+    cliente_mail = st.text_input("Email del Cliente")
+    cliente_telefono = st.text_input("Teléfono del Cliente")
 
-fecha = st.date_input("Fecha de cotización", value=date.today(), format="DD/MM/YYYY")
+with col2:
+    st.subheader("Datos de la Empresa (quien cotiza)")
+    empresa_nombre = st.text_input("Nombre de tu Empresa", "IGLOO TRANSPORT")
+    empresa_direccion = st.text_input("Dirección de la Empresa")
+    empresa_mail = st.text_input("Email de la Empresa")
+    empresa_telefono = st.text_input("Teléfono de la Empresa")
+    fecha = st.date_input("Fecha de cotización", value=date.today(), format="DD/MM/YYYY")
 
 # ---------------------------
 # CARGAR RUTAS DE SUPABASE
@@ -50,16 +58,37 @@ if respuesta.data:
     df["Fecha"] = pd.to_datetime(df["Fecha"]).dt.date
     st.header("Seleccionar Rutas para Cotización")
 
+    if cliente_nombre:
+        rutas_filtradas = df[
+            ((df["Cliente"].str.contains(cliente_nombre, case=False, na=False)) &
+             (df["Tipo"].isin(["IMPORTACION", "EXPORTACION"]))) | 
+            (df["Tipo"] == "VACIO")
+        ]
+    else:
+        rutas_filtradas = df
+
     ids_seleccionados = st.multiselect(
         "Elige las rutas que deseas incluir:",
-        df["ID_Ruta"] + " | " + df["Origen"] + " → " + df["Destino"]
+        rutas_filtradas["ID_Ruta"] + " | " + rutas_filtradas["Origen"] + " → " + rutas_filtradas["Destino"]
     )
 
-    campos = [
-        "Ingreso_Original", "Casetas", "Stop", "Pension",
-        "Estancia", "Gatas", "Accesorios", "Guias", "Costo_Extras"
-    ]
+    # ---------------------------
+    # GUARDAR SELECCIÓN DE CONCEPTOS POR RUTA
+    # ---------------------------
+    rutas_conceptos = {}
 
+    for ruta in ids_seleccionados:
+        st.markdown(f"**Selecciona los conceptos para la ruta {ruta}**")
+        conceptos = st.multiselect(
+            f"Conceptos para {ruta}",
+            options=["Ingreso_Original", "Casetas", "Stop", "Pension", "Estancia", "Gatas", "Accesorios", "Guias", "Costo_Extras"],
+            default=["Ingreso_Original", "Casetas"]
+        )
+        rutas_conceptos[ruta] = conceptos
+
+    # ---------------------------
+    # BOTÓN PARA GENERAR PDF
+    # ---------------------------
     if st.button("Generar Cotización PDF"):
 
         class PDF(FPDF):
@@ -101,7 +130,9 @@ if respuesta.data:
             y += 8
             pdf.set_font("Arial", "", 10)
 
-            for campo in campos:
+            conceptos = rutas_conceptos[ruta]
+
+            for campo in conceptos:
                 valor = ruta_data[campo]
                 if pd.notnull(valor) and valor != 0:
                     pdf.set_xy(25, y)
@@ -124,15 +155,18 @@ if respuesta.data:
         pdf.cell(0, 10, "Esta cotización es válida por 15 días.", ln=True)
 
         # DESCARGAR PDF
-        pdf_output = "cotizacion_igloo.pdf"
+        pdf_output = f'Cotizacion-{cliente_nombre}-{fecha.strftime("%d-%m-%Y")}.pdf'
         pdf.output(pdf_output)
 
         with open(pdf_output, "rb") as file:
             btn = st.download_button(
                 label="📄 Descargar Cotización en PDF",
                 data=file,
-                file_name="cotizacion_igloo.pdf",
+                file_name=pdf_output,
                 mime="application/pdf"
             )
+else:
+    st.warning("⚠️ No hay rutas registradas en Supabase.")
+
 else:
     st.warning("⚠️ No hay rutas registradas en Supabase.")
