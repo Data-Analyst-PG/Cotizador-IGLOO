@@ -654,7 +654,8 @@ else:
         sugerencias.append({
             "descripcion": f"{row['Cliente']} {row['Origen']}→{row['Destino']} ({porcentaje:.2f}%)",
             "tramos": [row],
-            "utilidad": utilidad
+            "utilidad": utilidad,
+            "porcentaje": porcentaje
         })
 
     vacios = df_rutas[(df_rutas["Tipo"] == "VACIO") & (df_rutas["Origen"] == destino_ida)].copy()
@@ -670,10 +671,12 @@ else:
             sugerencias.append({
                 "descripcion": descripcion,
                 "tramos": [vacio, final],
-                "utilidad": utilidad
+                "utilidad": utilidad,
+                "porcentaje": porcentaje
             })
 
-    sugerencias = sorted(sugerencias, key=lambda x: x["utilidad"], reverse=True)
+    # Ahora ordenamos por % utilidad, no por pesos
+    sugerencias = sorted(sugerencias, key=lambda x: x["porcentaje"], reverse=True)
 
     if sugerencias:
         descripciones = [s["descripcion"] for s in sugerencias]
