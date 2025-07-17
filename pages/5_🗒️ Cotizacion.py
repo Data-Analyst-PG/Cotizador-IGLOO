@@ -41,7 +41,7 @@ with col1:
     cliente_telefono = st.text_input("Teléfono del Cliente")
 
 with col2:
-    st.subheader("Datos de la Empresa (quien cotiza)")
+    st.subheader("Datos de la Empresa")
     empresa_nombre = st.text_input("Nombre de tu Empresa", "IGLOO TRANSPORT")
     empresa_direccion = st.text_input("Dirección de la Empresa")
     empresa_mail = st.text_input("Email de la Empresa")
