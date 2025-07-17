@@ -71,7 +71,7 @@ if respuesta.data:
 
     ids_seleccionados = st.multiselect(
         "Elige las rutas que deseas incluir:",
-        rutas_filtradas["ID_Ruta"] + " | " + rutas_filtradas["Origen"] + " → " + rutas_filtradas["Destino"]
+        rutas_filtradas["ID_Ruta"] + " | " + rutas_filtradas["Tipo"] + " | " + rutas_filtradas["Origen"] + " → " + rutas_filtradas["Destino"]
     )
 
     # ---------------------------
