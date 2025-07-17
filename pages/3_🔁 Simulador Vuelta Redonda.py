@@ -248,6 +248,6 @@ if st.button("🚛 Simular Vuelta Redonda"):
             ruta = next((r for r in rutas_seleccionadas if r["Tipo"] == tipo), None)
             if ruta is not None:
                 for line in resumen_ruta(ruta):
-                    st.write(line)
+                    st.markdown(line, unsafe_allow_html=True)
             else:
                 st.write("No aplica")
