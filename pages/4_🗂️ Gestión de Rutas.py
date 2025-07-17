@@ -58,6 +58,26 @@ if respuesta.data:
     st.markdown("---")
     st.subheader("✏️ Editar Ruta Existente")
 
+    # 🔧 Agrega esta línea para cargar los datos actuales
+    valores = cargar_datos_generales()
+
+    # 🔧 Expander para Datos Generales
+    st.markdown("---")
+    with st.expander("⚙️ Configurar Datos Generales"):
+        st.markdown("Estos valores afectan el cálculo de costos, sueldo y utilidad en todas las rutas.")
+        nuevos_valores = {}
+        columnas = st.columns(3)
+        for i, (clave, valor) in enumerate(valores.items()):
+            with columnas[i % 3]:
+                nuevos_valores[clave] = st.number_input(clave, value=float(valor), step=0.1, key=clave)
+
+        if st.button("💾 Guardar Datos Generales (Gestión de Rutas)"):
+            guardar_datos_generales(nuevos_valores)
+            st.success("✅ Datos Generales guardados correctamente.")
+            st.rerun()
+
+    st.markdown("---")
+
     id_editar = st.selectbox("Selecciona el ID de Ruta a editar", ids_disponibles)
     ruta = df[df["ID_Ruta"] == id_editar].iloc[0]
     
@@ -95,6 +115,10 @@ if respuesta.data:
             pistas_extra = st.number_input("Pistas Extra", min_value=0.0, value=float(ruta["Pistas_Extra"]))
             stop = st.number_input("Stop", min_value=0.0, value=float(ruta["Stop"]))
             falso = st.number_input("Falso", min_value=0.0, value=float(ruta["Falso"]))
+            extras_cobrados = st.checkbox(
+                "✅ ¿Costos extras se incluirán al ingreso?",
+                value=bool(ruta.get("Extras_Cobrados", False))
+            )
         with col4:
             gatas = st.number_input("Gatas", min_value=0.0, value=float(ruta["Gatas"]))
             accesorios = st.number_input("Accesorios", min_value=0.0, value=float(ruta["Accesorios"]))
@@ -112,6 +136,8 @@ if respuesta.data:
              ingreso_flete_convertido = ingreso_original * tipo_cambio_flete
              ingreso_cruce_convertido = ingreso_cruce * tipo_cambio_cruce
              ingreso_total = ingreso_flete_convertido + ingreso_cruce_convertido
+             if extras_cobrados:
+                 ingreso_total += extras
              costo_cruce_convertido = costo_cruce * tipo_cambio_costo_cruce
 
              rendimiento_camion = valores.get("Rendimiento Camion", 1)
@@ -185,6 +211,7 @@ if respuesta.data:
                  "Costo Diesel": costo_diesel,
                  "Rendimiento Camion": rendimiento_camion,
                  "Rendimiento Termo": rendimiento_termo
+                 "Extras_Cobrados": extras_cobrados,
              }
 
              try:
