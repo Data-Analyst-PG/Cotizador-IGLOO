@@ -58,7 +58,10 @@ respuesta = supabase.table("Rutas").select("*").execute()
 if respuesta.data:
     df = pd.DataFrame(respuesta.data)
     df["Fecha"] = pd.to_datetime(df["Fecha"]).dt.date
-    st.header("Seleccionar Rutas para Cotización")
+    
+    clientes_disponibles = df["Cliente"].dropna().unique().tolist()
+    clientes_disponibles.sort()
+    cliente_nombre = st.selectbox("Selecciona el Cliente", [""] + clientes_disponibles)
 
     if cliente_nombre:
         rutas_filtradas = df[
