@@ -29,28 +29,6 @@ if rol not in ["admin", "gerente"]:
 st.title("📝 Generador de Cotización para Clientes")
 
 # ---------------------------
-# DATOS DE CLIENTE Y EMPRESA
-# ---------------------------
-col1, col2 = st.columns(2)
-
-with col1:
-    st.subheader("Datos del Cliente")
-    clientes_disponibles = df["Cliente"].dropna().unique().tolist()
-    clientes_disponibles.sort()
-    cliente_nombre = st.selectbox("Selecciona el Cliente", [""] + clientes_disponibles)
-    cliente_direccion = st.text_input("Dirección del Cliente")
-    cliente_mail = st.text_input("Email del Cliente")
-    cliente_telefono = st.text_input("Teléfono del Cliente")
-
-with col2:
-    st.subheader("Datos de la Empresa")
-    empresa_nombre = st.text_input("Nombre de tu Empresa", "IGLOO TRANSPORT")
-    empresa_direccion = st.text_input("Dirección de la Empresa")
-    empresa_mail = st.text_input("Email de la Empresa")
-    empresa_telefono = st.text_input("Teléfono de la Empresa")
-    fecha = st.date_input("Fecha de cotización", value=date.today(), format="DD/MM/YYYY")
-
-# ---------------------------
 # CARGAR RUTAS DE SUPABASE
 # ---------------------------
 respuesta = supabase.table("Rutas").select("*").execute()
@@ -76,6 +54,29 @@ if respuesta.data:
         "Elige las rutas que deseas incluir:",
         rutas_filtradas["ID_Ruta"] + " | " + rutas_filtradas["Tipo"] + " | " + rutas_filtradas["Origen"] + " → " + rutas_filtradas["Destino"]
     )
+
+# ---------------------------
+# DATOS DE CLIENTE Y EMPRESA
+# ---------------------------
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("Datos del Cliente")
+    clientes_disponibles = df["Cliente"].dropna().unique().tolist()
+    clientes_disponibles.sort()
+    cliente_nombre = st.selectbox("Selecciona el Cliente", [""] + clientes_disponibles)
+    cliente_direccion = st.text_input("Dirección del Cliente")
+    cliente_mail = st.text_input("Email del Cliente")
+    cliente_telefono = st.text_input("Teléfono del Cliente")
+
+with col2:
+    st.subheader("Datos de la Empresa")
+    empresa_nombre = st.text_input("Nombre de tu Empresa", "IGLOO TRANSPORT")
+    empresa_direccion = st.text_input("Dirección de la Empresa")
+    empresa_mail = st.text_input("Email de la Empresa")
+    empresa_telefono = st.text_input("Teléfono de la Empresa")
+    fecha = st.date_input("Fecha de cotización", value=date.today(), format="DD/MM/YYYY")
+
 
     # ---------------------------
     # GUARDAR SELECCIÓN DE CONCEPTOS POR RUTA
