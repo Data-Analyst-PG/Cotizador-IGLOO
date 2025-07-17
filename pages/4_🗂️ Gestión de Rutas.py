@@ -210,7 +210,7 @@ if respuesta.data:
                  "Costo_Total_Ruta": costo_total,
                  "Costo Diesel": costo_diesel,
                  "Rendimiento Camion": rendimiento_camion,
-                 "Rendimiento Termo": rendimiento_termo
+                 "Rendimiento Termo": rendimiento_termo,
                  "Extras_Cobrados": extras_cobrados,
              }
 
