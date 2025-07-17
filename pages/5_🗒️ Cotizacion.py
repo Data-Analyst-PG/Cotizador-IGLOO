@@ -41,15 +41,13 @@ if respuesta.data:
     clientes_disponibles = df["Cliente"].dropna().unique().tolist()
     clientes_disponibles.sort()
 
-    # Selectbox para elegir cliente
-    cliente_nombre = st.selectbox("Selecciona el Cliente", clientes_disponibles)
-
     # ---------------------------
     # DATOS DE CLIENTE Y EMPRESA
     # ---------------------------
     col1, col2 = st.columns(2)
 
     with col1:
+        cliente_nombre = st.selectbox("Selecciona el Cliente", clientes_disponibles)
         st.subheader("Datos del Cliente")
         cliente_direccion = st.text_input("Dirección del Cliente")
         cliente_mail = st.text_input("Email del Cliente")
