@@ -78,14 +78,6 @@ if respuesta.data:
     # ---------------------------
     # GUARDAR SELECCIÓN DE CONCEPTOS POR RUTA
     # ---------------------------
-    if cliente_nombre:
-        rutas_filtradas = df[
-            ((df["Cliente"].str.contains(cliente_nombre, case=False, na=False)) &
-             (df["Tipo"].isin(["IMPORTACION", "EXPORTACION"]))) | 
-            (df["Tipo"] == "VACIO")
-        ]
-    else:
-        rutas_filtradas = df
 
     ids_seleccionados = st.multiselect(
         "Elige las rutas que deseas incluir:",
