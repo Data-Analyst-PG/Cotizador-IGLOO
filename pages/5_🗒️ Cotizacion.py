@@ -167,6 +167,3 @@ if respuesta.data:
             )
 else:
     st.warning("⚠️ No hay rutas registradas en Supabase.")
-
-else:
-    st.warning("⚠️ No hay rutas registradas en Supabase.")
