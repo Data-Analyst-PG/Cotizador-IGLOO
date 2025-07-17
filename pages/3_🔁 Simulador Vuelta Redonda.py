@@ -205,7 +205,18 @@ if st.button("🚛 Simular Vuelta Redonda"):
     def resumen_ruta(r):
         return [
             f"Fecha: {r.get('Fecha', 'N/A')}",
+            f"Cliente: {r.get('Cliente', 'N/A')}",
+            f"Ruta: {r.get('Origen', 'N/A')} → {r.get('Destino', 'N/A')}",
             f"KM: {safe_number(r.get('KM')):,.2f}",
+            f"Ingreso Original: ${safe_number(r.get('Ingreso_Original')):,.2f}",
+            f"Moneda: {r.get('Moneda', 'N/A')}",
+            f"Tipo de cambio: {safe_number(r.get('Tipo de cambio')):,.2f}",
+            f"<span style='color:#007bff;font-weight:bold'>Ingreso Flete: ${safe_number(r.get('Ingreso Flete')):,.2f}</span>",
+            f"Cruce Original: ${safe_number(r.get('Cruce_Original')):,.2f}",
+            f"Moneda Cruce: {r.get('Moneda_Cruce', 'N/A')}",
+            f"Tipo de cambio: {safe_number(r.get('Tipo de cambio')):,.2f}",
+            f"<span style='color:#007bff;font-weight:bold'>Ingreso Cruce: ${safe_number(r.get('Ingreso Cruce')):,.2f}</span>",
+            f"<span style='color:#007bff;font-weight:bold'>Ingreso Total: ${safe_number(r.get('Ingreso Total')):,.2f}</span>",
             f"Costo Diesel: ${safe_number(r.get('Costo Diesel')):,.2f}",
             f"Rendimiento Camión: {safe_number(r.get('Rendimiento Camion')):,.2f} km/l",
             f"Diesel Camión: ${safe_number(r.get('Costo_Diesel_Camion')):,.2f}",
@@ -214,9 +225,6 @@ if st.button("🚛 Simular Vuelta Redonda"):
             f"Sueldo: ${safe_number(r.get('Sueldo_Operador')):,.2f}",
             f"Casetas: ${safe_number(r.get('Casetas')):,.2f}",
             f"Costo Cruce Convertido: ${safe_number(r.get('Costo Cruce Convertido')):,.2f}",
-            f"Ingreso Original: ${safe_number(r.get('Ingreso_Original')):,.2f}",
-            f"Moneda: {r.get('Moneda', 'N/A')}",
-            f"Tipo de cambio: {safe_number(r.get('Tipo de cambio')):,.2f}",
             "**Extras detallados:**",
             f"Lavado Termo: ${safe_number(r.get('Lavado_Termo')):,.2f}",
             f"Movimiento Local: ${safe_number(r.get('Movimiento_Local')):,.2f}",
@@ -232,6 +240,7 @@ if st.button("🚛 Simular Vuelta Redonda"):
             f"Accesorios: ${safe_number(r.get('Accesorios')):,.2f}",
             f"Guías: ${safe_number(r.get('Guias')):,.2f}"
         ]
+
 
     for i, tipo in enumerate(tipos):
         with cols[i]:
