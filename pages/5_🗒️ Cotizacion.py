@@ -47,8 +47,8 @@ if respuesta.data:
     col1, col2 = st.columns(2)
 
     with col1:
-        cliente_nombre = st.selectbox("Selecciona el Cliente", clientes_disponibles)
         st.subheader("Datos del Cliente")
+        cliente_nombre = st.selectbox("Selecciona el Cliente", clientes_disponibles)
         cliente_direccion = st.text_input("Dirección del Cliente")
         cliente_mail = st.text_input("Email del Cliente")
         cliente_telefono = st.text_input("Teléfono del Cliente")
