@@ -1,0 +1,138 @@
+import streamlit as st
+import pandas as pd
+from fpdf import FPDF
+from datetime import date
+from supabase import create_client
+
+# ---------------------------
+# CONEXIÓN A SUPABASE
+# ---------------------------
+url = st.secrets["SUPABASE_URL"]
+key = st.secrets["SUPABASE_KEY"]
+supabase = create_client(url, key)
+
+# ---------------------------
+# VERIFICACIÓN DE SESIÓN Y ROL
+# ---------------------------
+if "usuario" not in st.session_state:
+    st.error("⚠️ No has iniciado sesión.")
+    st.stop()
+
+rol = st.session_state.usuario.get("Rol", "").lower()
+if rol not in ["admin", "gerente"]:
+    st.error("🚫 No tienes permiso para acceder a este módulo.")
+    st.stop()
+
+# ---------------------------
+# DATOS DE CLIENTE Y EMPRESA
+# ---------------------------
+st.header("Datos del Cliente")
+cliente_nombre = st.text_input("Nombre del Cliente")
+cliente_direccion = st.text_input("Dirección del Cliente")
+cliente_mail = st.text_input("Email del Cliente")
+cliente_telefono = st.text_input("Teléfono del Cliente")
+
+st.header("Datos de la Empresa (quien cotiza)")
+empresa_nombre = st.text_input("Nombre de tu Empresa", "IGLOO TRANSPORT")
+empresa_direccion = st.text_input("Dirección de la Empresa")
+empresa_mail = st.text_input("Email de la Empresa")
+empresa_telefono = st.text_input("Teléfono de la Empresa")
+
+fecha = st.date_input("Fecha de cotización", value=date.today(), format="DD/MM/YYYY")
+
+# ---------------------------
+# CARGAR RUTAS DE SUPABASE
+# ---------------------------
+respuesta = supabase.table("Rutas").select("*").execute()
+
+if respuesta.data:
+    df = pd.DataFrame(respuesta.data)
+    df["Fecha"] = pd.to_datetime(df["Fecha"]).dt.date
+    st.header("Seleccionar Rutas para Cotización")
+
+    ids_seleccionados = st.multiselect(
+        "Elige las rutas que deseas incluir:",
+        df["ID_Ruta"] + " | " + df["Origen"] + " → " + df["Destino"]
+    )
+
+    campos = [
+        "Ingreso_Original", "Casetas", "Stop", "Pension",
+        "Estancia", "Gatas", "Accesorios", "Guias", "Costo_Extras"
+    ]
+
+    if st.button("Generar Cotización PDF"):
+
+        class PDF(FPDF):
+            def header(self):
+                self.image('Cotización Igloo.png', x=0, y=0, w=210, h=297)
+
+        pdf = PDF(orientation='P', unit='mm', format='A4')
+        pdf.add_page()
+        pdf.set_font("Arial", "", 10)
+
+        # DATOS EN PLANTILLA
+        pdf.set_xy(25, 50)
+        pdf.multi_cell(80, 5, f"Nombre: {cliente_nombre}\nDirección: {cliente_direccion}\nMail: {cliente_mail}\nTeléfono: {cliente_telefono}", align='L')
+
+        pdf.set_xy(120, 50)
+        pdf.multi_cell(80, 5, f"Nombre: {empresa_nombre}\nDirección: {empresa_direccion}\nMail: {empresa_mail}\nTeléfono: {empresa_telefono}", align='L')
+
+        pdf.set_xy(25, 80)
+        pdf.cell(0, 10, f"Fecha: {fecha.strftime('%d/%m/%Y')}", ln=True)
+
+        # DETALLE DE CONCEPTOS
+        pdf.set_xy(25, 100)
+        pdf.set_font("Arial", "B", 10)
+        pdf.cell(90, 10, "Concepto", border=0)
+        pdf.cell(20, 10, "Cantidad", border=0)
+        pdf.cell(30, 10, "Precio", border=0)
+        pdf.cell(30, 10, "Total", ln=True)
+
+        pdf.set_font("Arial", "", 10)
+        y = 110
+        total_global = 0
+
+        for ruta in ids_seleccionados:
+            id_ruta = ruta.split(" | ")[0]
+            ruta_data = df[df["ID_Ruta"] == id_ruta].iloc[0]
+            pdf.set_xy(25, y)
+            pdf.set_font("Arial", "B", 10)
+            pdf.cell(0, 10, f"{id_ruta}", ln=True)
+            y += 8
+            pdf.set_font("Arial", "", 10)
+
+            for campo in campos:
+                valor = ruta_data[campo]
+                if pd.notnull(valor) and valor != 0:
+                    pdf.set_xy(25, y)
+                    pdf.cell(90, 8, campo.replace("_", " ").title())
+                    pdf.cell(20, 8, "1")
+                    pdf.cell(30, 8, f"${valor:,.2f}")
+                    pdf.cell(30, 8, f"${valor:,.2f}", ln=True)
+                    total_global += valor
+                    y += 8
+
+        # TOTAL GENERAL
+        pdf.set_xy(130, y + 10)
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(40, 10, "Total", 0, 0, "L")
+        pdf.cell(30, 10, f"${total_global:,.2f}", 0, 1, "L")
+
+        # LEYENDA FINAL
+        pdf.set_xy(25, 250)
+        pdf.set_font("Arial", "I", 9)
+        pdf.cell(0, 10, "Esta cotización es válida por 15 días.", ln=True)
+
+        # DESCARGAR PDF
+        pdf_output = "cotizacion_igloo.pdf"
+        pdf.output(pdf_output)
+
+        with open(pdf_output, "rb") as file:
+            btn = st.download_button(
+                label="📄 Descargar Cotización en PDF",
+                data=file,
+                file_name="cotizacion_igloo.pdf",
+                mime="application/pdf"
+            )
+else:
+    st.warning("⚠️ No hay rutas registradas en Supabase.")
