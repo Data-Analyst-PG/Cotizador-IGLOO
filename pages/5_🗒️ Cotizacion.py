@@ -36,10 +36,7 @@ respuesta = supabase.table("Rutas").select("*").execute()
 if respuesta.data:
     df = pd.DataFrame(respuesta.data)
     df["Fecha"] = pd.to_datetime(df["Fecha"]).dt.date
-    
-    # Clientes únicos de Supabase
-    clientes_disponibles = df["Cliente"].dropna().unique().tolist()
-    clientes_disponibles.sort()
+    fecha = st.date_input("Fecha de cotización", value=date.today(), format="DD/MM/YYYY")
 
     # ---------------------------
     # DATOS DE CLIENTE Y EMPRESA
@@ -48,7 +45,7 @@ if respuesta.data:
 
     with col1:
         st.subheader("Datos del Cliente")
-        cliente_nombre = st.selectbox("Selecciona el Cliente", clientes_disponibles)
+        cliente_nombre = st.text_input("Nombre del Cliente")
         cliente_direccion = st.text_input("Dirección del Cliente")
         cliente_mail = st.text_input("Email del Cliente")
         cliente_telefono = st.text_input("Teléfono del Cliente")
@@ -59,14 +56,26 @@ if respuesta.data:
         empresa_direccion = st.text_input("Dirección de la Empresa")
         empresa_mail = st.text_input("Email de la Empresa")
         empresa_telefono = st.text_input("Teléfono de la Empresa")
-        fecha = st.date_input("Fecha de cotización", value=date.today(), format="DD/MM/YYYY")
+        
+    # ---------------------------
+    # SELECCIÓN DE RUTAS SIN FILTRO
+    # ---------------------------
+    ids_seleccionados = st.multiselect(
+        "Elige las rutas que deseas incluir:",
+        df["ID_Ruta"] + " | " + df["Tipo"] + " | " + df["Origen"] + " → " + df["Destino"]
+    )
 
-    
     # ---------------------------
     # MONEDA Y TIPO DE CAMBIO
     # ---------------------------
+    moneda_default = None
+    if ids_seleccionados:
+        id_ruta = ids_seleccionados[0].split(" | ")[0]
+        ruta_data = df[df["ID_Ruta"] == id_ruta].iloc[0]
+        moneda_default = ruta_data["Moneda"]
+
     st.subheader("Moneda y Tipo de Cambio para la Cotización")
-    moneda_cotizacion = st.selectbox("Moneda Principal de la Cotización", ["MXP", "USD"])
+    moneda_cotizacion = st.selectbox("Moneda Principal de la Cotización", ["MXP", "USD"], index=0 if moneda_default == "MXP" else 1)
     tipo_cambio = st.number_input("Tipo de Cambio USD/MXP", min_value=0.0, value=18.0)
 
     def convertir_moneda(valor, origen, destino, tipo_cambio):
@@ -77,18 +86,10 @@ if respuesta.data:
         if origen == "USD" and destino == "MXP":
             return valor * tipo_cambio
         return valor
-    # ---------------------------
-    # FILTRAR RUTAS DEL CLIENTE + VACÍOS y GUARDAR SELECCIÓN DE CONCEPTOS POR RUTA
-    # ---------------------------
-    rutas_filtradas = df[
-        ((df["Cliente"] == cliente_nombre) & (df["Tipo"].isin(["IMPORTACION", "EXPORTACION"]))) |
-        (df["Tipo"] == "VACIO")
-    ]
 
-    ids_seleccionados = st.multiselect(
-        "Elige las rutas que deseas incluir:",
-        rutas_filtradas["ID_Ruta"] + " | " + rutas_filtradas["Tipo"] + " | " + rutas_filtradas["Origen"] + " → " + rutas_filtradas["Destino"]
-    )
+    # ---------------------------
+    # SELECCIÓN DE CONCEPTOS POR RUTA
+    # ---------------------------
     rutas_conceptos = {}
 
     for ruta in ids_seleccionados:
