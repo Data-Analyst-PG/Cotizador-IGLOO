@@ -56,7 +56,7 @@ if respuesta.data:
         empresa_direccion = st.text_input("Dirección de la Empresa")
         empresa_mail = st.text_input("Email de la Empresa")
         empresa_telefono = st.text_input("Teléfono de la Empresa")
-        
+
     # ---------------------------
     # SELECCIÓN DE RUTAS SIN FILTRO
     # ---------------------------
@@ -156,6 +156,10 @@ if respuesta.data:
 
                     valor_convertido = convertir_moneda(valor, moneda, moneda_cotizacion, tipo_cambio)
 
+                    if y > 270:
+                        pdf.add_page()
+                        y = 100
+
                     pdf.set_xy(25, y)
                     pdf.cell(90, 8, campo.replace("_", " ").title())
                     pdf.cell(20, 8, "1")
@@ -165,13 +169,17 @@ if respuesta.data:
                     y += 8
 
         # TOTAL GENERAL
+        if y > 270:
+            pdf.add_page()
+            y = 100
+
         pdf.set_xy(125, y + 10)
         pdf.set_font("Arial", "B", 12)
-        pdf.cell(40, 10, "Total", 0, 0, "L")
+        pdf.cell(30, 10, "Total", 0, 0, "L")
         pdf.cell(30, 10, f"${total_global:,.2f} {moneda_cotizacion}", 0, 1, "L")
 
         # LEYENDA FINAL
-        pdf.set_xy(25, y + 30)
+        pdf.set_xy(25, y + 25)
         pdf.set_font("Arial", "I", 9)
         pdf.cell(0, 10, "Esta cotización es válida por 15 días.", ln=True)
 
