@@ -103,96 +103,107 @@ if respuesta.data:
         )
         rutas_conceptos[ruta] = conceptos
 
-    # ---------------------------
-    # BOTÓN PARA GENERAR PDF
-    # ---------------------------
-    if st.button("Generar Cotización PDF"):
+   # ---------------------------
+# BOTÓN PARA GENERAR PDF
+# ---------------------------
+if st.button("Generar Cotización PDF"):
 
-        class PDF(FPDF):
-            def header(self):
-                self.image('Cotización Igloo.png', x=0, y=0, w=210, h=297)
+    class PDF(FPDF):
+        def header(self):
+            self.image('Cotización Igloo.png', x=0, y=0, w=210, h=297)
 
-        pdf = PDF(orientation='P', unit='mm', format='A4')
+    pdf = PDF(orientation='P', unit='mm', format='A4')
+    pdf.alias_nb_pages()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Arial", "", 10)
+
+    # ---------------------------
+    # DATOS EN PLANTILLA ALINEADOS
+    # ---------------------------
+    pdf.set_xy(25, 60)
+    texto_cliente = f"Nombre: {cliente_nombre}\nDirección: {cliente_direccion}\nMail: {cliente_mail}\nTeléfono: {cliente_telefono}"
+    pdf.multi_cell(80, 5, safe_text(texto_cliente), align='L')
+
+    pdf.set_xy(120, 60)
+    texto_empresa = f"Nombre: {empresa_nombre}\nDirección: {empresa_direccion}\nMail: {empresa_mail}\nTeléfono: {empresa_telefono}"
+    pdf.multi_cell(80, 5, safe_text(texto_empresa), align='L')
+
+    pdf.set_xy(25, 85)
+    pdf.cell(0, 10, safe_text(f"Fecha: {fecha.strftime('%d/%m/%Y')}"), ln=True)
+
+    # ---------------------------
+    # DETALLE DE CONCEPTOS
+    # ---------------------------
+    pdf.set_font("Arial", "", 10)
+    y = 100
+    total_global = 0
+
+    for ruta in ids_seleccionados:
+        id_ruta = ruta.split(" | ")[0]
+        ruta_data = df[df["ID_Ruta"] == id_ruta].iloc[0]
+
+        descripcion_ruta = f"{ruta_data['Tipo']} | {ruta_data['Origen']} → {ruta_data['Destino']}"
+        pdf.set_xy(25, y)
+        pdf.set_font("Arial", "B", 10)
+        pdf.cell(0, 10, safe_text(descripcion_ruta), ln=True)
+        y += 8
+        pdf.set_font("Arial", "", 10)
+
+        conceptos = rutas_conceptos[ruta]
+
+        for campo in conceptos:
+            valor = ruta_data[campo]
+            if pd.notnull(valor) and valor != 0:
+                if campo == "Ingreso_Original":
+                    moneda = ruta_data["Moneda"]
+                elif campo == "Cruce_Original":
+                    moneda = ruta_data["Moneda_Cruce"]
+                else:
+                    moneda = "MXP"
+
+                valor_convertido = convertir_moneda(valor, moneda, moneda_cotizacion, tipo_cambio)
+
+                if y > 270:
+                    pdf.add_page()
+                    y = 100
+
+                pdf.set_xy(25, y)
+                pdf.cell(90, 8, safe_text(campo.replace("_", " ").title()))
+                pdf.cell(20, 8, "1")
+                pdf.cell(30, 8, moneda)
+                pdf.cell(30, 8, f"${valor_convertido:,.2f}", ln=True)
+                total_global += valor_convertido
+                y += 8
+
+    # ---------------------------
+    # TOTAL Y LEYENDA ALINEADOS
+    # ---------------------------
+    if y > 270:
         pdf.add_page()
-        pdf.set_font("Arial", "", 10)
-
-        # DATOS EN PLANTILLA
-        pdf.set_xy(25, 60)
-        pdf.multi_cell(80, 5, f"Nombre: {cliente_nombre}\nDirección: {cliente_direccion}\nMail: {cliente_mail}\nTeléfono: {cliente_telefono}", align='L')
-
-        pdf.set_xy(120, 60)
-        pdf.multi_cell(80, 5, f"Nombre: {empresa_nombre}\nDirección: {empresa_direccion}\nMail: {empresa_mail}\nTeléfono: {empresa_telefono}", align='L')
-
-        pdf.set_xy(25, 85)
-        pdf.cell(0, 10, f"Fecha: {fecha.strftime('%d/%m/%Y')}", ln=True)
-
-        # DETALLE DE CONCEPTOS
-        pdf.set_font("Arial", "", 10)
         y = 100
-        total_global = 0
 
-        for ruta in ids_seleccionados:
-            id_ruta = ruta.split(" | ")[0]
-            ruta_data = df[df["ID_Ruta"] == id_ruta].iloc[0]
+    pdf.set_xy(125, y + 10)
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(30, 10, "Total", 0, 0, "L")
+    pdf.cell(30, 10, f"${total_global:,.2f} {moneda_cotizacion}", 0, 1, "L")
 
-            descripcion_ruta = f"{ruta_data['Tipo']} | {ruta_data['Origen']} → {ruta_data['Destino']}"
-            pdf.set_xy(25, y)
-            pdf.set_font("Arial", "B", 10)
-            pdf.cell(0, 10, descripcion_ruta, ln=True)
-            y += 8
-            pdf.set_font("Arial", "", 10)
+    pdf.set_xy(25, y + 25)
+    pdf.set_font("Arial", "I", 9)
+    pdf.cell(0, 10, safe_text("Esta cotización es válida por 15 días."), ln=True)
 
-            conceptos = rutas_conceptos[ruta]
+    # ---------------------------
+    # GUARDAR PDF
+    # ---------------------------
+    pdf_output = f'Cotizacion-{cliente_nombre}-{fecha.strftime("%d-%m-%Y")}.pdf'
+    pdf.output(pdf_output)
 
-            for campo in conceptos:
-                valor = ruta_data[campo]
-                if pd.notnull(valor) and valor != 0:
-                    if campo == "Ingreso_Original":
-                        moneda = ruta_data["Moneda"]
-                    elif campo == "Cruce_Original":
-                        moneda = ruta_data["Moneda_Cruce"]
-                    else:
-                        moneda = "MXP"
-
-                    valor_convertido = convertir_moneda(valor, moneda, moneda_cotizacion, tipo_cambio)
-
-                    if y > 270:
-                        pdf.add_page()
-                        y = 100
-
-                    pdf.set_xy(25, y)
-                    pdf.cell(90, 8, campo.replace("_", " ").title())
-                    pdf.cell(20, 8, "1")
-                    pdf.cell(30, 8, moneda)
-                    pdf.cell(30, 8, f"${valor_convertido:,.2f}", ln=True)
-                    total_global += valor_convertido
-                    y += 8
-
-        # TOTAL GENERAL
-        if y > 270:
-            pdf.add_page()
-            y = 100
-
-        pdf.set_xy(125, y + 10)
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(30, 10, "Total", 0, 0, "L")
-        pdf.cell(30, 10, f"${total_global:,.2f} {moneda_cotizacion}", 0, 1, "L")
-
-        # LEYENDA FINAL
-        pdf.set_xy(25, y + 25)
-        pdf.set_font("Arial", "I", 9)
-        pdf.cell(0, 10, "Esta cotización es válida por 15 días.", ln=True)
-
-        # DESCARGAR PDF
-        pdf_output = f'Cotizacion-{cliente_nombre}-{fecha.strftime("%d-%m-%Y")}.pdf'
-        pdf.output(pdf_output)
-
-        with open(pdf_output, "rb") as file:
-            btn = st.download_button(
-                label="📄 Descargar Cotización en PDF",
-                data=file,
-                file_name=pdf_output,
-                mime="application/pdf"
-            )
+    with open(pdf_output, "rb") as file:
+        btn = st.download_button(
+            label="📄 Descargar Cotización en PDF",
+            data=file,
+            file_name=pdf_output,
+            mime="application/pdf"
+        )
 else:
     st.warning("⚠️ No hay rutas registradas en Supabase.")
