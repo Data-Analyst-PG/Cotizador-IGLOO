@@ -115,7 +115,7 @@ if st.button("Generar Cotización PDF"):
         def header(self):
             self.image('Cotización Igloo.png', x=0, y=0, w=210, h=297)
 
-    pdf = PDF(orientation='P', unit='mm', format='A4')
+    pdf = PDF(orientation='P', unit='mm', format='Letter')
     pdf.alias_nb_pages()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
