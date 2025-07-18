@@ -106,6 +106,9 @@ if respuesta.data:
    # ---------------------------
 # BOTÓN PARA GENERAR PDF
 # ---------------------------
+def safe_text(text):
+    return text.encode('latin-1', 'ignore').decode('latin-1')
+
 if st.button("Generar Cotización PDF"):
 
     class PDF(FPDF):
