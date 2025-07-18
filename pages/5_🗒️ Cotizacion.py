@@ -146,7 +146,7 @@ if st.button("Generar Cotización PDF"):
         id_ruta = ruta.split(" | ")[0]
         ruta_data = df[df["ID_Ruta"] == id_ruta].iloc[0]
 
-        descripcion_ruta = f"{ruta_data['Tipo']} | {ruta_data['Origen']} → {ruta_data['Destino']}"
+        descripcion_ruta = f"{ruta_data['Tipo']} | {ruta_data['Origen']} -> {ruta_data['Destino']}"
         pdf.set_xy(25, y)
         pdf.set_font("Arial", "B", 10)
         pdf.cell(0, 10, safe_text(descripcion_ruta), ln=True)
@@ -159,13 +159,13 @@ if st.button("Generar Cotización PDF"):
             valor = ruta_data[campo]
             if pd.notnull(valor) and valor != 0:
                 if campo == "Ingreso_Original":
-                    moneda = ruta_data["Moneda"]
+                    moneda_original = ruta_data["Moneda"]
                 elif campo == "Cruce_Original":
-                    moneda = ruta_data["Moneda_Cruce"]
+                    moneda_original = ruta_data["Moneda_Cruce"]
                 else:
-                    moneda = "MXP"
+                    moneda_original = "MXP"
 
-                valor_convertido = convertir_moneda(valor, moneda, moneda_cotizacion, tipo_cambio)
+                valor_convertido = convertir_moneda(valor, moneda_original, moneda_cotizacion, tipo_cambio)
 
                 if y > 270:
                     pdf.add_page()
@@ -174,7 +174,7 @@ if st.button("Generar Cotización PDF"):
                 pdf.set_xy(25, y)
                 pdf.cell(90, 8, safe_text(campo.replace("_", " ").title()))
                 pdf.cell(20, 8, "1")
-                pdf.cell(30, 8, moneda)
+                pdf.cell(30, 8, moneda_cotizacion)  # Cambia visualmente a la moneda principal
                 pdf.cell(30, 8, f"${valor_convertido:,.2f}", ln=True)
                 total_global += valor_convertido
                 y += 8
@@ -186,11 +186,11 @@ if st.button("Generar Cotización PDF"):
         pdf.add_page()
         y = 100
 
-    pdf.set_xy(125, y + 10)
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(30, 10, "Total", 0, 0, "L")
-    pdf.cell(30, 10, f"${total_global:,.2f} {moneda_cotizacion}", 0, 1, "L")
+    pdf.set_xy(115, y + 10)  # Columna de moneda
+    pdf.cell(30, 10, moneda_cotizacion, 0, 0, "L")
+    pdf.cell(30, 10, f"${total_global:,.2f}", 0, 1, "L")  # Columna de monto
 
+    # LEYENDA FINAL
     pdf.set_xy(25, y + 25)
     pdf.set_font("Arial", "I", 9)
     pdf.cell(0, 10, safe_text("Esta cotización es válida por 15 días."), ln=True)
