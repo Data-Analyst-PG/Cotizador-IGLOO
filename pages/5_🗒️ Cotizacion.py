@@ -186,12 +186,14 @@ if st.button("Generar Cotización PDF"):
         pdf.add_page()
         y = 100
 
-    pdf.set_xy(115, y + 10)
     pdf.set_font("Arial", "B", 10)
-    pdf.cell(30, 10, "Tarifa total", 0, 0, "L")
-    pdf.cell(30, 10, moneda_cotizacion, 0, 0, "L")  # Aquí sí imprimimos MXP o USD
+    pdf.set_xy(115, y + 10)
+    pdf.cell(20, 10, "Tarifa total", 0, 0, "L")  # Columna Cantidad
+
+    pdf.cell(20, 10, moneda_cotizacion, 0, 0, "L")  # Columna Moneda
+
     pdf.set_font("Arial", "B", 12)
-    pdf.cell(30, 10, f"${total_global:,.2f}", 0, 1, "L")
+    pdf.cell(30, 10, f"${total_global:,.2f}", 0, 1, "L")  # Columna Precio
 
     # ---------------------------
     # GUARDAR PDF
