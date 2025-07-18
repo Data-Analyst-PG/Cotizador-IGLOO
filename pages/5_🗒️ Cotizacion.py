@@ -117,13 +117,13 @@ if respuesta.data:
         pdf.set_font("Arial", "", 10)
 
         # DATOS EN PLANTILLA
-        pdf.set_xy(25, 50)
+        pdf.set_xy(25, 60)
         pdf.multi_cell(80, 5, f"Nombre: {cliente_nombre}\nDirección: {cliente_direccion}\nMail: {cliente_mail}\nTeléfono: {cliente_telefono}", align='L')
 
-        pdf.set_xy(120, 50)
+        pdf.set_xy(120, 60)
         pdf.multi_cell(80, 5, f"Nombre: {empresa_nombre}\nDirección: {empresa_direccion}\nMail: {empresa_mail}\nTeléfono: {empresa_telefono}", align='L')
 
-        pdf.set_xy(25, 80)
+        pdf.set_xy(25, 85)
         pdf.cell(0, 10, f"Fecha: {fecha.strftime('%d/%m/%Y')}", ln=True)
 
         # DETALLE DE CONCEPTOS
@@ -165,13 +165,13 @@ if respuesta.data:
                     y += 8
 
         # TOTAL GENERAL
-        pdf.set_xy(130, y + 10)
+        pdf.set_xy(125, y + 10)
         pdf.set_font("Arial", "B", 12)
         pdf.cell(40, 10, "Total", 0, 0, "L")
         pdf.cell(30, 10, f"${total_global:,.2f} {moneda_cotizacion}", 0, 1, "L")
 
         # LEYENDA FINAL
-        pdf.set_xy(25, 250)
+        pdf.set_xy(25, y + 30)
         pdf.set_font("Arial", "I", 9)
         pdf.cell(0, 10, "Esta cotización es válida por 15 días.", ln=True)
 
