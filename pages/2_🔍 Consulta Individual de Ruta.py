@@ -215,7 +215,7 @@ with col3:
 def safe_pdf_text(text):
     return str(text).encode('latin1', 'replace').decode('latin1')
 
-# ✅ Generación del PDF
+# ✅ Generación del PDF con todos los detalles
 st.markdown("---")
 st.subheader("📥 Descargar PDF de la Consulta")
 
@@ -226,8 +226,10 @@ pdf.cell(0, 10, safe_pdf_text("Consulta Individual de Ruta"), ln=True, align="C"
 pdf.ln(10)
 
 pdf.set_font("Arial", size=10)
+pdf.cell(0, 10, safe_pdf_text(f"ID de Ruta: {ruta['ID_Ruta']}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Fecha: {ruta['Fecha']}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Tipo: {ruta['Tipo']}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Modo: {ruta.get('Modo de Viaje', 'Operado')}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Cliente: {ruta['Cliente']}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Origen → Destino: {ruta['Origen']} → {ruta['Destino']}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"KM: {safe_number(ruta['KM']):,.2f}"), ln=True)
@@ -241,6 +243,28 @@ pdf.cell(0, 10, safe_pdf_text(f"% Utilidad Bruta: {porcentaje_bruta:.2f}%"), ln=
 pdf.cell(0, 10, safe_pdf_text(f"Costos Indirectos (35%): ${costos_indirectos:,.2f}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Utilidad Neta: ${utilidad_neta:,.2f}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"% Utilidad Neta: {porcentaje_neta:.2f}%"), ln=True)
+
+pdf.ln(5)
+pdf.cell(0, 10, safe_pdf_text("Detalle de Costos y Extras:"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Ingreso Flete: ${safe_number(ruta['Ingreso Flete']):,.2f}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Ingreso Cruce: ${safe_number(ruta['Ingreso Cruce']):,.2f}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Costo Cruce: ${safe_number(ruta['Costo Cruce Convertido']):,.2f}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Diesel Camión: ${safe_number(ruta['Costo_Diesel_Camion']):,.2f}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Diesel Termo: ${safe_number(ruta['Costo_Diesel_Termo']):,.2f}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Sueldo Operador: ${safe_number(ruta['Sueldo_Operador']):,.2f}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Bono: ${safe_number(ruta['Bono']):,.2f}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Casetas: ${safe_number(ruta['Casetas']):,.2f}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Extras: ${safe_number(ruta['Costo_Extras']):,.2f}"), ln=True)
+
+pdf.ln(5)
+pdf.cell(0, 10, safe_pdf_text("Costos Detallados de Extras:"), ln=True)
+extras = ["Lavado_Termo", "Movimiento_Local", "Puntualidad", "Pension", "Estancia",
+          "Fianza_Termo", "Renta_Termo", "Pistas_Extra", "Stop", "Falso", "Gatas",
+          "Accesorios", "Guias"]
+
+for extra in extras:
+    label = extra.replace("_", " ").title()
+    pdf.cell(0, 10, safe_pdf_text(f"{label}: ${safe_number(ruta.get(extra, 0)):,.2f}"), ln=True)
 
 temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
 pdf.output(temp_file.name)
