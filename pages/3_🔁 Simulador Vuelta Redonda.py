@@ -21,6 +21,9 @@ supabase = create_client(url, key)
 
 st.title("🔁 Simulador de Vuelta Redonda")
 
+if "descargar_pdf" not in st.session_state:
+    st.session_state.descargar_pdf = False
+
 def safe_number(x):
     return 0 if (x is None or (isinstance(x, float) and pd.isna(x))) else x
 
@@ -268,10 +271,13 @@ if st.button("🚛 Simular Vuelta Redonda"):
                 st.write("No aplica")
     
     st.session_state.simulacion_realizada = True
-    st.session_state.mostrar_boton_pdf = True
     st.markdown("---")
     st.subheader("📥 Generar PDF de la Simulación")
     if st.button("Descargar PDF"):
+        st.session_state.descargar_pdf = True
+    
+    # 🔹 Aquí generas el PDF solo si el botón ya fue presionado
+    if st.session_state.descargar_pdf:
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Arial", size=12)
@@ -313,3 +319,5 @@ if st.button("🚛 Simular Vuelta Redonda"):
                 file_name=f"Simulacion_{st.session_state.rutas_seleccionadas[0]['Tipo']}_{st.session_state.rutas_seleccionadas[0].get('ID_Ruta', 'SinID')}.pdf",
                 mime="application/pdf"
             )
+        st.session_state.descargar_pdf = False
+
