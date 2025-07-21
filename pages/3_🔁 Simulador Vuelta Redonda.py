@@ -21,11 +21,6 @@ supabase = create_client(url, key)
 
 st.title("🔁 Simulador de Vuelta Redonda")
 
-if "simulacion_realizada" not in st.session_state:
-    st.session_state.simulacion_realizada = False
-if "mostrar_boton_pdf" not in st.session_state:
-    st.session_state.mostrar_boton_pdf = False
-
 def safe_number(x):
     return 0 if (x is None or (isinstance(x, float) and pd.isna(x))) else x
 
@@ -274,11 +269,8 @@ if st.button("🚛 Simular Vuelta Redonda"):
     
     st.session_state.simulacion_realizada = True
     st.session_state.mostrar_boton_pdf = True
-
-if st.session_state.mostrar_boton_pdf:
     st.markdown("---")
     st.subheader("📥 Generar PDF de la Simulación")
-
     if st.button("Descargar PDF"):
         pdf = FPDF()
         pdf.add_page()
