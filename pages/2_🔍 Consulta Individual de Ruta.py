@@ -161,6 +161,7 @@ col1, col2, col3 = st.columns(3)
     
 with col1:
     st.write(f"Fecha: {ruta['Fecha']}")
+    st.write(f"ID de Ruta: {ruta['ID_Ruta']}")
     st.write(f"Tipo: {ruta['Tipo']}")
     st.write(f"Modo: {ruta.get('Modo de Viaje', 'Operado')}")
     st.write(f"Cliente: {ruta['Cliente']}")
