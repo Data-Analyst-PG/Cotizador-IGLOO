@@ -211,7 +211,7 @@ with col3:
     st.write(f"- Guías: ${safe_number(ruta.get('Guias', 0)):,.2f}")
 
 st.markdown("---")
-st.subheader("📥 Generar PDF de la Consulta")
+st.subheader("📥 Descargar PDF de la Consulta")
 
 pdf = FPDF()
 pdf.add_page()
@@ -241,7 +241,7 @@ pdf.output(temp_file.name)
 
 with open(temp_file.name, "rb") as file:
     st.download_button(
-        label="Descargar PDF de la Consulta",
+        label="Descargar PDF",
         data=file,
         file_name=f"Consulta_{ruta['Cliente']}_{ruta['Origen']}_{ruta['Destino']}.pdf",
         mime="application/pdf"
