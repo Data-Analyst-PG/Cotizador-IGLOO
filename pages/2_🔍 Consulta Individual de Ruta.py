@@ -210,41 +210,44 @@ with col3:
     st.write(f"- Accesorios: ${safe_number(ruta.get('Accesorios', 0)):,.2f}")
     st.write(f"- Guías: ${safe_number(ruta.get('Guias', 0)):,.2f}")
 
+# ✅ Función para limpiar caracteres no compatibles con PDF
+def safe_pdf_text(text):
+    return str(text).encode('latin1', 'replace').decode('latin1')
+
+# ✅ Generación del PDF
 st.markdown("---")
 st.subheader("📥 Descargar PDF de la Consulta")
 
-if ingreso_total > 0:
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.cell(0, 10, "Consulta Individual de Ruta", ln=True, align="C")
-    pdf.ln(10)
+pdf = FPDF()
+pdf.add_page()
+pdf.set_font("Arial", size=12)
+pdf.cell(0, 10, safe_pdf_text("Consulta Individual de Ruta"), ln=True, align="C")
+pdf.ln(10)
 
-    pdf.set_font("Arial", size=10)
-    pdf.cell(0, 10, f"Fecha: {ruta['Fecha']}", ln=True)
-    pdf.cell(0, 10, f"Tipo: {ruta['Tipo']}", ln=True)
-    pdf.cell(0, 10, f"Cliente: {ruta['Cliente']}", ln=True)
-    pdf.cell(0, 10, f"Origen → Destino: {ruta['Origen']} → {ruta['Destino']}", ln=True)
-    pdf.cell(0, 10, f"KM: {safe_number(ruta['KM']):,.2f}", ln=True)
+pdf.set_font("Arial", size=10)
+pdf.cell(0, 10, safe_pdf_text(f"Fecha: {ruta['Fecha']}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Tipo: {ruta['Tipo']}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Cliente: {ruta['Cliente']}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Origen → Destino: {ruta['Origen']} → {ruta['Destino']}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"KM: {safe_number(ruta['KM']):,.2f}"), ln=True)
 
-    pdf.ln(5)
-    pdf.cell(0, 10, "Resultados de Utilidad:", ln=True)
-    pdf.cell(0, 10, f"Ingreso Total: ${ingreso_total:,.2f}", ln=True)
-    pdf.cell(0, 10, f"Costo Total: ${costo_total:,.2f}", ln=True)
-    pdf.cell(0, 10, f"Utilidad Bruta: ${utilidad_bruta:,.2f}", ln=True)
-    pdf.cell(0, 10, f"% Utilidad Bruta: {porcentaje_bruta:.2f}%", ln=True)
-    pdf.cell(0, 10, f"Costos Indirectos (35%): ${costos_indirectos:,.2f}", ln=True)
-    pdf.cell(0, 10, f"Utilidad Neta: ${utilidad_neta:,.2f}", ln=True)
-    pdf.cell(0, 10, f"% Utilidad Neta: {porcentaje_neta:.2f}%", ln=True)
+pdf.ln(5)
+pdf.cell(0, 10, safe_pdf_text("Resultados de Utilidad:"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Ingreso Total: ${ingreso_total:,.2f}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Costo Total: ${costo_total:,.2f}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Utilidad Bruta: ${utilidad_bruta:,.2f}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"% Utilidad Bruta: {porcentaje_bruta:.2f}%"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Costos Indirectos (35%): ${costos_indirectos:,.2f}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Utilidad Neta: ${utilidad_neta:,.2f}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"% Utilidad Neta: {porcentaje_neta:.2f}%"), ln=True)
 
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
-    pdf.output(temp_file.name)
+temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+pdf.output(temp_file.name)
 
-    with open(temp_file.name, "rb") as file:
-        st.download_button(
-            label="Descargar PDF",
-            data=file,
-            file_name=f"Consulta_{ruta['Cliente']}_{ruta['Origen']}_{ruta['Destino']}.pdf",
-            mime="application/pdf"
-        )
-
+with open(temp_file.name, "rb") as file:
+    st.download_button(
+        label="Descargar PDF",
+        data=file,
+        file_name=f"Consulta_{ruta['Cliente']}_{ruta['Origen']}_{ruta['Destino']}.pdf",
+        mime="application/pdf"
+    )
