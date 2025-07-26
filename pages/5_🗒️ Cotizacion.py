@@ -49,6 +49,7 @@ if respuesta.data:
         cliente_direccion = st.text_input("Dirección del Cliente")
         cliente_mail = st.text_input("Email del Cliente")
         cliente_telefono = st.text_input("Teléfono del Cliente")
+        cliente_ext = st.text_input("Ext Cliente")
 
     with col2:
         st.subheader("Datos de la Empresa")
@@ -56,6 +57,7 @@ if respuesta.data:
         empresa_direccion = st.text_input("Dirección de la Empresa")
         empresa_mail = st.text_input("Email de la Empresa")
         empresa_telefono = st.text_input("Teléfono de la Empresa")
+        empresa_ext = st.text_input("Ext Empresa")
 
     # ---------------------------
     # SELECCIÓN DE RUTAS SIN FILTRO
@@ -98,7 +100,7 @@ if respuesta.data:
             f"Conceptos para {ruta}",
             options=["Ingreso_Original", "Cruce_Original", "Movimiento_Local", "Puntualidad", "Pension", "Estancia",
                      "Pistas_Extra", "Stop", "Falso", "Gatas", "Accesorios", "Casetas", "Fianza_Termo", "Guias",
-                     "Lavado_Termo", "Renta_Termo"],
+                     "Lavado_Termo", "Renta_Termo", "Costo_Diesel_Camion", "Costo_Diesel_Termo"],
             default=["Ingreso_Original", "Casetas"]
         )
         rutas_conceptos[ruta] = conceptos
@@ -110,51 +112,92 @@ def safe_text(text):
     return text.encode('latin-1', 'ignore').decode('latin-1')
 
 if st.button("Generar Cotización PDF"):
-
+    
     class PDF(FPDF):
-        def header(self):
-            self.image('Cotización Igloo.png', x=0, y=0, w=210, h=297)
+        def __init__(self, orientation='P', unit='in', format='Letter'):
+            super().__init__(orientation=orientation, unit=unit, format=format)
+            self.add_font('Montserrat', '', 'Montserrat-Regular.ttf', uni=True)
+            self.add_font('Montserrat', 'B', 'Montserrat-Bold.ttf', uni=True)
 
-    pdf = PDF(orientation='P', unit='mm', format='Letter')
-    pdf.alias_nb_pages()
-    pdf.set_auto_page_break(auto=True, margin=15)
+        def header(self):
+            self.image('Cotización Igloo.png', x=0, y=0, w=8.5, h=11)
+
+    # Crear PDF con orientación vertical, pulgadas y formato carta
+    pdf = PDF(orientation='P', unit='in', format='Letter')
+    pdf.set_auto_page_break(auto=False)
     pdf.add_page()
-    pdf.set_font("Arial", "", 10)
 
     # ---------------------------
     # DATOS EN PLANTILLA ALINEADOS
     # ---------------------------
-    pdf.set_xy(25, 60)
-    texto_cliente = f"Nombre: {cliente_nombre}\nDirección: {cliente_direccion}\nMail: {cliente_mail}\nTeléfono: {cliente_telefono}"
-    pdf.multi_cell(80, 5, safe_text(texto_cliente), align='L')
+    # Cliente
+    pdf.set_font("Montserrat", "", 10)
+    pdf.set_xy(0.8, 2.29)
+    pdf.multi_cell(2.89, 0.22, safe_text(cliente_nombre), align="L")
 
-    pdf.set_xy(120, 60)
-    texto_empresa = f"Nombre: {empresa_nombre}\nDirección: {empresa_direccion}\nMail: {empresa_mail}\nTeléfono: {empresa_telefono}"
-    pdf.multi_cell(80, 5, safe_text(texto_empresa), align='L')
+    pdf.set_xy(0.8, 2.93)
+    pdf.multi_cell(2.89, 0.22, safe_text(cliente_direccion), align="L")
 
-    pdf.set_xy(25, 85)
-    pdf.cell(0, 10, safe_text(f"Fecha: {fecha.strftime('%d/%m/%Y')}"), ln=True)
+    pdf.set_xy(0.8, 3.48)
+    pdf.multi_cell(2.89, 0.22, safe_text(cliente_mail), align="L")
+
+    pdf.set_xy(0.8, 3.9)
+    pdf.cell(1.35, 0.22, safe_text(cliente_telefono), align="L")
+    pdf.set_xy(2.63, 3.9)
+    pdf.cell(0.76, 0.22, safe_text(cliente_ext), align="L")
+
+
+    # Empresa (ajustada al recuadro derecho)
+    pdf.set_xy(4.78, 2.29)
+    pdf.multi_cell(2.89, 0.22, safe_text(empresa_nombre), align="R")
+
+    pdf.set_xy(4.78, 2.93)
+    pdf.multi_cell(2.89, 0.22, safe_text(empresa_direccion), align="R")
+
+    pdf.set_xy(4.78, 3.48)
+    pdf.multi_cell(2.89, 0.22, safe_text(empresa_mail), align="R")
+
+    pdf.set_xy(5.23, 3.9)
+    pdf.cell(1.35, 0.22, safe_text(empresa_telefono), align="L")
+    pdf.set_xy(6.98, 3.9)
+    pdf.cell(0.76, 0.22, safe_text(empresa_ext), align="L")
+
+    pdf.set_xy(0.85, 4.66)
+    pdf.multi_cell(1.78, 0.22, safe_text(f"{fecha.strftime('%d/%m/%Y')}"))
 
     # ---------------------------
     # DETALLE DE CONCEPTOS
     # ---------------------------
-    pdf.set_font("Arial", "", 10)
-    y = 100
+    pdf.set_font("Montserrat", "", 7)
+    pdf.set_text_color(128, 128, 128)
+    y = 5.84
     total_global = 0
 
     for ruta in ids_seleccionados:
         id_ruta = ruta.split(" | ")[0]
         ruta_data = df[df["ID_Ruta"] == id_ruta].iloc[0]
-
-        descripcion_ruta = f"{ruta_data['Tipo']} | {ruta_data['Origen']} - {ruta_data['Destino']}"
-        pdf.set_xy(25, y)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(0, 10, safe_text(descripcion_ruta), ln=True)
-        y += 8
-        pdf.set_font("Arial", "", 10)
-
+        tipo_ruta = ruta_data['Tipo']
+        origen = ruta_data['Origen']
+        destino = ruta_data['Destino']
+        descripcion = f"{origen} → {destino}"
         conceptos = rutas_conceptos[ruta]
 
+        # Imprimir tipo de ruta (e.g. IMPORTACION)
+        pdf.set_font("Montserrat", "B", 7)
+        pdf.set_text_color(128, 128, 128)
+        pdf.set_xy(0.85, y)
+        pdf.multi_cell(7, 0.15, safe_text(tipo_ruta), align="L")
+
+        # Imprimir la ruta (origen → destino), con ajuste automático de altura
+        y_ruta = pdf.get_y()
+        pdf.set_xy(0.85, y_ruta)
+        pdf.multi_cell(7, 0.15, safe_text(descripcion), align="L")
+
+        # Actualizar y al terminar el texto de la ruta
+        y = pdf.get_y() + 0.05  # pequeña separación con respecto al concepto
+
+        # Conceptos (uno por renglón)
+        pdf.set_font("Montserrat", "", 7)
         for campo in conceptos:
             valor = ruta_data[campo]
             if pd.notnull(valor) and valor != 0:
@@ -164,49 +207,62 @@ if st.button("Generar Cotización PDF"):
                     moneda_original = ruta_data["Moneda_Cruce"]
                 else:
                     moneda_original = "MXP"
-
+            
                 valor_convertido = convertir_moneda(valor, moneda_original, moneda_cotizacion, tipo_cambio)
-
-                if y > 270:
+            
+                if y > 9:  # Salto de página si es necesario
                     pdf.add_page()
-                    y = 100
+                    y = 1
 
-                pdf.set_xy(25, y)
-                pdf.cell(90, 8, safe_text(campo.replace("_", " ").title()))
-                pdf.cell(20, 8, "1")
-                pdf.cell(30, 8, moneda_cotizacion)  # Cambia visualmente a la moneda principal
-                pdf.cell(30, 8, f"${valor_convertido:,.2f}", ln=True)
+                # Impresión del concepto
+                pdf.set_xy(0.85, y)
+                pdf.cell(3.55, 0.15, safe_text(campo.replace("_", " ").title()), align="L")
+
+                pdf.set_xy(4.69, y)
+                pdf.cell(0.61, 0.15, "1", align="C")
+
+                pdf.set_xy(5.79, y)
+                pdf.cell(0.61, 0.15, moneda_cotizacion, align="C")
+
+                pdf.set_xy(6.77, y)
+                pdf.cell(0.88, 0.15, f"${valor_convertido:,.2f}", align="C")
+
                 total_global += valor_convertido
-                y += 8
+                y += 0.18
 
     # ---------------------------
     # TOTAL Y LEYENDA ALINEADOS
     # ---------------------------
-    if y > 270:
-        pdf.add_page()
-        y = 100
+    pdf.set_font("Montserrat", "B", 7)
+    pdf.set_text_color(00, 00, 00)
+    pdf.set_xy(4.69, 9.34)
+    pdf.cell(0.61, 0.15, "Tarifa total", align="C")
 
-    pdf.set_font("Arial", "B", 10)
-    pdf.set_xy(115, y + 10)
-    pdf.cell(20, 10, "Tarifa total", 0, 0, "L")  # Columna Cantidad
+    pdf.set_xy(5.79, 9.34)
+    pdf.cell(0.61, 0.15, moneda_cotizacion, align="C")
 
-    pdf.cell(20, 10, moneda_cotizacion, 0, 0, "L")  # Columna Moneda
+    pdf.set_xy(6.77, 9.34)
+    pdf.cell(0.88, 0.15, f"${total_global:,.2f}", align="C")
 
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(30, 10, f"${total_global:,.2f}", 0, 1, "L")  # Columna Precio
+    pdf.set_font("Montserrat", "", 7)
+    pdf.set_text_color(128, 128, 128)
+    pdf.set_xy(0.86, 9.69)
+    pdf.multi_cell(3.55, 0.15, safe_text("Esta cotización es válida por 15 días, No aplica IVA y Retenciones en el caso de las importaciones y exportacione, Y las exportaciones aplica tasa 0"), align="L")
 
     # ---------------------------
     # GUARDAR PDF
     # ---------------------------
-    pdf_output = f'Cotizacion-{cliente_nombre}-{fecha.strftime("%d-%m-%Y")}.pdf'
+    nombre_archivo_cliente = re.sub(r'[^\w\-]', '_', cliente_nombre)
+    pdf_output = f'Cotizacion-{nombre_archivo_cliente}-{fecha.strftime("%d-%m-%Y")}.pdf'
     pdf.output(pdf_output)
 
     with open(pdf_output, "rb") as file:
-        btn = st.download_button(
+        st.download_button(
             label="📄 Descargar Cotización en PDF",
             data=file,
             file_name=pdf_output,
             mime="application/pdf"
         )
+        
 else:
     st.warning("⚠️ No hay rutas registradas en Supabase.")
