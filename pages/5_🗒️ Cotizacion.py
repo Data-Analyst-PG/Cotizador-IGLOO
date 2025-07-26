@@ -237,7 +237,7 @@ if st.button("Generar Cotización PDF"):
     pdf.set_font("Montserrat", "B", 7)
     pdf.set_text_color(00, 00, 00)
     pdf.set_xy(4.69, 9.34)
-    pdf.cell(0.61, 0.15, "TARIFA TOTAL", align="R")
+    pdf.cell(0.61, 0.15, "TARIFA TOTAL", align="C")
 
     pdf.set_xy(5.79, 9.34)
     pdf.cell(0.61, 0.15, moneda_cotizacion, align="C")
