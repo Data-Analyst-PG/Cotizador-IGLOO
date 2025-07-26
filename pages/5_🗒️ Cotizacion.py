@@ -180,7 +180,7 @@ if st.button("Generar Cotización PDF"):
         tipo_ruta = ruta_data['Tipo']
         origen = ruta_data['Origen']
         destino = ruta_data['Destino']
-        descripcion = f"{origen} → {destino}"
+        descripcion = f"{origen} - {destino}"
         conceptos = rutas_conceptos[ruta]
 
         # Imprimir tipo de ruta (e.g. IMPORTACION)
@@ -237,7 +237,7 @@ if st.button("Generar Cotización PDF"):
     pdf.set_font("Montserrat", "B", 7)
     pdf.set_text_color(00, 00, 00)
     pdf.set_xy(4.69, 9.34)
-    pdf.cell(0.61, 0.15, "Tarifa total", align="C")
+    pdf.cell(0.61, 0.15, "TARIFA TOTAL", align="R")
 
     pdf.set_xy(5.79, 9.34)
     pdf.cell(0.61, 0.15, moneda_cotizacion, align="C")
