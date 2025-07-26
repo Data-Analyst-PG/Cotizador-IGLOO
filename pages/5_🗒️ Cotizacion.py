@@ -3,6 +3,7 @@ import pandas as pd
 from fpdf import FPDF
 from datetime import date
 from supabase import create_client
+import re
 
 # ---------------------------
 # CONEXIÓN A SUPABASE
