@@ -71,32 +71,61 @@ if df.empty:
     st.warning("⚠️ No hay rutas guardadas todavía.")
     st.stop()
 
-st.subheader("📌 Selecciona Tipo de Ruta")
-tipo_sel = st.selectbox("Tipo", ["IMPORTACION", "EXPORTACION", "VACIO"])
+# =========================
+# 🔎 Búsqueda por ID de Ruta (opcional)
+# =========================
+st.subheader("🔎 Buscar por ID de Ruta (opcional)")
+id_buscar = st.text_input("ID de Ruta", placeholder="p. ej. IG000123").strip()
+usar_id = st.button("Buscar por ID")
 
-df_tipo = df[df["Tipo"] == tipo_sel]
-rutas_unicas = df_tipo[["Origen", "Destino"]].drop_duplicates()
-opciones_ruta = list(rutas_unicas.itertuples(index=False, name=None))
+ruta = None   # bandera: si se encuentra por ID, saltamos el resto del flujo
 
-st.subheader("📌 Selecciona Ruta (Origen → Destino)")
-ruta_sel = st.selectbox("Ruta", opciones_ruta, format_func=lambda x: f"{x[0]} → {x[1]}")
-origen_sel, destino_sel = ruta_sel
+if usar_id and id_buscar:
+    # permite coincidencia exacta o parcial
+    df_id = df[df["ID_Ruta"].astype(str).str.contains(id_buscar, case=False, na=False)]
 
-df_filtrada = df_tipo[(df_tipo["Origen"] == origen_sel) & (df_tipo["Destino"] == destino_sel)]
+    if df_id.empty:
+        st.warning("⚠️ No se encontraron rutas con ese ID.")
+    elif len(df_id) == 1:
+        ruta = df_id.iloc[0]
+        st.success(f"✅ Ruta encontrada: {ruta['ID_Ruta']} ({ruta['Origen']} → {ruta['Destino']}, {ruta['Cliente']})")
+    else:
+        st.info("Se encontraron varias coincidencias, selecciona una:")
+        idx = st.selectbox(
+            "Coincidencias por ID",
+            df_id.index.tolist(),
+            format_func=lambda i: f"{df_id.loc[i, 'ID_Ruta']} · {df_id.loc[i, 'Cliente']} · {df_id.loc[i, 'Origen']} → {df_id.loc[i, 'Destino']}"
+        )
+        ruta = df_id.loc[idx]
 
-if df_filtrada.empty:
-    st.warning("⚠️ No hay rutas con esa combinación.")
-    st.stop()
 
-st.subheader("📌 Selecciona Cliente")
-opciones = df_filtrada.index.tolist()
-index_sel = st.selectbox(
-    "Cliente",
-    opciones,
-    format_func=lambda x: f"{df.loc[x, 'Cliente']} ({df.loc[x, 'Origen']} → {df.loc[x, 'Destino']})"
-)
+# Si NO se eligió por ID, usar el flujo tradicional Tipo → Ruta → Cliente
+if ruta is None:
+    st.subheader("📌 Selecciona Tipo de Ruta")
+    tipo_sel = st.selectbox("Tipo", ["IMPORTACION", "EXPORTACION", "VACIO"])
 
-ruta = df.loc[index_sel]
+    df_tipo = df[df["Tipo"] == tipo_sel]
+    rutas_unicas = df_tipo[["Origen", "Destino"]].drop_duplicates()
+    opciones_ruta = list(rutas_unicas.itertuples(index=False, name=None))
+
+    st.subheader("📌 Selecciona Ruta (Origen → Destino)")
+    ruta_sel = st.selectbox("Ruta", opciones_ruta, format_func=lambda x: f"{x[0]} → {x[1]}")
+    origen_sel, destino_sel = ruta_sel
+
+    df_filtrada = df_tipo[(df_tipo["Origen"] == origen_sel) & (df_tipo["Destino"] == destino_sel)]
+
+    if df_filtrada.empty:
+        st.warning("⚠️ No hay rutas con esa combinación.")
+        st.stop()
+
+    st.subheader("📌 Selecciona Cliente")
+    opciones = df_filtrada.index.tolist()
+    index_sel = st.selectbox(
+        "Cliente",
+        opciones,
+        format_func=lambda x: f"{df.loc[x, 'Cliente']} ({df.loc[x, 'Origen']} → {df.loc[x, 'Destino']})"
+    )
+    ruta = df.loc[index_sel]
     
 # Campos simulables
 st.markdown("---")
