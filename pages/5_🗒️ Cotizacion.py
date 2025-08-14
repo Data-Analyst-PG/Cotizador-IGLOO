@@ -118,7 +118,7 @@ if respuesta.data:
 
         # Defaults sugeridos:
         default_sumar = ["Ingreso_Original", "Cruce_Original"]
-        default_visual = ["Casetas", "Puntualidad", "Pension", "Estancia"]
+        default_visual = ["Casetas", "Pension", "Estancia"]
 
         colS, colV = st.columns(2)
         with colS:
@@ -153,12 +153,26 @@ if st.button("Generar Cotización PDF"):
     class PDF(FPDF):
         def __init__(self, orientation='P', unit='in', format='Letter'):
             super().__init__(orientation=orientation, unit=unit, format=format)
+            # Fuentes
             self.add_font('Montserrat', '', 'Montserrat-Regular.ttf', uni=True)
             self.add_font('Montserrat', 'B', 'Montserrat-Bold.ttf', uni=True)
+            # Intentar cargar itálica; si no existe, usaremos Helvetica itálica como respaldo
+            try:
+                self.add_font('Montserrat', 'I', 'Montserrat-Italic.ttf', uni=True)
+                self.has_montserrat_italic = True
+            except Exception:
+                self.has_montserrat_italic = False
 
         def header(self):
             # Fondo/plantilla
-            self.image('Cotización Igloo.png', x=0, y=0, w=8.5, h=11)
+            self.image('ADT PGL NO TXT.png', x=0, y=0, w=8.5, h=11)
+
+        # helper para poner cursiva con fallback
+        def set_italic(self, size=7):
+            if self.has_montserrat_italic:
+                self.set_font("Montserrat", "I", size)
+            else:
+                self.set_font("Helvetica", "I", size)
 
     pdf = PDF(orientation='P', unit='in', format='Letter')
     pdf.set_auto_page_break(auto=False)
@@ -218,7 +232,6 @@ if st.button("Generar Cotización PDF"):
         cfg = rutas_config.get(ruta, {"sumar": [], "visual": []})
         conceptos_orden = cfg["sumar"] + cfg["visual"]
 
-        pdf.set_font("Montserrat", "", 7)
         for campo in conceptos_orden:
             if campo not in ruta_data or pd.isna(ruta_data[campo]) or ruta_data[campo] == 0:
                 continue
@@ -239,24 +252,40 @@ if st.button("Generar Cotización PDF"):
                 pdf.add_page()
                 y = 1
 
-            # Etiqueta y valores
+            # ¿Se cobra o es informativo?
+            es_cobrado = campo in cfg["sumar"]
+
+            # Estilo del texto del concepto (normal vs cursiva)
+            if es_cobrado:
+                pdf.set_font("Montserrat", "", 7)
+            else:
+                pdf.set_italic(7)  # cursiva
+
+            # Etiqueta (renombrada) y valores
             pdf.set_xy(0.85, y); pdf.cell(3.55, 0.15, safe_text(label_de(campo)), align="L")
-            pdf.set_xy(4.69, y); pdf.cell(0.61, 0.15, "1", align="C")
+
+            # Cantidad: "1" solo si se cobra; vacío si es informativo
+            cantidad_texto = "1" if es_cobrado else ""
+            pdf.set_font("Montserrat", "", 7)  # aseguramos número/moneda en regular
+            pdf.set_xy(4.69, y); pdf.cell(0.61, 0.15, cantidad_texto, align="C")
             pdf.set_xy(5.79, y); pdf.cell(0.61, 0.15, moneda_cotizacion, align="C")
             pdf.set_xy(6.77, y); pdf.cell(0.88, 0.15, f"${valor_convertido:,.2f}", align="C")
 
-            # ➕ Solo sumamos los que están en "sumar"
-            if campo in cfg["sumar"]:
+            # ➕ Sumar solo si corresponde
+            if es_cobrado:
                 total_global += valor_convertido
 
+            # Restaurar fuente base para siguiente renglón
+            pdf.set_font("Montserrat", "", 7)
             y += 0.18
 
     # ---------------------------
-    # TOTAL Y LEYENDA
+    # TOTAL
     # ---------------------------
     pdf.set_font("Montserrat", "B", 7)
     pdf.set_text_color(0, 0, 0)
-    pdf.set_xy(4.69, 9.34); pdf.cell(0.61, 0.15, "TARIFA TOTAL", align="C")
+    # (opcional) Etiqueta de total: descomenta si la quieres visible
+    # pdf.set_xy(4.69, 9.34); pdf.cell(0.61, 0.15, "TARIFA TOTAL", align="C")
     pdf.set_xy(5.79, 9.34); pdf.cell(0.61, 0.15, moneda_cotizacion, align="C")
     pdf.set_xy(6.77, 9.34); pdf.cell(0.88, 0.15, f"${total_global:,.2f}", align="C")
 
