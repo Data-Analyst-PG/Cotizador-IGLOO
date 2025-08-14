@@ -165,7 +165,7 @@ if st.button("Generar Cotización PDF"):
 
         def header(self):
             # Fondo/plantilla
-            self.image('ADT PGL NO TXT.png', x=0, y=0, w=8.5, h=11)
+            self.image('ADT PGL GRAL NO TXT.png', x=0, y=0, w=8.5, h=11)
 
         # helper para poner cursiva con fallback
         def set_italic(self, size=7):
