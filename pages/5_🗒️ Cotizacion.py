@@ -183,18 +183,18 @@ if st.button("Generar Cotización PDF"):
     # ---------------------------
     # Cliente
     pdf.set_font("Montserrat", "", 10)
-    pdf.set_xy(0.8, 2.29); pdf.multi_cell(2.89, 0.22, safe_text(cliente_nombre), align="L")
-    pdf.set_xy(0.8, 2.93); pdf.multi_cell(2.89, 0.22, safe_text(cliente_direccion), align="L")
-    pdf.set_xy(0.8, 3.48); pdf.multi_cell(2.89, 0.22, safe_text(cliente_mail), align="L")
-    pdf.set_xy(0.8, 3.9);  pdf.cell(1.35, 0.22, safe_text(cliente_telefono), align="L")
-    pdf.set_xy(2.63, 3.9); pdf.cell(0.76, 0.22, safe_text(cliente_ext), align="L")
+    pdf.set_xy(0.85, 2.29); pdf.multi_cell(2.89, 0.31, safe_text(cliente_nombre), align="L")
+    pdf.set_xy(0.85, 2.89); pdf.multi_cell(2.89, 0.31, safe_text(cliente_direccion), align="L")
+    pdf.set_xy(0.85, 3.48); pdf.multi_cell(2.89, 0.31, safe_text(cliente_mail), align="L")
+    pdf.set_xy(0.85, 3.85);  pdf.cell(1.35, 0.31, safe_text(cliente_telefono), align="L")
+    pdf.set_xy(2.39, 3.83); pdf.cell(0.76, 0.31, safe_text(cliente_ext), align="C")
 
     # Empresa
-    pdf.set_xy(4.78, 2.29); pdf.multi_cell(2.89, 0.22, safe_text(empresa_nombre), align="R")
-    pdf.set_xy(4.78, 2.93); pdf.multi_cell(2.89, 0.22, safe_text(empresa_direccion), align="R")
-    pdf.set_xy(4.78, 3.48); pdf.multi_cell(2.89, 0.22, safe_text(empresa_mail), align="R")
-    pdf.set_xy(5.23, 3.9);  pdf.cell(1.35, 0.22, safe_text(empresa_telefono), align="L")
-    pdf.set_xy(6.98, 3.9);  pdf.cell(0.76, 0.22, safe_text(empresa_ext), align="L")
+    pdf.set_xy(4.76, 2.29); pdf.multi_cell(2.89, 0.31, safe_text(empresa_nombre), align="R")
+    pdf.set_xy(4.76, 2.89); pdf.multi_cell(2.89, 0.31, safe_text(empresa_direccion), align="R")
+    pdf.set_xy(4.76, 3.48); pdf.multi_cell(2.89, 0.31, safe_text(empresa_mail), align="R")
+    pdf.set_xy(5.43, 3.85);  pdf.cell(1.35, 0.31, safe_text(empresa_telefono), align="R")
+    pdf.set_xy(7.03, 3.83);  pdf.cell(0.76, 0.31, safe_text(empresa_ext), align="C")
 
     # Fecha
     pdf.set_xy(0.85, 4.66)
@@ -267,9 +267,9 @@ if st.button("Generar Cotización PDF"):
             # Cantidad: "1" solo si se cobra; vacío si es informativo
             cantidad_texto = "1" if es_cobrado else ""
             pdf.set_font("Montserrat", "", 7)  # aseguramos número/moneda en regular
-            pdf.set_xy(4.69, y); pdf.cell(0.61, 0.15, cantidad_texto, align="C")
-            pdf.set_xy(5.79, y); pdf.cell(0.61, 0.15, moneda_cotizacion, align="C")
-            pdf.set_xy(6.77, y); pdf.cell(0.88, 0.15, f"${valor_convertido:,.2f}", align="C")
+            pdf.set_xy(4.64, y); pdf.cell(0.79, 0.12, cantidad_texto, align="C")
+            pdf.set_xy(5.72, y); pdf.cell(0.79, 0.12, moneda_cotizacion, align="C")
+            pdf.set_xy(6.8, y); pdf.cell(0.79, 0.12, f"${valor_convertido:,.2f}", align="R")
 
             # ➕ Sumar solo si corresponde
             if es_cobrado:
@@ -285,9 +285,8 @@ if st.button("Generar Cotización PDF"):
     pdf.set_font("Montserrat", "B", 7)
     pdf.set_text_color(0, 0, 0)
     # (opcional) Etiqueta de total: descomenta si la quieres visible
-    # pdf.set_xy(4.69, 9.34); pdf.cell(0.61, 0.15, "TARIFA TOTAL", align="C")
-    pdf.set_xy(5.79, 9.34); pdf.cell(0.61, 0.15, moneda_cotizacion, align="C")
-    pdf.set_xy(6.77, 9.34); pdf.cell(0.88, 0.15, f"${total_global:,.2f}", align="C")
+    pdf.set_xy(5.65, 9.15); pdf.cell(0.92, 0.15, moneda_cotizacion, align="C")
+    pdf.set_xy(6.73, 9.15); pdf.cell(0.92, 0.15, f"${total_global:,.2f}", align="C")
 
     pdf.set_font("Montserrat", "", 7)
     pdf.set_text_color(128, 128, 128)
