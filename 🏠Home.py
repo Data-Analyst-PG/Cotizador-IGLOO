@@ -61,11 +61,16 @@ def vista_reportes():
     st.write("Contenido…")
 
 pages = [
-    st.Page("pages/Inicio.py", title="Inicio", icon="🏠"),   # archivo
-    st.Page(vista_reportes, title="Reportes", icon="📊"),    # función
-    st.Page("pages/Usuarios.py", title="Usuarios", icon="👤")
+    # st.Page("pages/Inicio.py", title="Inicio", icon="🏠"),  # ya no existe
+    st.Page("pages/0_👤 Registro de Usuario.py", title="Registro de Usuario", icon="👤"),
+    st.Page("pages/1_📝 Captura de Rutas.py", title="Captura de Rutas", icon="📝"),
+    st.Page("pages/2_🔍 Consulta Individual de Ruta.py", title="Consulta Individual", icon="🔍"),
+    st.Page("pages/3_🔄 Simulador Vuelta Redonda.py", title="Simulador", icon="🔄"),
+    st.Page("pages/4_📂 Gestión de Rutas.py", title="Gestión de Rutas", icon="📂"),
+    st.Page("pages/5_💲 Cotizacion.py", title="Cotización", icon="💲"),
+    st.Page("pages/5_📅 Programación de Viajes.py", title="Programación", icon="📅"),
+    st.Page("pages/6_📑 Viajes Concluidos.py", title="Viajes Concluidos", icon="📑"),
 ]
-
 pg = st.navigation(pages, position="top")
 pg.run()
 
