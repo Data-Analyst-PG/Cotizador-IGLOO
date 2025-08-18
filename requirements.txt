@@ -1,9 +1,8 @@
-streamlit
+streamlit>=1.33
 pandas
 numpy
-Pillow
-git+https://github.com/supabase-community/supabase-py
+supabase>=2.5.0
 python-dotenv
 openpyxl
 fpdf
-pillow
+Pillow
