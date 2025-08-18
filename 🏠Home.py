@@ -52,6 +52,24 @@ with st.sidebar:
         st.experimental_rerun()
 
 # =========================
+# PRUEVA DE NUEVO INICIO
+# =========================
+import streamlit as st
+
+def vista_reportes():
+    st.header("📊 Reportes")
+    st.write("Contenido…")
+
+pages = [
+    st.Page("pages/Inicio.py", title="Inicio", icon="🏠"),   # archivo
+    st.Page(vista_reportes, title="Reportes", icon="📊"),    # función
+    st.Page("pages/Usuarios.py", title="Usuarios", icon="👤")
+]
+
+pg = st.navigation(pages, position="top")
+pg.run()
+
+# =========================
 # ✅ ENCABEZADO Y MENÚ
 # =========================
 
