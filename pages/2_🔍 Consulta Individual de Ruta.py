@@ -127,11 +127,27 @@ if ruta is None:
     )
     ruta = df.loc[index_sel]
     
+# Rendimiento registrado en la ruta (solo consulta)
+rend_reg = float(
+    safe_number(
+            ruta.get("Rendimiento_Camion", ruta.get("Rendimiento Camion", valores.get("Rendimiento Camion", 2.5)))
+    )
+)
+
 # Campos simulables
 st.markdown("---")
 st.subheader("⚙️ Ajustes para Simulación")
+
 costo_diesel_input = st.number_input("Costo del Diesel ($/L)", value=float(valores.get("Costo Diesel", 24.0)))
-rendimiento_input = st.number_input("Rendimiento Camión (km/L)", value=float(valores.get("Rendimiento Camion", 2.65)))
+
+# Mostrar solo consulta
+st.markdown(f"> Rendimiento Camión **registrado**: **{rend_reg:.2f} km/L** (solo consulta)")
+
+# Campo editable SOLO para simulación
+rendimiento_input = st.number_input(
+    "Rendimiento Camión para Simulación (km/L)",
+    value=float(valores.get("Rendimiento Camion", rend_reg))
+)
 
 
 if st.button("🔁 Simular"):
@@ -196,7 +212,10 @@ with col1:
     st.write(f"Cliente: {ruta['Cliente']}")
     st.write(f"Origen → Destino: {ruta['Origen']} → {ruta['Destino']}")
     st.write(f"KM: {safe_number(ruta['KM']):,.2f}")
-    st.write(f"Rendimiento Camión: {rendimiento_input:.2f}")
+    st.write(f"Rendimiento Camión (registrado): {rend_reg:.2f} km/L")
+    if st.session_state.get("simular", False):
+        st.write(f"Rendimiento Camión (simulación): {rendimiento_input:.2f} km/L")
+
         
 with col2:
     st.write(f"Moneda Flete: {ruta['Moneda']}")
@@ -262,6 +281,10 @@ pdf.cell(0, 10, safe_pdf_text(f"Modo: {ruta.get('Modo de Viaje', 'Operado')}"), 
 pdf.cell(0, 10, safe_pdf_text(f"Cliente: {ruta['Cliente']}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Origen → Destino: {ruta['Origen']} → {ruta['Destino']}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"KM: {safe_number(ruta['KM']):,.2f}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Rendimiento Camión (registrado): {rend_reg:.2f} km/L"), ln=True)
+if st.session_state.get("simular", False):
+    pdf.cell(0, 10, safe_pdf_text(f"Rendimiento Camión (simulación): {rendimiento_input:.2f} km/L"), ln=True)
+
 
 pdf.ln(5)
 pdf.cell(0, 10, safe_pdf_text("Resultados de Utilidad:"), ln=True)
