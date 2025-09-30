@@ -229,14 +229,17 @@ if respuesta.data:
             pago_km = float(valores.get("Pago x km IMPORTACION", 2.1))
             sueldo = d["km"] * pago_km * factor
             bono = float(valores.get("Bono ISR IMSS", 0)) * factor
+            costo_ind = ingreso_total * 0.35
         elif d["tipo"] == "EXPORTACION":
             pago_km = float(valores.get("Pago x km EXPORTACION", 2.5))
             sueldo = d["km"] * pago_km * factor
             bono = float(valores.get("Bono ISR IMSS", 0)) * factor
+            costo_ind = ingreso_total * 0.35
         else:
             pago_km = 0.0
             sueldo = float(valores.get("Pago fijo VACIO", 200.0)) * factor
             bono = 0.0
+            costo_ind = 0
 
         puntualidad_val = d["puntualidad"] * factor
         extras = sum(map(safe_number, [
@@ -253,7 +256,7 @@ if respuesta.data:
             costo_diesel_camion + costo_diesel_termo + sueldo + bono + d["casetas"] + extras + costo_cruce_convertido
         )
         utilidad_bruta = ingreso_total - costo_total
-        costos_indirectos = ingreso_total * 0.35
+        costos_indirectos = costo_ind
         utilidad_neta = utilidad_bruta - costos_indirectos
         porcentaje_bruta = (utilidad_bruta / ingreso_total * 100) if ingreso_total > 0 else 0
         porcentaje_neta = (utilidad_neta / ingreso_total * 100) if ingreso_total > 0 else 0
