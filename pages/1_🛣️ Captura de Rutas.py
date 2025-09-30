@@ -152,14 +152,17 @@ with st.form("captura_ruta"):
             pago_km = valores["Pago x km IMPORTACION"]
             sueldo = km * pago_km * factor
             bono = valores["Bono ISR IMSS"] * factor
+            costo_ind = ingreso_total * 0.35
         elif tipo == "EXPORTACION":
             pago_km = valores["Pago x km EXPORTACION"]
             sueldo = km * pago_km * factor
             bono = valores["Bono ISR IMSS"] * factor
+            costo_ind = ingreso_total * 0.35
         else:
             pago_km = 0.0
             sueldo = valores["Pago fijo VACIO"] * factor
             bono = 0.0
+            costo_ind = 0
 
         puntualidad_val = puntualidad * factor
         extras = sum(map(safe_number, [lavado_termo, movimiento_local, puntualidad_val, pension, estancia, fianza_termo, renta_termo, pistas_extra, stop, falso, gatas, accesorios, guias]))
@@ -167,7 +170,7 @@ with st.form("captura_ruta"):
         costo_total = costo_diesel_camion + costo_diesel_termo + sueldo + bono + casetas + extras + costo_cruce_convertido
 
         utilidad_bruta = ingreso_total - costo_total
-        costos_indirectos = ingreso_total * 0.35
+        costos_indirectos = costo_ind
         utilidad_neta = utilidad_bruta - costos_indirectos
         porcentaje_bruta = (utilidad_bruta / ingreso_total * 100) if ingreso_total > 0 else 0
         porcentaje_neta = (utilidad_neta / ingreso_total * 100) if ingreso_total > 0 else 0
