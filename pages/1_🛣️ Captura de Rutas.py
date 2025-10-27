@@ -65,6 +65,9 @@ valores = cargar_datos_generales()
 st.title("🚛 Captura de Rutas + Datos Generales")
 
 with st.expander("⚙️ Configurar Datos Generales"):
+    col1, col2, col3 = st.columns(3)
+    claves = list(valores_por_defecto.keys())
+    
     for key in valores_por_defecto:
         valores[key] = st.number_input(key, value=float(valores.get(key, valores_por_defecto[key])), step=0.1)
     if st.button("Guardar Datos Generales"):
