@@ -65,7 +65,7 @@ valores = cargar_datos_generales()
 st.title("🚛 Captura de Rutas + Datos Generales")
 
 with st.expander("⚙️ Configurar Datos Generales"):
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     claves = list(valores_por_defecto.keys())
     
     for i, key in enumerate(claves):
