@@ -195,6 +195,23 @@ def safe_text(text):
     return str(text).encode('latin-1', 'ignore').decode('latin-1')
 
 # ---------------------------
+# NOTAS / CONDICIONES EDITABLES
+# ---------------------------
+st.subheader("Notas o Condiciones de la Cotización")
+
+texto_default = (
+    "Esta cotización es válida por 15 días. "
+    "No aplica IVA y Retenciones en el caso de las importaciones y exportaciones. "
+    "Las exportaciones aplican tasa 0."
+)
+
+notas_cotizacion = st.text_area(
+    "Puedes editar este texto si lo deseas:",
+    value=texto_default,
+    height=100
+)
+
+# ---------------------------
 # GENERAR PDF
 # ---------------------------
 if st.button("Generar Cotización PDF"):
@@ -327,7 +344,7 @@ if st.button("Generar Cotización PDF"):
     pdf.set_xy(0.86, 9.69)
     pdf.multi_cell(
         3.55, 0.15,
-        safe_text("Esta cotización es válida por 15 días, No aplica IVA y Retenciones en el caso de las importaciones y exportacione, Y las exportaciones aplica tasa 0"),
+        safe_text(notas_cotizacion),
         align="L"
     )
 
