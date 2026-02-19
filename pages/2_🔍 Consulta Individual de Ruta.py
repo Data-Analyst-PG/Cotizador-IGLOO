@@ -51,7 +51,9 @@ st.title("🔍 Consulta Individual de Ruta")
 def safe_number(x):
     return 0 if pd.isna(x) else x
 
-def mostrar_resultados(ingreso_total, costo_total, utilidad_bruta, costos_indirectos, utilidad_neta, porcentaje_bruta, porcentaje_neta):
+def mostrar_resultados(ingreso_total, costo_total, porcentaje_costo_directo,
+                       utilidad_bruta, costos_indirectos, utilidad_neta,
+                       porcentaje_bruta, porcentaje_neta):
     st.markdown("---")
     st.subheader("📊 Ingresos y Utilidades")
 
@@ -61,6 +63,7 @@ def mostrar_resultados(ingreso_total, costo_total, utilidad_bruta, costos_indire
 
     st.write(f"**Ingreso Total:** ${ingreso_total:,.2f}")
     st.write(f"**Costo Total:** ${costo_total:,.2f}")
+    st.markdown(colored_bold("% Costo Directo", f"{porcentaje_costo_directo:.2f}%", porcentaje_costo_directo <= 50), unsafe_allow_html=True)
     st.markdown(colored_bold("Utilidad Bruta", f"${utilidad_bruta:,.2f}", utilidad_bruta >= 0), unsafe_allow_html=True)
     st.markdown(colored_bold("% Utilidad Bruta", f"{porcentaje_bruta:.2f}%", porcentaje_bruta >= 50), unsafe_allow_html=True)
     st.write(f"**Costos Indirectos (35%):** ${costos_indirectos:,.2f}")
@@ -169,6 +172,7 @@ if st.session_state.get("simular", False):
         safe_number(ruta["Costo_Extras"])
     )
 
+    porcentaje_costo_directo = (costo_total / ingreso_total * 100) if ingreso_total > 0 else 0
     utilidad_bruta = ingreso_total - costo_total
     costos_indirectos = ingreso_total * 0.35
     utilidad_neta = utilidad_bruta - costos_indirectos
@@ -176,7 +180,7 @@ if st.session_state.get("simular", False):
     porcentaje_neta = (utilidad_neta / ingreso_total * 100) if ingreso_total > 0 else 0
 
     st.success("🔧 Estás viendo una simulación. Los valores han sido ajustados con los parámetros ingresados.")
-    mostrar_resultados(ingreso_total, costo_total, utilidad_bruta, costos_indirectos, utilidad_neta, porcentaje_bruta, porcentaje_neta)
+    mostrar_resultados(ingreso_total, costo_total, porcentaje_costo_directo, utilidad_bruta, costos_indirectos, utilidad_neta, porcentaje_bruta, porcentaje_neta)
 
     # Botón para volver a valores reales
     if st.button("🔄 Volver a valores reales"):
@@ -187,13 +191,14 @@ if st.session_state.get("simular", False):
 else:
     ingreso_total = safe_number(ruta["Ingreso Total"])
     costo_total = safe_number(ruta["Costo_Total_Ruta"])
+    porcentaje_costo_directo = (costo_total / ingreso_total * 100) if ingreso_total > 0 else 0
     utilidad_bruta = ingreso_total - costo_total
     costos_indirectos = ingreso_total * 0.35
     utilidad_neta = utilidad_bruta - costos_indirectos
     porcentaje_bruta = (utilidad_bruta / ingreso_total * 100) if ingreso_total > 0 else 0
     porcentaje_neta = (utilidad_neta / ingreso_total * 100) if ingreso_total > 0 else 0
 
-    mostrar_resultados(ingreso_total, costo_total, utilidad_bruta, costos_indirectos, utilidad_neta, porcentaje_bruta, porcentaje_neta)
+    mostrar_resultados(ingreso_total, costo_total, porcentaje_costo_directo, utilidad_bruta, costos_indirectos, utilidad_neta, porcentaje_bruta, porcentaje_neta)
 
     
 # =====================
@@ -279,7 +284,7 @@ pdf.cell(0, 10, safe_pdf_text(f"Fecha: {ruta['Fecha']}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Tipo: {ruta['Tipo']}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Modo: {ruta.get('Modo de Viaje', 'Operado')}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Cliente: {ruta['Cliente']}"), ln=True)
-pdf.cell(0, 10, safe_pdf_text(f"Origen → Destino: {ruta['Origen']} → {ruta['Destino']}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"Origen --> Destino: {ruta['Origen']} --> {ruta['Destino']}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"KM: {safe_number(ruta['KM']):,.2f}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Rendimiento Camión (registrado): {rend_reg:.2f} km/L"), ln=True)
 if st.session_state.get("simular", False):
@@ -290,6 +295,7 @@ pdf.ln(5)
 pdf.cell(0, 10, safe_pdf_text("Resultados de Utilidad:"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Ingreso Total: ${ingreso_total:,.2f}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Costo Total: ${costo_total:,.2f}"), ln=True)
+pdf.cell(0, 10, safe_pdf_text(f"% Costo Directo: {porcentaje_costo_directo:.2f}%"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Utilidad Bruta: ${utilidad_bruta:,.2f}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"% Utilidad Bruta: {porcentaje_bruta:.2f}%"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Costos Indirectos (35%): ${costos_indirectos:,.2f}"), ln=True)
@@ -306,7 +312,6 @@ pdf.cell(0, 10, safe_pdf_text(f"Diesel Termo: ${safe_number(ruta['Costo_Diesel_T
 pdf.cell(0, 10, safe_pdf_text(f"Sueldo Operador: ${safe_number(ruta['Sueldo_Operador']):,.2f}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Bono: ${safe_number(ruta['Bono']):,.2f}"), ln=True)
 pdf.cell(0, 10, safe_pdf_text(f"Casetas: ${safe_number(ruta['Casetas']):,.2f}"), ln=True)
-pdf.cell(0, 10, safe_pdf_text(f"Extras: ${safe_number(ruta['Costo_Extras']):,.2f}"), ln=True)
 
 pdf.ln(5)
 pdf.cell(0, 10, safe_pdf_text("Costos Detallados de Extras:"), ln=True)
