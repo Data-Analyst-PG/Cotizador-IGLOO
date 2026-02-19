@@ -181,13 +181,16 @@ with st.form("captura_ruta"):
         def colored_bold(label, value, condition):
             color = "green" if condition else "red"
             return f"<strong>{label}:</strong> <span style='color:{color}; font-weight:bold'>{value}</span>"
+        def colored_porcentage(label, value, condition):
+            color = "red" if condition else "green"
+            return f"<strong>{label}:</strong> <span style='color:{color}; font-weight:bold'>{value}</span>"
 
         st.markdown("---")
         st.subheader("📊 Ingresos y Utilidades")
 
         st.write(f"**Ingreso Total:** ${ingreso_total:,.2f}")
         st.write(f"**Costo Total:** ${costo_total:,.2f}")
-        st.markdown(colored_bold("% Costo Directo", f"{porcentaje_costo_directo:.2f}%", porcentaje_costo_directo <= 70), unsafe_allow_html=True)
+        st.markdown(colored_porcentage("% Costo Directo", f"{porcentaje_costo_directo:.2f}%", porcentaje_costo_directo >= 50), unsafe_allow_html=True)
         st.markdown(colored_bold("Utilidad Bruta", f"${utilidad_bruta:,.2f}", utilidad_bruta >= 0), unsafe_allow_html=True)
         st.markdown(colored_bold("% Utilidad Bruta", f"{porcentaje_bruta:.2f}%", porcentaje_bruta >= 50), unsafe_allow_html=True)
         st.write(f"**Costos Indirectos (35%):** ${costos_indirectos:,.2f}")
